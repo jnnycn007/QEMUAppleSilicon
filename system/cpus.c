@@ -36,7 +36,6 @@
 #include "exec/cpu-common.h"
 #include "qemu/thread.h"
 #include "qemu/main-loop.h"
-#include "qemu/plugin.h"
 #include "system/cpus.h"
 #include "qemu/guest-random.h"
 #include "hw/nmi.h"
@@ -462,18 +461,9 @@ void qemu_process_cpu_events_common(CPUState *cpu)
 
 void qemu_process_cpu_events(CPUState *cpu)
 {
-    bool slept = false;
-
     qatomic_set(&cpu->exit_request, false);
     while (cpu_thread_is_idle(cpu)) {
-        if (!slept) {
-            slept = true;
-            qemu_plugin_vcpu_idle_cb(cpu);
-        }
         qemu_cond_wait(cpu->halt_cond, &bql);
-    }
-    if (slept) {
-        qemu_plugin_vcpu_resume_cb(cpu);
     }
 
     qemu_process_cpu_events_common(cpu);

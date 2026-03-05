@@ -484,10 +484,6 @@ const QEMULogItem qemu_log_items[] = {
       "show micro ops after optimization" },
     { CPU_LOG_TB_OP_IND, "op_ind",
       "show micro ops before indirect lowering" },
-#ifdef CONFIG_PLUGIN
-    { LOG_TB_OP_PLUGIN, "op_plugin",
-      "show micro ops before plugin injection" },
-#endif
     { CPU_LOG_INT, "int",
       "show interrupts/exceptions in short format" },
     { CPU_LOG_EXEC, "exec",
@@ -512,9 +508,6 @@ const QEMULogItem qemu_log_items[] = {
     { CPU_LOG_TB_NOCHAIN, "nochain",
       "do not chain compiled TBs so that \"exec\" and \"cpu\" show\n"
       "complete traces" },
-#ifdef CONFIG_PLUGIN
-    { CPU_LOG_PLUGIN, "plugin", "output from TCG plugins"},
-#endif
     { LOG_STRACE, "strace",
       "log every user-mode syscall, its input, and its result" },
     { LOG_PER_THREAD, "tid",

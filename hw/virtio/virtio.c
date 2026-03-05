@@ -48,11 +48,6 @@
 #include "standard-headers/linux/virtio_vsock.h"
 
 /*
- * Maximum size of virtio device config space
- */
-#define VHOST_USER_MAX_CONFIG_SIZE 256
-
-/*
  * The alignment to use between consumer and producer parts of vring.
  * x86 pagesize again. This is the default, used by transports like PCI
  * which don't provide a means for the guest to tell the host the alignment.
@@ -187,7 +182,6 @@ const char *virtio_device_names[] = {
     [VIRTIO_ID_VIDEO_DECODER] = "virtio-vid-decoder",
     [VIRTIO_ID_SCMI] = "virtio-scmi",
     [VIRTIO_ID_NITRO_SEC_MOD] = "virtio-nitro-sec-mod",
-    [VIRTIO_ID_I2C_ADAPTER] = "vhost-user-i2c",
     [VIRTIO_ID_WATCHDOG] = "virtio-watchdog",
     [VIRTIO_ID_CAN] = "virtio-can",
     [VIRTIO_ID_DMABUF] = "virtio-dmabuf",

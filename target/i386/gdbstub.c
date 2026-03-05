@@ -18,13 +18,9 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 #include "qemu/osdep.h"
-#include "accel/tcg/vcpu-state.h"
 #include "cpu.h"
 #include "exec/gdbstub.h"
 #include "gdbstub/helpers.h"
-#ifdef CONFIG_LINUX_USER
-#include "linux-user/qemu.h"
-#endif
 
 #ifdef TARGET_X86_64
 static const int gpr_map[16] = {
@@ -214,11 +210,7 @@ int x86_cpu_gdb_read_register(CPUState *cs, GByteArray *mem_buf, int n)
         case IDX_CTL_CR4_REG:
             return gdb_read_reg_cs64(env->hflags, mem_buf, env->cr[4]);
         case IDX_CTL_CR8_REG:
-#ifndef CONFIG_USER_ONLY
             tpr = cpu_get_apic_tpr(cpu->apic_state);
-#else
-            tpr = 0;
-#endif
             return gdb_read_reg_cs64(env->hflags, mem_buf, tpr);
 
         case IDX_CTL_EFER_REG:
@@ -234,9 +226,6 @@ static int x86_cpu_gdb_load_seg(X86CPU *cpu, X86Seg sreg, uint8_t *mem_buf)
     uint16_t selector = ldl_p(mem_buf);
 
     if (selector != env->segs[sreg].selector) {
-#if defined(CONFIG_USER_ONLY)
-        cpu_x86_load_seg(env, sreg, selector);
-#else
         unsigned int limit, flags;
         target_ulong base;
 
@@ -253,7 +242,6 @@ static int x86_cpu_gdb_load_seg(X86CPU *cpu, X86Seg sreg, uint8_t *mem_buf)
             }
         }
         cpu_x86_load_seg_cache(env, sreg, selector, base, limit, flags);
-#endif
     }
     return 4;
 }
@@ -367,93 +355,35 @@ int x86_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
 
         case IDX_CTL_CR0_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             cpu_x86_update_cr0(env, tmp);
-#endif
             return len;
 
         case IDX_CTL_CR2_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             env->cr[2] = tmp;
-#endif
             return len;
 
         case IDX_CTL_CR3_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             cpu_x86_update_cr3(env, tmp);
-#endif
             return len;
 
         case IDX_CTL_CR4_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             cpu_x86_update_cr4(env, tmp);
-#endif
             return len;
 
         case IDX_CTL_CR8_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             cpu_set_apic_tpr(cpu->apic_state, tmp);
-#endif
             return len;
 
         case IDX_CTL_EFER_REG:
             len = gdb_write_reg_cs64(env->hflags, mem_buf, &tmp);
-#ifndef CONFIG_USER_ONLY
             cpu_load_efer(env, tmp);
-#endif
             return len;
         }
     }
     /* Unrecognised register.  */
     return 0;
-}
-
-#ifdef CONFIG_LINUX_USER
-
-#define IDX_ORIG_AX 0
-
-static int x86_cpu_gdb_read_linux_register(CPUState *cs, GByteArray *mem_buf,
-                                           int n)
-{
-    X86CPU *cpu = X86_CPU(cs);
-    CPUX86State *env = &cpu->env;
-
-    switch (n) {
-    case IDX_ORIG_AX:
-        return gdb_get_reg(env, mem_buf, get_task_state(cs)->orig_ax);
-    }
-    return 0;
-}
-
-static int x86_cpu_gdb_write_linux_register(CPUState *cs, uint8_t *mem_buf,
-                                            int n)
-{
-    X86CPU *cpu = X86_CPU(cs);
-    CPUX86State *env = &cpu->env;
-
-    switch (n) {
-    case IDX_ORIG_AX:
-        return gdb_write_reg(env, mem_buf, &get_task_state(cs)->orig_ax);
-    }
-    return 0;
-}
-
-#endif
-
-void x86_cpu_gdb_init(CPUState *cs)
-{
-#ifdef CONFIG_LINUX_USER
-    gdb_register_coprocessor(cs, x86_cpu_gdb_read_linux_register,
-                             x86_cpu_gdb_write_linux_register,
-#ifdef TARGET_X86_64
-                             gdb_find_static_feature("i386-64bit-linux.xml"),
-#else
-                             gdb_find_static_feature("i386-32bit-linux.xml"),
-#endif
-                             0);
-#endif
 }

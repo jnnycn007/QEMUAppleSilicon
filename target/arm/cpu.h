@@ -854,17 +854,10 @@ typedef struct CPUArchState {
         uint32_t ctrl;
     } sau;
 
-#if !defined(CONFIG_USER_ONLY)
     NVICState *nvic;
     const struct arm_boot_info *boot_info;
     /* Store GICv3CPUState to access from this struct */
     void *gicv3state;
-#else /* CONFIG_USER_ONLY */
-    /* For usermode syscall translation.  */
-    bool eabi;
-    /* Linux syscall tagged address support */
-    bool tagged_addr_enable;
-#endif /* CONFIG_USER_ONLY */
 } CPUARMState;
 
 static inline void set_feature(CPUARMState *env, int feature)
@@ -1198,12 +1191,6 @@ struct ArchCPU {
     uint32_t sve_max_vq;
     uint32_t sme_max_vq;
 
-#ifdef CONFIG_USER_ONLY
-    /* Used to set the default vector length at process start. */
-    uint32_t sve_default_vq;
-    uint32_t sme_default_vq;
-#endif
-
     ARMVQMap sve_vq;
     ARMVQMap sme_vq;
 
@@ -1266,7 +1253,6 @@ void gt_rme_post_el_change(ARMCPU *cpu, void *opaque);
 
 uint64_t arm_build_mp_affinity(int idx, uint8_t clustersz);
 
-#ifndef CONFIG_USER_ONLY
 extern const VMStateDescription vmstate_arm_cpu;
 
 void arm_cpu_do_interrupt(CPUState *cpu);
@@ -1274,7 +1260,6 @@ void arm_v7m_cpu_do_interrupt(CPUState *cpu);
 
 hwaddr arm_cpu_get_phys_page_attrs_debug(CPUState *cpu, vaddr addr,
                                          MemTxAttrs *attrs);
-#endif /* !CONFIG_USER_ONLY */
 
 int arm_cpu_gdb_read_register(CPUState *cpu, GByteArray *buf, int reg);
 int arm_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
@@ -1678,7 +1663,6 @@ static inline void xpsr_write(CPUARMState *env, uint32_t val, uint32_t mask)
     if (mask & XPSR_GE) {
         env->GE = (val & XPSR_GE) >> 16;
     }
-#ifndef CONFIG_USER_ONLY
     if (mask & XPSR_T) {
         env->thumb = ((val & XPSR_T) != 0);
     }
@@ -1694,7 +1678,6 @@ static inline void xpsr_write(CPUARMState *env, uint32_t val, uint32_t mask)
         /* Note that this only happens on exception exit */
         write_v7m_exception(env, val & XPSR_EXCP);
     }
-#endif
 }
 
 #define HCR_VM        (1ULL << 0)
@@ -2587,7 +2570,6 @@ static inline ARMSecuritySpace arm_secure_to_space(bool secure)
     return secure ? ARMSS_Secure : ARMSS_NonSecure;
 }
 
-#if !defined(CONFIG_USER_ONLY)
 /**
  * arm_security_space_below_el3:
  * @env: cpu context
@@ -2664,44 +2646,6 @@ static inline bool arm_is_el2_enabled(CPUARMState *env)
     return arm_feature(env, ARM_FEATURE_EL2)
            && arm_is_el2_enabled_secstate(env, arm_security_space_below_el3(env));
 }
-
-#else
-static inline ARMSecuritySpace arm_security_space_below_el3(CPUARMState *env)
-{
-    return ARMSS_NonSecure;
-}
-
-static inline bool arm_is_secure_below_el3(CPUARMState *env)
-{
-    return false;
-}
-
-static inline bool arm_is_el3_or_mon(CPUARMState *env)
-{
-    return false;
-}
-
-static inline ARMSecuritySpace arm_security_space(CPUARMState *env)
-{
-    return ARMSS_NonSecure;
-}
-
-static inline bool arm_is_secure(CPUARMState *env)
-{
-    return false;
-}
-
-static inline bool arm_is_el2_enabled_secstate(CPUARMState *env,
-                                               ARMSecuritySpace space)
-{
-    return false;
-}
-
-static inline bool arm_is_el2_enabled(CPUARMState *env)
-{
-    return false;
-}
-#endif
 
 /**
  * arm_hcr_el2_eff(): Return the effective value of HCR_EL2.
@@ -3050,14 +2994,7 @@ static inline bool arm_v7m_csselr_razwi(ARMCPU *cpu)
 
 static inline bool arm_sctlr_b(CPUARMState *env)
 {
-    return
-        /* We need not implement SCTLR.ITD in user-mode emulation, so
-         * let linux-user ignore the fact that it conflicts with SCTLR_B.
-         * This lets people run BE32 binaries with "-cpu any".
-         */
-#ifndef CONFIG_USER_ONLY
-        !arm_feature(env, ARM_FEATURE_V7) &&
-#endif
+    return !arm_feature(env, ARM_FEATURE_V7) &&
         (env->cp15.sctlr_el[1] & SCTLR_B) != 0;
 }
 
@@ -3222,29 +3159,12 @@ static inline int sme_vq(CPUARMState *env)
     return EX_TBFLAG_A64(env->hflags, SVL) + 1;
 }
 
-static inline bool bswap_code(bool sctlr_b)
-{
-#ifdef CONFIG_USER_ONLY
-    /* BE8 (SCTLR.B = 0, TARGET_BIG_ENDIAN = 1) is mixed endian.
-     * The invalid combination SCTLR.B=1/CPSR.E=1/TARGET_BIG_ENDIAN=0
-     * would also end up as a mixed-endian mode with BE code, LE data.
-     */
-    return TARGET_BIG_ENDIAN ^ sctlr_b;
-#else
-    /* All code access in ARM is little endian, and there are no loaders
-     * doing swaps that need to be reversed
-     */
-    return 0;
-#endif
-}
-
 enum {
     QEMU_PSCI_CONDUIT_DISABLED = 0,
     QEMU_PSCI_CONDUIT_SMC = 1,
     QEMU_PSCI_CONDUIT_HVC = 2,
 };
 
-#ifndef CONFIG_USER_ONLY
 /* Return the address space index to use for a memory access */
 static inline int arm_asidx_from_attrs(CPUState *cs, MemTxAttrs attrs)
 {
@@ -3259,7 +3179,6 @@ static inline AddressSpace *arm_addressspace(CPUState *cs, MemTxAttrs attrs)
 {
     return cpu_get_address_space(cs, arm_asidx_from_attrs(cs, attrs));
 }
-#endif
 
 /**
  * arm_register_pre_el_change_hook:

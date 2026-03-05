@@ -27,6 +27,12 @@
 #ifndef QEMU_OSDEP_H
 #define QEMU_OSDEP_H
 
+#pragma GCC poison CONFIG_USER_ONLY
+#pragma GCC poison COMPILING_SYSTEM_VS_USER
+#pragma GCC poison tcg_use_softmmu
+#pragma GCC poison CONFIG_LINUX_USER
+#pragma GCC poison CONFIG_BSD_USER
+
 #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__ && defined __linux__
 # define _FORTIFY_SOURCE 2
 #endif

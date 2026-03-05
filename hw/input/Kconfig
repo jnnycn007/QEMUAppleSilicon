@@ -26,10 +26,5 @@ config VIRTIO_INPUT_HOST
     default y
     depends on VIRTIO_INPUT && LINUX
 
-config VHOST_USER_INPUT
-    bool
-    default y
-    depends on VIRTIO_INPUT && VHOST_USER
-
 config LASIPS2
     select PS2

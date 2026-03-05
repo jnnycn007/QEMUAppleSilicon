@@ -33,9 +33,6 @@ static inline bool fgt_svc(CPUARMState *env, int el)
 /* Return true if memory alignment should be enforced. */
 static bool aprofile_require_alignment(CPUARMState *env, int el, uint64_t sctlr)
 {
-#ifdef CONFIG_USER_ONLY
-    return false;
-#else
     /* Check the alignment enable bit. */
     if (sctlr & SCTLR_A) {
         return true;
@@ -64,7 +61,6 @@ static bool aprofile_require_alignment(CPUARMState *env, int el, uint64_t sctlr)
         return false;
     }
     return true;
-#endif
 }
 
 bool access_secure_reg(CPUARMState *env)
@@ -220,7 +216,6 @@ static CPUARMTBFlags rebuild_hflags_a32(CPUARMState *env, int fp_el,
  */
 static int zt0_exception_el(CPUARMState *env, int el)
 {
-#ifndef CONFIG_USER_ONLY
     if (el <= 1
         && !el_is_in_host(env, el)
         && !REG_FIELD_EX64(env->vfp.smcr_el[1], SMCR, EZT0)) {
@@ -235,7 +230,7 @@ static int zt0_exception_el(CPUARMState *env, int el)
         && !REG_FIELD_EX64(env->vfp.smcr_el[3], SMCR, EZT0)) {
         return 3;
     }
-#endif
+
     return 0;
 }
 

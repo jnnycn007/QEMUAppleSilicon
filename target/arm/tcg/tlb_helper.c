@@ -298,8 +298,6 @@ void helper_exception_pc_alignment(CPUARMState *env, vaddr pc)
     raise_exception(env, EXCP_PREFETCH_ABORT, syn_pcalignment(), target_el);
 }
 
-#if !defined(CONFIG_USER_ONLY)
-
 /*
  * arm_cpu_do_transaction_failed: handle a memory system error response
  * (eg "no device/memory present at address") by raising an external abort
@@ -364,28 +362,3 @@ bool arm_cpu_tlb_fill_align(CPUState *cs, CPUTLBEntryFull *out, vaddr address,
     cpu_restore_state(cs, ra);
     arm_deliver_fault(cpu, address, access_type, mmu_idx, fi);
 }
-#else
-void arm_cpu_record_sigsegv(CPUState *cs, vaddr addr,
-                            MMUAccessType access_type,
-                            bool maperr, uintptr_t ra)
-{
-    ARMMMUFaultInfo fi = {
-        .type = maperr ? ARMFault_Translation : ARMFault_Permission,
-        .level = 3,
-    };
-    ARMCPU *cpu = container_of(cs, ARMCPU, parent_obj);
-
-    /*
-     * We report both ESR and FAR to signal handlers.
-     * For now, it's easiest to deliver the fault normally.
-     */
-    cpu_restore_state(cs, ra);
-    arm_deliver_fault(cpu, addr, access_type, MMU_USER_IDX, &fi);
-}
-
-void arm_cpu_record_sigbus(CPUState *cs, vaddr addr,
-                           MMUAccessType access_type, uintptr_t ra)
-{
-    arm_cpu_do_unaligned_access(cs, addr, access_type, MMU_USER_IDX, ra);
-}
-#endif /* !defined(CONFIG_USER_ONLY) */

@@ -110,19 +110,6 @@ static void help(void)
 "                         export the specified block node over FUSE\n"
 "\n"
 #endif /* CONFIG_FUSE */
-#ifdef CONFIG_VHOST_USER_BLK_SERVER
-"  --export [type=]vhost-user-blk,id=<id>,node-name=<node-name>,\n"
-"           addr.type=unix,addr.path=<socket-path>[,writable=on|off]\n"
-"           [,logical-block-size=<block-size>][,num-queues=<num-queues>]\n"
-"                         export the specified block node as a\n"
-"                         vhost-user-blk device over UNIX domain socket\n"
-"  --export [type=]vhost-user-blk,id=<id>,node-name=<node-name>,\n"
-"           addr.type=fd,addr.str=<fd>[,writable=on|off]\n"
-"           [,logical-block-size=<block-size>][,num-queues=<num-queues>]\n"
-"                         export the specified block node as a\n"
-"                         vhost-user-blk device over file descriptor\n"
-"\n"
-#endif /* CONFIG_VHOST_USER_BLK_SERVER */
 #ifdef CONFIG_VDUSE_BLK_EXPORT
 "  --export [type=]vduse-blk,id=<id>,node-name=<node-name>\n"
 "           ,name=<vduse-name>[,writable=on|off]\n"

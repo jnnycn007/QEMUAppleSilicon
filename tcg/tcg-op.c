@@ -27,7 +27,6 @@
 #include "tcg/tcg-temp-internal.h"
 #include "tcg/tcg-op-common.h"
 #include "exec/translation-block.h"
-#include "exec/plugin-gen.h"
 #include "tcg-internal.h"
 #include "tcg-has.h"
 
@@ -296,31 +295,7 @@ void tcg_gen_br(TCGLabel *l)
 
 void tcg_gen_mb(TCGBar mb_type)
 {
-#ifdef CONFIG_USER_ONLY
-    bool parallel = tcg_ctx->gen_tb->cflags & CF_PARALLEL;
-#else
-    /*
-     * It is tempting to elide the barrier in a uniprocessor context.
-     * However, even with a single cpu we have i/o threads running in
-     * parallel, and lack of memory order can result in e.g. virtio
-     * queue entries being read incorrectly.
-     */
-    bool parallel = true;
-#endif
-
-    if (parallel) {
-        tcg_gen_op1(INDEX_op_mb, 0, mb_type);
-    }
-}
-
-void tcg_gen_plugin_cb(unsigned from)
-{
-    tcg_gen_op1(INDEX_op_plugin_cb, 0, from);
-}
-
-void tcg_gen_plugin_mem_cb(TCGv_i64 addr, unsigned meminfo)
-{
-    tcg_gen_op2(INDEX_op_plugin_mem_cb, 0, tcgv_i64_arg(addr), meminfo);
+    tcg_gen_op1(INDEX_op_mb, 0, mb_type);
 }
 
 /* 32 bit ops */
@@ -3255,7 +3230,6 @@ void tcg_gen_goto_tb(unsigned idx)
     tcg_debug_assert((tcg_ctx->goto_tb_issue_mask & (1 << idx)) == 0);
     tcg_ctx->goto_tb_issue_mask |= 1 << idx;
 #endif
-    plugin_gen_disable_mem_helpers();
     tcg_gen_op1i(INDEX_op_goto_tb, 0, idx);
 }
 
@@ -3268,7 +3242,6 @@ void tcg_gen_lookup_and_goto_ptr(void)
         return;
     }
 
-    plugin_gen_disable_mem_helpers();
     ptr = tcg_temp_ebb_new_ptr();
     gen_helper_lookup_tb_ptr(ptr, tcg_env);
     tcg_gen_op1i(INDEX_op_goto_ptr, TCG_TYPE_PTR, tcgv_ptr_arg(ptr));

@@ -14,7 +14,6 @@
 #include "qemu/error-report.h"
 #include "semihosting/semihost.h"
 #include "system/runstate.h"
-#include "gdbstub/user.h"
 #include "gdbstub/syscalls.h"
 #include "gdbstub/commands.h"
 #include "trace.h"

@@ -225,29 +225,6 @@ static void gen_a64_set_pc(DisasContext *s, TCGv_i64 src)
     s->pc_save = -1;
 }
 
-/*
- * Handle MTE and/or TBI.
- *
- * For TBI, ideally, we would do nothing.  Proper behaviour on fault is
- * for the tag to be present in the FAR_ELx register.  But for user-only
- * mode we do not have a TLB with which to implement this, so we must
- * remove the top byte now.
- *
- * Always return a fresh temporary that we can increment independently
- * of the write-back address.
- */
-
-TCGv_i64 clean_data_tbi(DisasContext *s, TCGv_i64 addr)
-{
-    TCGv_i64 clean = tcg_temp_new_i64();
-#ifdef CONFIG_USER_ONLY
-    gen_top_byte_ignore(s, clean, addr, s->tbid);
-#else
-    tcg_gen_mov_i64(clean, addr);
-#endif
-    return clean;
-}
-
 /* Insert a zero tag into src, with the result at dst. */
 static void gen_address_with_allocation_tag0(TCGv_i64 dst, TCGv_i64 src)
 {
@@ -274,8 +251,10 @@ static TCGv_i64 gen_mte_check1_mmuidx(DisasContext *s, TCGv_i64 addr,
                                       MemOp memop, bool is_unpriv,
                                       int core_idx)
 {
+    TCGv_i64 ret;
+
+    ret = tcg_temp_new_i64();
     if (tag_checked && s->mte_active[is_unpriv]) {
-        TCGv_i64 ret;
         int desc = 0;
 
         desc = REG_FIELD_DP32(desc, MTEDESC, MIDX, core_idx);
@@ -285,12 +264,11 @@ static TCGv_i64 gen_mte_check1_mmuidx(DisasContext *s, TCGv_i64 addr,
         desc = REG_FIELD_DP32(desc, MTEDESC, ALIGN, memop_alignment_bits(memop));
         desc = REG_FIELD_DP32(desc, MTEDESC, SIZEM1, memop_size(memop) - 1);
 
-        ret = tcg_temp_new_i64();
         gen_helper_mte_check(ret, tcg_env, tcg_constant_i32(desc), addr);
-
-        return ret;
+    } else {
+        tcg_gen_mov_i64(ret, addr);
     }
-    return clean_data_tbi(s, addr);
+    return ret;
 }
 
 TCGv_i64 gen_mte_check1(DisasContext *s, TCGv_i64 addr, bool is_write,
@@ -306,8 +284,10 @@ TCGv_i64 gen_mte_check1(DisasContext *s, TCGv_i64 addr, bool is_write,
 TCGv_i64 gen_mte_checkN(DisasContext *s, TCGv_i64 addr, bool is_write,
                         bool tag_checked, int total_size, MemOp single_mop)
 {
-    if (tag_checked && s->mte_active[0]) {
-        TCGv_i64 ret;
+    TCGv_i64 ret;
+
+    ret = tcg_temp_new_i64();
+    if (s->mte_active[0] && tag_checked) {
         int desc = 0;
 
         desc = REG_FIELD_DP32(desc, MTEDESC, MIDX, get_mem_index(s));
@@ -317,12 +297,11 @@ TCGv_i64 gen_mte_checkN(DisasContext *s, TCGv_i64 addr, bool is_write,
         desc = REG_FIELD_DP32(desc, MTEDESC, ALIGN, memop_alignment_bits(single_mop));
         desc = REG_FIELD_DP32(desc, MTEDESC, SIZEM1, total_size - 1);
 
-        ret = tcg_temp_new_i64();
         gen_helper_mte_check(ret, tcg_env, tcg_constant_i32(desc), addr);
-
-        return ret;
+    } else {
+        tcg_gen_mov_i64(ret, addr);
     }
-    return clean_data_tbi(s, addr);
+    return ret;
 }
 
 /*
@@ -2701,44 +2680,42 @@ static void handle_sys(DisasContext *s, bool isread,
             gen_helper_mte_check_zva(tcg_rt, tcg_env,
                                      tcg_constant_i32(desc), cpu_reg(s, rt));
         } else {
-            tcg_rt = clean_data_tbi(s, cpu_reg(s, rt));
+            tcg_rt = cpu_reg(s, rt);
         }
         gen_helper_dc_zva(tcg_env, tcg_rt);
         return;
     case ARM_CP_DC_GVA:
         {
-            TCGv_i64 clean_addr, tag;
+            TCGv_i64 tag;
 
             /*
              * DC_GVA, like DC_ZVA, requires that we supply the original
              * pointer for an invalid page.  Probe that address first.
              */
             tcg_rt = cpu_reg(s, rt);
-            clean_addr = clean_data_tbi(s, tcg_rt);
-            gen_probe_access(s, clean_addr, MMU_DATA_STORE, MO_8);
+            gen_probe_access(s, tcg_rt, MMU_DATA_STORE, MO_8);
 
             if (s->ata[0]) {
                 /* Extract the tag from the register to match STZGM.  */
                 tag = tcg_temp_new_i64();
                 tcg_gen_shri_i64(tag, tcg_rt, 56);
-                gen_helper_stzgm_tags(tcg_env, clean_addr, tag);
+                gen_helper_stzgm_tags(tcg_env, tcg_rt, tag);
             }
         }
         return;
     case ARM_CP_DC_GZVA:
         {
-            TCGv_i64 clean_addr, tag;
+            TCGv_i64 tag;
 
             /* For DC_GZVA, we can rely on DC_ZVA for the proper fault. */
             tcg_rt = cpu_reg(s, rt);
-            clean_addr = clean_data_tbi(s, tcg_rt);
-            gen_helper_dc_zva(tcg_env, clean_addr);
+            gen_helper_dc_zva(tcg_env, tcg_rt);
 
             if (s->ata[0]) {
                 /* Extract the tag from the register to match STZGM.  */
                 tag = tcg_temp_new_i64();
                 tcg_gen_shri_i64(tag, tcg_rt, 56);
-                gen_helper_stzgm_tags(tcg_env, clean_addr, tag);
+                gen_helper_stzgm_tags(tcg_env, tcg_rt, tag);
             }
         }
         return;
@@ -2950,7 +2927,7 @@ static void gen_store_exclusive(DisasContext *s, int rd, int rt, int rt2,
      */
     TCGLabel *fail_label = gen_new_label();
     TCGLabel *done_label = gen_new_label();
-    TCGv_i64 tmp, clean_addr;
+    TCGv_i64 tmp;
     MemOp memop;
 
     /*
@@ -2962,8 +2939,7 @@ static void gen_store_exclusive(DisasContext *s, int rd, int rt, int rt2,
      */
 
     /* See AArch64.ExclusiveMonitorsPass() and AArch64.IsExclusiveVA(). */
-    clean_addr = clean_data_tbi(s, cpu_reg_sp(s, rn));
-    tcg_gen_brcond_i64(TCG_COND_NE, clean_addr, cpu_exclusive_addr, fail_label);
+    tcg_gen_brcond_i64(TCG_COND_NE, cpu_reg_sp(s, rn), cpu_exclusive_addr, fail_label);
 
     /*
      * The write, and any associated faults, only happen if the virtual
@@ -3468,7 +3444,7 @@ static bool trans_LDP_v(DisasContext *s, arg_ldstpair *a)
 
 static bool trans_STGP(DisasContext *s, arg_ldstpair *a)
 {
-    TCGv_i64 clean_addr, dirty_addr, tcg_rt, tcg_rt2;
+    TCGv_i64 dirty_addr, tcg_rt, tcg_rt2;
     uint64_t offset = a->imm << LOG2_TAG_GRANULE;
     MemOp mop;
     TCGv_i128 tmp;
@@ -3489,7 +3465,6 @@ static bool trans_STGP(DisasContext *s, arg_ldstpair *a)
         tcg_gen_addi_i64(dirty_addr, dirty_addr, offset);
     }
 
-    clean_addr = clean_data_tbi(s, dirty_addr);
     tcg_rt = cpu_reg(s, a->rt);
     tcg_rt2 = cpu_reg(s, a->rt2);
 
@@ -3507,7 +3482,7 @@ static bool trans_STGP(DisasContext *s, arg_ldstpair *a)
     } else {
         tcg_gen_concat_i64_i128(tmp, tcg_rt2, tcg_rt);
     }
-    tcg_gen_qemu_st_i128(tmp, clean_addr, get_mem_index(s), mop);
+    tcg_gen_qemu_st_i128(tmp, dirty_addr, get_mem_index(s), mop);
 
     /* Perform the tag store, if tag access enabled. */
     if (s->ata[0]) {
@@ -3888,7 +3863,7 @@ static bool trans_LDRA(DisasContext *s, arg_LDRA *a)
 
 static bool trans_LDAPR_i(DisasContext *s, arg_ldapr_stlr_i *a)
 {
-    TCGv_i64 clean_addr, dirty_addr;
+    TCGv_i64 dirty_addr;
     MemOp mop = a->sz | (a->sign ? MO_SIGN : 0);
     bool iss_sf = ldst_iss_sf(a->sz, a->sign, a->ext);
 
@@ -3903,13 +3878,12 @@ static bool trans_LDAPR_i(DisasContext *s, arg_ldapr_stlr_i *a)
     mop = check_ordered_align(s, a->rn, a->imm, false, mop);
     dirty_addr = read_cpu_reg_sp(s, a->rn, 1);
     tcg_gen_addi_i64(dirty_addr, dirty_addr, a->imm);
-    clean_addr = clean_data_tbi(s, dirty_addr);
 
     /*
      * Load-AcquirePC semantics; we implement as the slightly more
      * restrictive Load-Acquire.
      */
-    do_gpr_ld(s, cpu_reg(s, a->rt), clean_addr, mop, a->ext, true,
+    do_gpr_ld(s, cpu_reg(s, a->rt), dirty_addr, mop, a->ext, true,
               a->rt, iss_sf, true);
     tcg_gen_mb(TCG_MO_ALL | TCG_BAR_LDAQ);
     return true;
@@ -3917,7 +3891,7 @@ static bool trans_LDAPR_i(DisasContext *s, arg_ldapr_stlr_i *a)
 
 static bool trans_STLR_i(DisasContext *s, arg_ldapr_stlr_i *a)
 {
-    TCGv_i64 clean_addr, dirty_addr;
+    TCGv_i64 dirty_addr;
     MemOp mop = a->sz;
     bool iss_sf = ldst_iss_sf(a->sz, a->sign, a->ext);
 
@@ -3934,11 +3908,10 @@ static bool trans_STLR_i(DisasContext *s, arg_ldapr_stlr_i *a)
     mop = check_ordered_align(s, a->rn, a->imm, true, mop);
     dirty_addr = read_cpu_reg_sp(s, a->rn, 1);
     tcg_gen_addi_i64(dirty_addr, dirty_addr, a->imm);
-    clean_addr = clean_data_tbi(s, dirty_addr);
 
     /* Store-Release semantics */
     tcg_gen_mb(TCG_MO_ALL | TCG_BAR_STRL);
-    do_gpr_st(s, cpu_reg(s, a->rt), clean_addr, mop, true, a->rt, iss_sf, true);
+    do_gpr_st(s, cpu_reg(s, a->rt), dirty_addr, mop, true, a->rt, iss_sf, true);
     return true;
 }
 
@@ -4239,7 +4212,7 @@ static bool trans_LD_single_repl(DisasContext *s, arg_LD_single_repl *a)
 
 static bool trans_STZGM(DisasContext *s, arg_ldst_tag *a)
 {
-    TCGv_i64 addr, clean_addr, tcg_rt;
+    TCGv_i64 addr, tcg_rt;
     int size = 4 << s->dcz_blocksize;
 
     if (!dc_isar_feature(aa64_mte, s)) {
@@ -4264,15 +4237,14 @@ static bool trans_STZGM(DisasContext *s, arg_ldst_tag *a)
      * The non-tags portion of STZGM is mostly like DC_ZVA,
      * except the alignment happens before the access.
      */
-    clean_addr = clean_data_tbi(s, addr);
-    tcg_gen_andi_i64(clean_addr, clean_addr, -size);
-    gen_helper_dc_zva(tcg_env, clean_addr);
+    tcg_gen_andi_i64(addr, addr, -size);
+    gen_helper_dc_zva(tcg_env, addr);
     return true;
 }
 
 static bool trans_STGM(DisasContext *s, arg_ldst_tag *a)
 {
-    TCGv_i64 addr, clean_addr, tcg_rt;
+    TCGv_i64 addr, tcg_rt;
 
     if (!dc_isar_feature(aa64_mte, s)) {
         return false;
@@ -4294,17 +4266,15 @@ static bool trans_STGM(DisasContext *s, arg_ldst_tag *a)
     } else {
         MMUAccessType acc = MMU_DATA_STORE;
         int size = 4 << s->gm_blocksize;
-
-        clean_addr = clean_data_tbi(s, addr);
-        tcg_gen_andi_i64(clean_addr, clean_addr, -size);
-        gen_probe_access(s, clean_addr, acc, size);
+        tcg_gen_andi_i64(addr, addr, -size);
+        gen_probe_access(s, addr, acc, size);
     }
     return true;
 }
 
 static bool trans_LDGM(DisasContext *s, arg_ldst_tag *a)
 {
-    TCGv_i64 addr, clean_addr, tcg_rt;
+    TCGv_i64 addr, tcg_rt;
 
     if (!dc_isar_feature(aa64_mte, s)) {
         return false;
@@ -4327,9 +4297,8 @@ static bool trans_LDGM(DisasContext *s, arg_ldst_tag *a)
         MMUAccessType acc = MMU_DATA_LOAD;
         int size = 4 << s->gm_blocksize;
 
-        clean_addr = clean_data_tbi(s, addr);
-        tcg_gen_andi_i64(clean_addr, clean_addr, -size);
-        gen_probe_access(s, clean_addr, acc, size);
+        tcg_gen_andi_i64(addr, addr, -size);
+        gen_probe_access(s, addr, acc, size);
         /* The result tags are zeros.  */
         tcg_gen_movi_i64(tcg_rt, 0);
     }
@@ -4338,7 +4307,7 @@ static bool trans_LDGM(DisasContext *s, arg_ldst_tag *a)
 
 static bool trans_LDG(DisasContext *s, arg_ldst_tag *a)
 {
-    TCGv_i64 addr, clean_addr, tcg_rt;
+    TCGv_i64 addr, tcg_rt;
 
     if (!dc_isar_feature(aa64_mte_insn_reg, s)) {
         return false;
@@ -4363,8 +4332,7 @@ static bool trans_LDG(DisasContext *s, arg_ldst_tag *a)
          * Tag access disabled: we must check for aborts on the load
          * load from [rn+offset], and then insert a 0 tag into rt.
          */
-        clean_addr = clean_data_tbi(s, addr);
-        gen_probe_access(s, clean_addr, MMU_DATA_LOAD, MO_8);
+        gen_probe_access(s, addr, MMU_DATA_LOAD, MO_8);
         gen_address_with_allocation_tag0(tcg_rt, tcg_rt);
     }
 
@@ -4381,7 +4349,7 @@ static bool trans_LDG(DisasContext *s, arg_ldst_tag *a)
 
 static bool do_STG(DisasContext *s, arg_ldst_tag *a, bool is_zero, bool is_pair)
 {
-    TCGv_i64 addr, tcg_rt;
+    TCGv_i64 addr, clean_addr, tcg_rt;
 
     if (a->rn == 31) {
         gen_check_sp_alignment(s);
@@ -4419,7 +4387,6 @@ static bool do_STG(DisasContext *s, arg_ldst_tag *a, bool is_zero, bool is_pair)
     }
 
     if (is_zero) {
-        TCGv_i64 clean_addr = clean_data_tbi(s, addr);
         TCGv_i64 zero64 = tcg_constant_i64(0);
         TCGv_i128 zero128 = tcg_temp_new_i128();
         int mem_index = get_mem_index(s);
@@ -4428,9 +4395,10 @@ static bool do_STG(DisasContext *s, arg_ldst_tag *a, bool is_zero, bool is_pair)
         tcg_gen_concat_i64_i128(zero128, zero64, zero64);
 
         /* This is 1 or 2 atomic 16-byte operations. */
-        tcg_gen_qemu_st_i128(zero128, clean_addr, mem_index, mop);
+        tcg_gen_qemu_st_i128(zero128, addr, mem_index, mop);
         if (is_pair) {
-            tcg_gen_addi_i64(clean_addr, clean_addr, 16);
+            clean_addr = tcg_temp_new_i64();
+            tcg_gen_addi_i64(clean_addr, addr, 16);
             tcg_gen_qemu_st_i128(zero128, clean_addr, mem_index, mop);
         }
     }
@@ -10257,9 +10225,7 @@ static void aarch64_tr_init_disas_context(DisasContextBase *dcbase,
     dc->tbid = EX_TBFLAG_A64(tb_flags, TBID);
     dc->tcma = EX_TBFLAG_A64(tb_flags, TCMA);
     dc->current_el = arm_mmu_idx_to_el(dc->mmu_idx);
-#if !defined(CONFIG_USER_ONLY)
     dc->user = (dc->current_el == 0);
-#endif
     dc->fp_excp_el = EX_TBFLAG_ANY(tb_flags, FPEXC_EL);
     dc->align_mem = EX_TBFLAG_ANY(tb_flags, ALIGN_MEM);
     dc->pstate_il = EX_TBFLAG_ANY(tb_flags, PSTATE__IL);
@@ -10299,12 +10265,6 @@ static void aarch64_tr_init_disas_context(DisasContextBase *dcbase,
     dc->features = env->features;
     dc->dcz_blocksize = arm_cpu->dcz_blocksize;
     dc->gm_blocksize = arm_cpu->gm_blocksize;
-
-#ifdef CONFIG_USER_ONLY
-    /* In sve_probe_page, we assume TBI is enabled. */
-    tcg_debug_assert(dc->tbid & 1);
-#endif
-
     dc->lse2 = dc_isar_feature(aa64_lse2, dc);
 
     /* Single step state. The code-generation logic here is:

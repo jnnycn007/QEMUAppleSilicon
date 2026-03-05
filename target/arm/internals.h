@@ -502,23 +502,6 @@ static inline bool arm_is_sprr_enabled(CPUARMState *env)
 static inline bool arm_cpu_data_is_big_endian_a32(CPUARMState *env,
                                                   bool sctlr_b)
 {
-#ifdef CONFIG_USER_ONLY
-    /*
-     * In system mode, BE32 is modelled in line with the
-     * architecture (as word-invariant big-endianness), where loads
-     * and stores are done little endian but from addresses which
-     * are adjusted by XORing with the appropriate constant. So the
-     * endianness to use for the raw data access is not affected by
-     * SCTLR.B.
-     * In user mode, however, we model BE32 as byte-invariant
-     * big-endianness (because user-only code cannot tell the
-     * difference), and so we need to use a data access endianness
-     * that depends on SCTLR.B.
-     */
-    if (sctlr_b) {
-        return true;
-    }
-#endif
     /* In 32bit endianness is determined by looking at CPSR's E bit */
     return env->uncached_cpsr & CPSR_E;
 }
@@ -539,13 +522,6 @@ static inline bool arm_cpu_data_is_big_endian(CPUARMState *env)
         return arm_cpu_data_is_big_endian_a64(cur_el, sctlr);
     }
 }
-
-#ifdef CONFIG_USER_ONLY
-static inline bool arm_cpu_bswap_data(CPUARMState *env)
-{
-    return TARGET_BIG_ENDIAN ^ arm_cpu_data_is_big_endian(env);
-}
-#endif
 
 static inline void aarch64_save_sp(CPUARMState *env, int el)
 {
@@ -668,7 +644,7 @@ vaddr arm_adjust_watchpoint_address(CPUState *cs, vaddr addr, int len);
 /* Callback function for when a watchpoint or breakpoint triggers. */
 void arm_debug_excp_handler(CPUState *cs);
 
-#if defined(CONFIG_USER_ONLY) || !defined(CONFIG_TCG)
+#ifndef CONFIG_TCG
 static inline bool arm_is_psci_call(ARMCPU *cpu, int excp_type)
 {
     return false;
@@ -961,17 +937,9 @@ static inline bool arm_extabort_type(MemTxResult result)
     return result != MEMTX_DECODE_ERROR;
 }
 
-#ifdef CONFIG_USER_ONLY
-void arm_cpu_record_sigsegv(CPUState *cpu, vaddr addr,
-                            MMUAccessType access_type,
-                            bool maperr, uintptr_t ra);
-void arm_cpu_record_sigbus(CPUState *cpu, vaddr addr,
-                           MMUAccessType access_type, uintptr_t ra);
-#else
 bool arm_cpu_tlb_fill_align(CPUState *cs, CPUTLBEntryFull *out, vaddr addr,
                             MMUAccessType access_type, int mmu_idx,
                             MemOp memop, int size, bool probe, uintptr_t ra);
-#endif
 
 static inline int arm_to_core_mmu_idx(ARMMMUIdx mmu_idx)
 {
@@ -1048,7 +1016,6 @@ G_NORETURN void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr,
                                             MMUAccessType access_type,
                                             int mmu_idx, uintptr_t retaddr);
 
-#ifndef CONFIG_USER_ONLY
 /* arm_cpu_do_transaction_failed: handle a memory system error response
  * (eg "no device/memory present at address") by raising an external abort
  * exception
@@ -1058,7 +1025,6 @@ void arm_cpu_do_transaction_failed(CPUState *cs, hwaddr physaddr,
                                    MMUAccessType access_type,
                                    int mmu_idx, MemTxAttrs attrs,
                                    MemTxResult response, uintptr_t retaddr);
-#endif
 
 /* Call any registered EL change hooks */
 static inline void arm_call_pre_el_change_hook(ARMCPU *cpu)
@@ -1437,19 +1403,8 @@ ARMMMUIdx arm_mmu_idx(CPUARMState *env);
  *
  * Return the ARMMMUIdx for the stage1 traversal for the current regime.
  */
-#ifdef CONFIG_USER_ONLY
-static inline ARMMMUIdx stage_1_mmu_idx(ARMMMUIdx mmu_idx)
-{
-    return ARMMMUIdx_Stage1_E0;
-}
-static inline ARMMMUIdx arm_stage1_mmu_idx(CPUARMState *env)
-{
-    return ARMMMUIdx_Stage1_E0;
-}
-#else
 ARMMMUIdx stage_1_mmu_idx(ARMMMUIdx mmu_idx);
 ARMMMUIdx arm_stage1_mmu_idx(CPUARMState *env);
-#endif
 
 /**
  * arm_mmu_idx_is_stage1_of_2:
@@ -1619,8 +1574,6 @@ static inline bool allocation_tag_access_enabled(CPUARMState *env, int el,
     return sctlr != 0;
 }
 
-#ifndef CONFIG_USER_ONLY
-
 /* Security attributes for an address, as returned by v8m_security_lookup. */
 typedef struct V8M_SAttributes {
     bool subpage; /* true if these attrs don't cover the whole TARGET_PAGE */
@@ -1706,8 +1659,6 @@ bool pmsav8_mpu_lookup(CPUARMState *env, uint32_t address,
                        ARMMMUFaultInfo *fi, uint32_t *mregion);
 
 void arm_log_exception(CPUState *cs);
-
-#endif /* !CONFIG_USER_ONLY */
 
 /*
  * SVE predicates are 1/8 the size of SVE vectors, and cannot use
@@ -1810,32 +1761,6 @@ static inline bool tcma_check(uint32_t desc, int bit55, int ptr_tag)
     bool match = ((ptr_tag + bit55) & 0xf) == 0;
     bool tcma = (desc >> (R_MTEDESC_TCMA_SHIFT + bit55)) & 1;
     return tcma && match;
-}
-
-/*
- * For TBI, ideally, we would do nothing.  Proper behaviour on fault is
- * for the tag to be present in the FAR_ELx register.  But for user-only
- * mode, we do not have a TLB with which to implement this, so we must
- * remove the top byte.
- */
-static inline uint64_t useronly_clean_ptr(uint64_t ptr)
-{
-#ifdef CONFIG_USER_ONLY
-    /* TBI0 is known to be enabled, while TBI1 is disabled. */
-    ptr &= sextract64(ptr, 0, 56);
-#endif
-    return ptr;
-}
-
-static inline uint64_t useronly_maybe_clean_ptr(uint32_t desc, uint64_t ptr)
-{
-#ifdef CONFIG_USER_ONLY
-    int64_t clean_ptr = sextract64(ptr, 0, 56);
-    if (tbi_check(desc, clean_ptr < 0)) {
-        ptr = clean_ptr;
-    }
-#endif
-    return ptr;
 }
 
 /* Values for M-profile PSR.ECI for MVE insns */

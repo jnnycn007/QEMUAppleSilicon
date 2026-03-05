@@ -755,8 +755,6 @@ void hw_breakpoint_update_all(ARMCPU *cpu)
     }
 }
 
-#if !defined(CONFIG_USER_ONLY)
-
 vaddr arm_adjust_watchpoint_address(CPUState *cs, vaddr addr, int len)
 {
     ARMCPU *cpu = ARM_CPU(cs);
@@ -780,7 +778,6 @@ vaddr arm_adjust_watchpoint_address(CPUState *cs, vaddr addr, int len)
     return addr;
 }
 
-#endif /* !CONFIG_USER_ONLY */
 #endif /* CONFIG_TCG */
 
 /*

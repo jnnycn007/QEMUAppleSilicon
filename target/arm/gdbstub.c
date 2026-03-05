@@ -434,7 +434,6 @@ static GDBFeature *arm_gen_dynamic_m_systemreg_feature(CPUState *cs,
     return &cpu->dyn_m_systemreg_feature.desc;
 }
 
-#ifndef CONFIG_USER_ONLY
 /*
  * For user-only, we see the non-secure registers via m_systemreg above.
  * For secext, encode the non-secure view as even and secure view as odd.
@@ -478,7 +477,6 @@ static GDBFeature *arm_gen_dynamic_m_secextreg_feature(CPUState *cs,
 
     return &cpu->dyn_m_secextreg_feature.desc;
 }
-#endif
 #endif /* CONFIG_TCG */
 
 void arm_cpu_register_gdb_commands(ARMCPU *cpu)
@@ -551,16 +549,6 @@ void arm_cpu_register_gdb_regs_for_features(ARMCPU *cpu)
                                      gdb_find_static_feature("aarch64-pauth.xml"),
                                      0);
         }
-
-#ifdef CONFIG_USER_ONLY
-        /* Memory Tagging Extension (MTE) 'tag_ctl' pseudo-register. */
-        if (cpu_isar_feature(aa64_mte, cpu)) {
-            gdb_register_coprocessor(cs, aarch64_gdb_get_tag_ctl_reg,
-                                     aarch64_gdb_set_tag_ctl_reg,
-                                     gdb_find_static_feature("aarch64-mte.xml"),
-                                     0);
-        }
-#endif
 #endif
     } else {
         if (arm_feature(env, ARM_FEATURE_NEON)) {
@@ -599,13 +587,11 @@ void arm_cpu_register_gdb_regs_for_features(ARMCPU *cpu)
         gdb_register_coprocessor(cs,
             arm_gdb_get_m_systemreg, arm_gdb_set_m_systemreg,
             arm_gen_dynamic_m_systemreg_feature(cs, cs->gdb_num_regs), 0);
-#ifndef CONFIG_USER_ONLY
         if (arm_feature(env, ARM_FEATURE_M_SECURITY)) {
             gdb_register_coprocessor(cs,
                 arm_gdb_get_m_secextreg, arm_gdb_set_m_secextreg,
                 arm_gen_dynamic_m_secextreg_feature(cs, cs->gdb_num_regs), 0);
         }
-#endif
     }
 #endif /* CONFIG_TCG */
 }

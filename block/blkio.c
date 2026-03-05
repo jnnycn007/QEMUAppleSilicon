@@ -719,8 +719,7 @@ static int blkio_virtio_blk_connect(BlockDriverState *bs, QDict *options,
         if (fd < 0) {
             /*
              * qemu_open() can fail if the user specifies a path that is not
-             * a file or device, for example in the case of Unix Domain Socket
-             * for the virtio-blk-vhost-user driver. In such cases let's have
+             * a file or device. In such cases let's have
              * libblkio open the path directly.
              */
             fd_supported = false;
@@ -1130,12 +1129,6 @@ static BlockDriver bdrv_virtio_blk_vfio_pci = {
     BLKIO_DRIVER_COMMON
 };
 
-static BlockDriver bdrv_virtio_blk_vhost_user = {
-    .format_name         = "virtio-blk-vhost-user",
-    .protocol_name       = "virtio-blk-vhost-user",
-    BLKIO_DRIVER_COMMON
-};
-
 static BlockDriver bdrv_virtio_blk_vhost_vdpa = {
     .format_name         = "virtio-blk-vhost-vdpa",
     .protocol_name       = "virtio-blk-vhost-vdpa",
@@ -1147,7 +1140,6 @@ static void bdrv_blkio_init(void)
     bdrv_register(&bdrv_io_uring);
     bdrv_register(&bdrv_nvme_io_uring);
     bdrv_register(&bdrv_virtio_blk_vfio_pci);
-    bdrv_register(&bdrv_virtio_blk_vhost_user);
     bdrv_register(&bdrv_virtio_blk_vhost_vdpa);
 }
 

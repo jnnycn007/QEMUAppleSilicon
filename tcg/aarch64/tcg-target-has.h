@@ -15,16 +15,7 @@
 /* optional instructions */
 #define TCG_TARGET_HAS_extr_i64_i32     0
 
-/*
- * Without FEAT_LSE2, we must use LDXP+STXP to implement atomic 128-bit load,
- * which requires writable pages.  We must defer to the helper for user-only,
- * but in system mode all ram is writable for the host.
- */
-#ifdef CONFIG_USER_ONLY
-#define TCG_TARGET_HAS_qemu_ldst_i128   have_lse2
-#else
 #define TCG_TARGET_HAS_qemu_ldst_i128   1
-#endif
 
 #define TCG_TARGET_HAS_tst              1
 

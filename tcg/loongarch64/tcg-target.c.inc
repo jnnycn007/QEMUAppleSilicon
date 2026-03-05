@@ -1049,77 +1049,54 @@ static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
     h->aa = atom_and_align_for_opc(s, opc, MO_ATOM_IFALIGN, false);
     a_bits = h->aa.align;
 
-    if (tcg_use_softmmu) {
-        unsigned s_bits = opc & MO_SIZE;
-        int mem_index = get_mmuidx(oi);
-        int fast_ofs = tlb_mask_table_ofs(s, mem_index);
-        int mask_ofs = fast_ofs + offsetof(CPUTLBDescFast, mask);
-        int table_ofs = fast_ofs + offsetof(CPUTLBDescFast, table);
+    unsigned s_bits = opc & MO_SIZE;
+    int mem_index = get_mmuidx(oi);
+    int fast_ofs = tlb_mask_table_ofs(s, mem_index);
+    int mask_ofs = fast_ofs + offsetof(CPUTLBDescFast, mask);
+    int table_ofs = fast_ofs + offsetof(CPUTLBDescFast, table);
 
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr_reg;
+    ldst = new_ldst_label(s);
+    ldst->is_ld = is_ld;
+    ldst->oi = oi;
+    ldst->addr_reg = addr_reg;
 
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP0, TCG_AREG0, mask_ofs);
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP1, TCG_AREG0, table_ofs);
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP0, TCG_AREG0, mask_ofs);
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP1, TCG_AREG0, table_ofs);
 
-        tcg_out_opc_srli_d(s, TCG_REG_TMP2, addr_reg,
-                           TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
-        tcg_out_opc_and(s, TCG_REG_TMP2, TCG_REG_TMP2, TCG_REG_TMP0);
-        tcg_out_opc_add_d(s, TCG_REG_TMP2, TCG_REG_TMP2, TCG_REG_TMP1);
+    tcg_out_opc_srli_d(s, TCG_REG_TMP2, addr_reg,
+                        TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
+    tcg_out_opc_and(s, TCG_REG_TMP2, TCG_REG_TMP2, TCG_REG_TMP0);
+    tcg_out_opc_add_d(s, TCG_REG_TMP2, TCG_REG_TMP2, TCG_REG_TMP1);
 
-        /* Load the tlb comparator and the addend.  */
-        QEMU_BUILD_BUG_ON(HOST_BIG_ENDIAN);
-        tcg_out_ld(s, addr_type, TCG_REG_TMP0, TCG_REG_TMP2,
-                   is_ld ? offsetof(CPUTLBEntry, addr_read)
-                         : offsetof(CPUTLBEntry, addr_write));
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP2, TCG_REG_TMP2,
-                   offsetof(CPUTLBEntry, addend));
+    /* Load the tlb comparator and the addend.  */
+    QEMU_BUILD_BUG_ON(HOST_BIG_ENDIAN);
+    tcg_out_ld(s, addr_type, TCG_REG_TMP0, TCG_REG_TMP2,
+                is_ld ? offsetof(CPUTLBEntry, addr_read)
+                        : offsetof(CPUTLBEntry, addr_write));
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_TMP2, TCG_REG_TMP2,
+                offsetof(CPUTLBEntry, addend));
 
-        /*
-         * For aligned accesses, we check the first byte and include the
-         * alignment bits within the address.  For unaligned access, we
-         * check that we don't cross pages using the address of the last
-         * byte of the access.
-         */
-        if (a_bits < s_bits) {
-            unsigned a_mask = (1u << a_bits) - 1;
-            unsigned s_mask = (1u << s_bits) - 1;
-            tcg_out_addi(s, addr_type, TCG_REG_TMP1, addr_reg, s_mask - a_mask);
-        } else {
-            tcg_out_mov(s, addr_type, TCG_REG_TMP1, addr_reg);
-        }
-        tcg_out_opc_bstrins_d(s, TCG_REG_TMP1, TCG_REG_ZERO,
-                              a_bits, TARGET_PAGE_BITS - 1);
-
-        /* Compare masked address with the TLB entry.  */
-        ldst->label_ptr[0] = s->code_ptr;
-        tcg_out_opc_bne(s, TCG_REG_TMP0, TCG_REG_TMP1, 0);
-
-        h->index = TCG_REG_TMP2;
+    /*
+        * For aligned accesses, we check the first byte and include the
+        * alignment bits within the address.  For unaligned access, we
+        * check that we don't cross pages using the address of the last
+        * byte of the access.
+        */
+    if (a_bits < s_bits) {
+        unsigned a_mask = (1u << a_bits) - 1;
+        unsigned s_mask = (1u << s_bits) - 1;
+        tcg_out_addi(s, addr_type, TCG_REG_TMP1, addr_reg, s_mask - a_mask);
     } else {
-        if (a_bits) {
-            ldst = new_ldst_label(s);
-
-            ldst->is_ld = is_ld;
-            ldst->oi = oi;
-            ldst->addr_reg = addr_reg;
-
-            /*
-             * Without micro-architecture details, we don't know which of
-             * bstrpick or andi is faster, so use bstrpick as it's not
-             * constrained by imm field width. Not to say alignments >= 2^12
-             * are going to happen any time soon.
-             */
-            tcg_out_opc_bstrpick_d(s, TCG_REG_TMP1, addr_reg, 0, a_bits - 1);
-
-            ldst->label_ptr[0] = s->code_ptr;
-            tcg_out_opc_bne(s, TCG_REG_TMP1, TCG_REG_ZERO, 0);
-        }
-
-        h->index = guest_base ? TCG_GUEST_BASE_REG : TCG_REG_ZERO;
+        tcg_out_mov(s, addr_type, TCG_REG_TMP1, addr_reg);
     }
+    tcg_out_opc_bstrins_d(s, TCG_REG_TMP1, TCG_REG_ZERO,
+                            a_bits, TARGET_PAGE_BITS - 1);
+
+    /* Compare masked address with the TLB entry.  */
+    ldst->label_ptr[0] = s->code_ptr;
+    tcg_out_opc_bne(s, TCG_REG_TMP0, TCG_REG_TMP1, 0);
+
+    h->index = TCG_REG_TMP2;
 
     if (addr_type == TCG_TYPE_I32) {
         h->base = TCG_REG_TMP0;
@@ -2627,11 +2604,6 @@ static void tcg_target_qemu_prologue(TCGContext *s)
     for (i = 0; i < ARRAY_SIZE(tcg_target_callee_save_regs); i++) {
         tcg_out_st(s, TCG_TYPE_REG, tcg_target_callee_save_regs[i],
                    TCG_REG_SP, SAVE_OFS + i * REG_SIZE);
-    }
-
-    if (!tcg_use_softmmu && guest_base) {
-        tcg_out_movi(s, TCG_TYPE_PTR, TCG_GUEST_BASE_REG, guest_base);
-        tcg_regset_set_reg(s->reserved_regs, TCG_GUEST_BASE_REG);
     }
 
     /* Call generated code */

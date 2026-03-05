@@ -424,9 +424,6 @@ void tcg_region_reset_all(void)
 
 static size_t tcg_n_regions(size_t tb_size, unsigned max_threads)
 {
-#ifdef CONFIG_USER_ONLY
-    return 1;
-#else
     size_t n_regions;
 
     /*
@@ -450,7 +447,6 @@ static size_t tcg_n_regions(size_t tb_size, unsigned max_threads)
         return max_threads;
     }
     return MIN(n_regions, max_threads * 8);
-#endif
 }
 
 /*
@@ -466,23 +462,7 @@ static size_t tcg_n_regions(size_t tb_size, unsigned max_threads)
 
 #if TCG_TARGET_REG_BITS == 32
 #define DEFAULT_CODE_GEN_BUFFER_SIZE_1 (32 * MiB)
-#ifdef CONFIG_USER_ONLY
-/*
- * For user mode on smaller 32 bit systems we may run into trouble
- * allocating big chunks of data in the right place. On these systems
- * we utilise a static code generation buffer directly in the binary.
- */
-#define USE_STATIC_CODE_GEN_BUFFER
-#endif
 #else /* TCG_TARGET_REG_BITS == 64 */
-#ifdef CONFIG_USER_ONLY
-/*
- * As user-mode emulation typically means running multiple instances
- * of the translator don't go too nuts with our default code gen
- * buffer lest we make things too hard for the OS.
- */
-#define DEFAULT_CODE_GEN_BUFFER_SIZE_1 (128 * MiB)
-#else
 /*
  * We expect most system emulation to run one or two guests per host.
  * Users running large scale system emulation may want to tweak their
@@ -490,68 +470,11 @@ static size_t tcg_n_regions(size_t tb_size, unsigned max_threads)
  */
 #define DEFAULT_CODE_GEN_BUFFER_SIZE_1 (1 * GiB)
 #endif
-#endif
 
 #define DEFAULT_CODE_GEN_BUFFER_SIZE \
   (DEFAULT_CODE_GEN_BUFFER_SIZE_1 < MAX_CODE_GEN_BUFFER_SIZE \
    ? DEFAULT_CODE_GEN_BUFFER_SIZE_1 : MAX_CODE_GEN_BUFFER_SIZE)
 
-#ifdef USE_STATIC_CODE_GEN_BUFFER
-static uint8_t static_code_gen_buffer[DEFAULT_CODE_GEN_BUFFER_SIZE]
-    __attribute__((aligned(CODE_GEN_ALIGN)));
-
-static int alloc_code_gen_buffer(size_t tb_size, int splitwx, Error **errp)
-{
-    void *buf, *end;
-    size_t size;
-
-    if (splitwx > 0) {
-        error_setg(errp, "jit split-wx not supported");
-        return -1;
-    }
-
-    /* page-align the beginning and end of the buffer */
-    buf = static_code_gen_buffer;
-    end = static_code_gen_buffer + sizeof(static_code_gen_buffer);
-    buf = QEMU_ALIGN_PTR_UP(buf, qemu_real_host_page_size());
-    end = QEMU_ALIGN_PTR_DOWN(end, qemu_real_host_page_size());
-
-    size = end - buf;
-
-    /* Honor a command-line option limiting the size of the buffer.  */
-    if (size > tb_size) {
-        size = QEMU_ALIGN_DOWN(tb_size, qemu_real_host_page_size());
-    }
-
-    region.start_aligned = buf;
-    region.total_size = size;
-
-    return PROT_READ | PROT_WRITE;
-}
-#elif defined(_WIN32)
-static int alloc_code_gen_buffer(size_t size, int splitwx, Error **errp)
-{
-    void *buf;
-
-    if (splitwx > 0) {
-        error_setg(errp, "jit split-wx not supported");
-        return -1;
-    }
-
-    buf = VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT,
-                             PAGE_EXECUTE_READWRITE);
-    if (buf == NULL) {
-        error_setg_win32(errp, GetLastError(),
-                         "allocate %zu bytes for jit buffer", size);
-        return false;
-    }
-
-    region.start_aligned = buf;
-    region.total_size = size;
-
-    return PROT_READ | PROT_WRITE | PROT_EXEC;
-}
-#else
 static int alloc_code_gen_buffer_anon(size_t size, int prot,
                                       int flags, Error **errp)
 {
@@ -720,7 +643,6 @@ static int alloc_code_gen_buffer(size_t size, int splitwx, Error **errp)
 
     return alloc_code_gen_buffer_anon(size, prot, flags, errp);
 }
-#endif /* USE_STATIC_CODE_GEN_BUFFER, WIN32, POSIX */
 
 /*
  * Initializes region partitioning.
@@ -852,7 +774,6 @@ void tcg_region_init(size_t tb_size, int splitwx, unsigned max_threads)
     /*
      * Leave the initial context initialized to the first region.
      * This will be the context into which we generate the prologue.
-     * It is also the only context for CONFIG_USER_ONLY.
      */
     tcg_region_initial_alloc__locked(&tcg_init_ctx);
 }

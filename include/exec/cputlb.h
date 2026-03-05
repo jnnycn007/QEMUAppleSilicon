@@ -25,15 +25,13 @@
 #include "exec/memattrs.h"
 #include "exec/vaddr.h"
 
-#if defined(CONFIG_TCG) && !defined(CONFIG_USER_ONLY)
+#ifdef CONFIG_TCG
 void tlb_protect_code(ram_addr_t ram_addr);
 void tlb_unprotect_code(ram_addr_t ram_addr);
 #endif
 
-#ifndef CONFIG_USER_ONLY
 void tlb_reset_dirty(CPUState *cpu, uintptr_t start, uintptr_t length);
 void tlb_reset_dirty_range_all(ram_addr_t start, ram_addr_t length);
-#endif
 
 /**
  * tlb_set_page_full:
@@ -94,7 +92,7 @@ void tlb_set_page(CPUState *cpu, vaddr addr,
                   hwaddr paddr, int prot,
                   int mmu_idx, vaddr size);
 
-#if defined(CONFIG_TCG) && !defined(CONFIG_USER_ONLY)
+#ifdef CONFIG_TCG
 /**
  * tlb_flush_page:
  * @cpu: CPU whose TLB should be flushed
@@ -282,5 +280,6 @@ static inline void tlb_flush_range_by_mmuidx_all_cpus_synced(CPUState *cpu,
                                                              unsigned bits)
 {
 }
-#endif /* CONFIG_TCG && !CONFIG_USER_ONLY */
+#endif /* CONFIG_TCG */
+
 #endif /* CPUTLB_H */

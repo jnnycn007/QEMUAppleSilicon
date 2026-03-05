@@ -51,14 +51,12 @@
 #
 # @builtin: the QEMU builtin support
 #
-# @vhost-user: vhost-user
-#
 # @lkcf: Linux kernel cryptographic framework
 #
 # Since: 8.0
 ##
 { 'enum': 'QCryptodevBackendType',
-  'data': ['builtin', 'vhost-user', 'lkcf']}
+  'data': ['builtin', 'lkcf']}
 
 ##
 # @QCryptodevBackendClient:

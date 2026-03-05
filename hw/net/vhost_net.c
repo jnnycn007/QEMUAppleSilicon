@@ -62,20 +62,6 @@ uint64_t vhost_net_get_max_queues(VHostNetState *net)
     return net->dev.max_queues;
 }
 
-uint64_t vhost_net_get_acked_features(VHostNetState *net)
-{
-    return net->dev.acked_features;
-}
-
-void vhost_net_save_acked_features(NetClientState *nc)
-{
-    struct vhost_net *net = get_vhost_net(nc);
-
-    if (net && net->save_acked_features) {
-        net->save_acked_features(nc);
-    }
-}
-
 static void vhost_net_disable_notifiers_nvhosts(VirtIODevice *dev,
                 NetClientState *ncs, int data_queue_pairs, int nvhosts)
 {
@@ -244,9 +230,7 @@ struct vhost_net *vhost_net_init(VhostNetOptions *options)
     net->nc = options->net_backend;
     net->dev.nvqs = options->nvqs;
     net->feature_bits = options->feature_bits;
-    net->save_acked_features = options->save_acked_features;
     net->max_tx_queue_size = options->max_tx_queue_size;
-    net->is_vhost_user = options->is_vhost_user;
 
     net->dev.max_queues = 1;
     net->dev.vqs = net->vqs;
@@ -259,10 +243,8 @@ struct vhost_net *vhost_net_init(VhostNetOptions *options)
         net->dev.backend_features = qemu_has_vnet_hdr(options->net_backend)
             ? 0 : (1ULL << VHOST_NET_F_VIRTIO_NET_HDR);
         net->backend = r;
-        net->dev.protocol_features = 0;
     } else {
         net->dev.backend_features = 0;
-        net->dev.protocol_features = 0;
         net->backend = -1;
 
         /* vhost-user needs vq_index to initiate a specific queue pair */
@@ -285,17 +267,6 @@ struct vhost_net *vhost_net_init(VhostNetOptions *options)
             fprintf(stderr, "vhost lacks feature mask 0x%" PRIx64
                    " for backend\n",
                    (uint64_t)(~net->dev.features & net->dev.backend_features));
-            goto fail;
-        }
-    }
-
-    /* Set sane init value. Override when guest acks. */
-    if (options->get_acked_features) {
-        features = options->get_acked_features(net->nc);
-        if (~net->dev.features & features) {
-            fprintf(stderr, "vhost lacks feature mask 0x%" PRIx64
-                    " for backend\n",
-                    (uint64_t)(~net->dev.features & features));
             goto fail;
         }
     }
@@ -436,14 +407,6 @@ int vhost_net_start(VirtIODevice *dev, NetClientState *ncs,
 
         net = get_vhost_net(peer);
         vhost_net_set_vq_index(net, i * 2, index_end);
-
-        /* Suppress the masking guest notifiers on vhost user
-         * because vhost user doesn't interrupt masking/unmasking
-         * properly.
-         */
-        if (net->is_vhost_user) {
-            dev->use_guest_notifier_mask = false;
-        }
      }
 
     r = vhost_net_enable_notifiers(dev, ncs, data_queue_pairs, cvq);

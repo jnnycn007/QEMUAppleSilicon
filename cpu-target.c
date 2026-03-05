@@ -33,12 +33,10 @@ void cpu_single_step(CPUState *cpu, int enabled)
     if (cpu->singlestep_enabled != enabled) {
         cpu->singlestep_enabled = enabled;
 
-#if !defined(CONFIG_USER_ONLY)
         const AccelOpsClass *ops = cpus_get_accel();
         if (ops->update_guest_debug) {
             ops->update_guest_debug(cpu);
         }
-#endif
 
         trace_breakpoint_singlestep(cpu->cpu_index, enabled);
     }
@@ -68,14 +66,5 @@ void cpu_abort(CPUState *cpu, const char *fmt, ...)
     va_end(ap2);
     va_end(ap);
     replay_finish();
-#if defined(CONFIG_USER_ONLY)
-    {
-        struct sigaction act;
-        sigfillset(&act.sa_mask);
-        act.sa_handler = SIG_DFL;
-        act.sa_flags = 0;
-        sigaction(SIGABRT, &act, NULL);
-    }
-#endif
     abort();
 }

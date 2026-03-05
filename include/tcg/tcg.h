@@ -28,7 +28,6 @@
 #include "exec/memop.h"
 #include "exec/memopidx.h"
 #include "qemu/bitops.h"
-#include "qemu/plugin.h"
 #include "qemu/queue.h"
 #include "tcg/tcg-mo.h"
 #include "tcg-target-reg-bits.h"
@@ -403,21 +402,6 @@ struct TCGContext {
 
     TCGLabel *exitreq_label;
 
-#ifdef CONFIG_PLUGIN
-    /*
-     * We keep one plugin_tb struct per TCGContext. Note that on every TB
-     * translation we clear but do not free its contents; this way we
-     * avoid a lot of malloc/free churn, since after a few TB's it's
-     * unlikely that we'll need to allocate either more instructions or more
-     * space for instructions (for variable-instruction-length ISAs).
-     */
-    struct qemu_plugin_tb *plugin_tb;
-    const struct DisasContextBase *plugin_db;
-
-    /* descriptor of the instruction being translated */
-    struct qemu_plugin_insn *plugin_insn;
-#endif
-
     /* For host-specific values. */
 #ifdef __riscv
     MemOp riscv_cur_vsew;
@@ -457,12 +441,6 @@ static inline bool temp_readonly(TCGTemp *ts)
 {
     return ts->kind >= TEMP_FIXED;
 }
-
-#ifdef CONFIG_USER_ONLY
-extern bool tcg_use_softmmu;
-#else
-#define tcg_use_softmmu  true
-#endif
 
 extern __thread TCGContext *tcg_ctx;
 extern const void *tcg_code_gen_epilogue;
@@ -645,7 +623,6 @@ static inline bool tcg_op_buf_full(void)
 
 /* pool based memory allocation */
 
-/* user-mode: mmap_lock must be held for tcg_malloc_internal. */
 void *tcg_malloc_internal(TCGContext *s, int size);
 void tcg_pool_reset(TCGContext *s);
 TranslationBlock *tcg_tb_alloc(TCGContext *s);
@@ -702,7 +679,6 @@ void tcg_tb_foreach(GTraverseFunc func, gpointer user_data);
  */
 size_t tcg_nb_tbs(void);
 
-/* user-mode: Called with mmap_lock held.  */
 static inline void *tcg_malloc(int size)
 {
     TCGContext *s = tcg_ctx;

@@ -173,7 +173,7 @@ static TCGReg tcg_target_call_oarg_reg(TCGCallReturnKind kind, int slot)
 # define ALL_BYTEL_REGS        0x0000000fu
 #endif
 #define SOFTMMU_RESERVE_REGS \
-    (tcg_use_softmmu ? (1 << TCG_REG_L0) | (1 << TCG_REG_L1) : 0)
+    ((1 << TCG_REG_L0) | (1 << TCG_REG_L1))
 
 #define have_bmi2       (cpuinfo & CPUINFO_BMI2)
 #define have_lzcnt      (cpuinfo & CPUINFO_LZCNT)
@@ -2116,38 +2116,6 @@ static bool tcg_out_qemu_st_slow_path(TCGContext *s, TCGLabelQemuLdst *l)
     return true;
 }
 
-#ifdef CONFIG_USER_ONLY
-static HostAddress x86_guest_base = {
-    .index = -1
-};
-
-#if defined(__x86_64__) && defined(__linux__)
-# include <asm/prctl.h>
-# include <sys/prctl.h>
-int arch_prctl(int code, unsigned long addr);
-static inline int setup_guest_base_seg(void)
-{
-    if (arch_prctl(ARCH_SET_GS, guest_base) == 0) {
-        return P_GS;
-    }
-    return 0;
-}
-#define setup_guest_base_seg  setup_guest_base_seg
-#elif defined(__x86_64__) && \
-      (defined (__FreeBSD__) || defined (__FreeBSD_kernel__))
-# include <machine/sysarch.h>
-static inline int setup_guest_base_seg(void)
-{
-    if (sysarch(AMD64_SET_GSBASE, &guest_base) == 0) {
-        return P_GS;
-    }
-    return 0;
-}
-#define setup_guest_base_seg  setup_guest_base_seg
-#endif
-#else
-# define x86_guest_base (*(HostAddress *)({ qemu_build_not_reached(); NULL; }))
-#endif /* CONFIG_USER_ONLY */
 #ifndef setup_guest_base_seg
 # define setup_guest_base_seg()  0
 #endif
@@ -2155,9 +2123,8 @@ static inline int setup_guest_base_seg(void)
 #define MIN_TLB_MASK_TABLE_OFS  INT_MIN
 
 /*
- * For softmmu, perform the TLB load and compare.
- * For useronly, perform any required alignment tests.
- * In both cases, return a TCGLabelQemuLdst structure if the slow path
+ * Perform the TLB load and compare.
+ * Return a TCGLabelQemuLdst structure if the slow path
  * is required and fill in @h with the host address for the fast path.
  */
 static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
@@ -2168,93 +2135,75 @@ static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
     MemOp s_bits = opc & MO_SIZE;
     unsigned a_mask;
 
-    if (tcg_use_softmmu) {
-        h->index = TCG_REG_L0;
-        h->ofs = 0;
-        h->seg = 0;
-    } else {
-        *h = x86_guest_base;
-    }
+    h->index = TCG_REG_L0;
+    h->ofs = 0;
+    h->seg = 0;
+
     h->base = addr;
     h->aa = atom_and_align_for_opc(s, opc, MO_ATOM_IFALIGN, s_bits == MO_128);
     a_mask = (1 << h->aa.align) - 1;
 
-    if (tcg_use_softmmu) {
-        int cmp_ofs = is_ld ? offsetof(CPUTLBEntry, addr_read)
-                            : offsetof(CPUTLBEntry, addr_write);
-        TCGType ttype = TCG_TYPE_I32;
-        TCGType tlbtype = TCG_TYPE_I32;
-        int trexw = 0, hrexw = 0, tlbrexw = 0;
-        unsigned mem_index = get_mmuidx(oi);
-        unsigned s_mask = (1 << s_bits) - 1;
-        int fast_ofs = tlb_mask_table_ofs(s, mem_index);
-        int tlb_mask;
+    int cmp_ofs = is_ld ? offsetof(CPUTLBEntry, addr_read)
+                        : offsetof(CPUTLBEntry, addr_write);
+    TCGType ttype = TCG_TYPE_I32;
+    TCGType tlbtype = TCG_TYPE_I32;
+    int trexw = 0, hrexw = 0, tlbrexw = 0;
+    unsigned mem_index = get_mmuidx(oi);
+    unsigned s_mask = (1 << s_bits) - 1;
+    int fast_ofs = tlb_mask_table_ofs(s, mem_index);
+    int tlb_mask;
 
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr;
+    ldst = new_ldst_label(s);
+    ldst->is_ld = is_ld;
+    ldst->oi = oi;
+    ldst->addr_reg = addr;
 
-        if (TCG_TARGET_REG_BITS == 64) {
-            ttype = s->addr_type;
-            trexw = (ttype == TCG_TYPE_I32 ? 0 : P_REXW);
-            if (TCG_TYPE_PTR == TCG_TYPE_I64) {
-                hrexw = P_REXW;
-                tlbtype = TCG_TYPE_I64;
-                tlbrexw = P_REXW;
-            }
+    if (TCG_TARGET_REG_BITS == 64) {
+        ttype = s->addr_type;
+        trexw = (ttype == TCG_TYPE_I32 ? 0 : P_REXW);
+        if (TCG_TYPE_PTR == TCG_TYPE_I64) {
+            hrexw = P_REXW;
+            tlbtype = TCG_TYPE_I64;
+            tlbrexw = P_REXW;
         }
-
-        tcg_out_mov(s, tlbtype, TCG_REG_L0, addr);
-        tcg_out_shifti(s, SHIFT_SHR + tlbrexw, TCG_REG_L0,
-                       TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
-
-        tcg_out_modrm_offset(s, OPC_AND_GvEv + trexw, TCG_REG_L0, TCG_AREG0,
-                             fast_ofs + offsetof(CPUTLBDescFast, mask));
-
-        tcg_out_modrm_offset(s, OPC_ADD_GvEv + hrexw, TCG_REG_L0, TCG_AREG0,
-                             fast_ofs + offsetof(CPUTLBDescFast, table));
-
-        /*
-         * If the required alignment is at least as large as the access,
-         * simply copy the address and mask.  For lesser alignments,
-         * check that we don't cross pages for the complete access.
-         */
-        if (a_mask >= s_mask) {
-            tcg_out_mov(s, ttype, TCG_REG_L1, addr);
-        } else {
-            tcg_out_modrm_offset(s, OPC_LEA + trexw, TCG_REG_L1,
-                                 addr, s_mask - a_mask);
-        }
-        tlb_mask = TARGET_PAGE_MASK | a_mask;
-        tgen_arithi(s, ARITH_AND + trexw, TCG_REG_L1, tlb_mask, 0);
-
-        /* cmp 0(TCG_REG_L0), TCG_REG_L1 */
-        tcg_out_modrm_offset(s, OPC_CMP_GvEv + trexw,
-                             TCG_REG_L1, TCG_REG_L0, cmp_ofs);
-
-        /* jne slow_path */
-        tcg_out_opc(s, OPC_JCC_long + JCC_JNE, 0, 0, 0);
-        ldst->label_ptr[0] = s->code_ptr;
-        s->code_ptr += 4;
-
-        /* TLB Hit.  */
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_L0, TCG_REG_L0,
-                   offsetof(CPUTLBEntry, addend));
-    } else if (a_mask) {
-        int jcc;
-
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr;
-
-        /* jne slow_path */
-        jcc = tcg_out_cmp(s, TCG_COND_TSTNE, addr, a_mask, true, false);
-        tcg_out_opc(s, OPC_JCC_long + jcc, 0, 0, 0);
-        ldst->label_ptr[0] = s->code_ptr;
-        s->code_ptr += 4;
     }
+
+    tcg_out_mov(s, tlbtype, TCG_REG_L0, addr);
+    tcg_out_shifti(s, SHIFT_SHR + tlbrexw, TCG_REG_L0,
+                    TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
+
+    tcg_out_modrm_offset(s, OPC_AND_GvEv + trexw, TCG_REG_L0, TCG_AREG0,
+                            fast_ofs + offsetof(CPUTLBDescFast, mask));
+
+    tcg_out_modrm_offset(s, OPC_ADD_GvEv + hrexw, TCG_REG_L0, TCG_AREG0,
+                            fast_ofs + offsetof(CPUTLBDescFast, table));
+
+    /*
+        * If the required alignment is at least as large as the access,
+        * simply copy the address and mask.  For lesser alignments,
+        * check that we don't cross pages for the complete access.
+        */
+    if (a_mask >= s_mask) {
+        tcg_out_mov(s, ttype, TCG_REG_L1, addr);
+    } else {
+        tcg_out_modrm_offset(s, OPC_LEA + trexw, TCG_REG_L1,
+                                addr, s_mask - a_mask);
+    }
+    tlb_mask = TARGET_PAGE_MASK | a_mask;
+    tgen_arithi(s, ARITH_AND + trexw, TCG_REG_L1, tlb_mask, 0);
+
+    /* cmp 0(TCG_REG_L0), TCG_REG_L1 */
+    tcg_out_modrm_offset(s, OPC_CMP_GvEv + trexw,
+                            TCG_REG_L1, TCG_REG_L0, cmp_ofs);
+
+    /* jne slow_path */
+    tcg_out_opc(s, OPC_JCC_long + JCC_JNE, 0, 0, 0);
+    ldst->label_ptr[0] = s->code_ptr;
+    s->code_ptr += 4;
+
+    /* TLB Hit.  */
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_L0, TCG_REG_L0,
+                offsetof(CPUTLBEntry, addend));
 
     return ldst;
 }
@@ -4780,21 +4729,6 @@ static void tcg_target_qemu_prologue(TCGContext *s)
     /* Save all callee saved registers.  */
     for (i = 0; i < ARRAY_SIZE(tcg_target_callee_save_regs); i++) {
         tcg_out_push(s, tcg_target_callee_save_regs[i]);
-    }
-
-    if (!tcg_use_softmmu && guest_base) {
-        int seg = setup_guest_base_seg();
-        if (seg != 0) {
-            x86_guest_base.seg = seg;
-        } else if (guest_base == (int32_t)guest_base) {
-            x86_guest_base.ofs = guest_base;
-        } else {
-            assert(TCG_TARGET_REG_BITS == 64);
-            /* Choose R12 because, as a base, it requires a SIB byte. */
-            x86_guest_base.index = TCG_REG_R12;
-            tcg_out_movi(s, TCG_TYPE_PTR, x86_guest_base.index, guest_base);
-            tcg_regset_set_reg(s->reserved_regs, x86_guest_base.index);
-        }
     }
 
     if (TCG_TARGET_REG_BITS == 32) {

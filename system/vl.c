@@ -105,11 +105,8 @@
 #include "tcg/perf.h"
 #endif
 
-#include "disas/disas.h"
-
 #include "trace.h"
 #include "trace/control.h"
-#include "qemu/plugin.h"
 #include "qemu/queue.h"
 #include "system/arch_init.h"
 #include "system/confidential-guest-support.h"
@@ -177,7 +174,6 @@ static QTAILQ_HEAD(, DeviceOption) device_opts = QTAILQ_HEAD_INITIALIZER(device_
 static int display_remote;
 static int snapshot;
 static bool preconfig_requested;
-static QemuPluginList plugin_list = QTAILQ_HEAD_INITIALIZER(plugin_list);
 static BlockdevOptionsQueue bdo_queue = QSIMPLEQ_HEAD_INITIALIZER(bdo_queue);
 static bool nographic = false;
 static int mem_prealloc; /* force preallocation of physical target memory */
@@ -221,7 +217,6 @@ static const struct {
     { .driver = "qxl-vga",              .flag = &default_vga       },
     { .driver = "virtio-vga",           .flag = &default_vga       },
     { .driver = "ati-vga",              .flag = &default_vga       },
-    { .driver = "vhost-user-vga",       .flag = &default_vga       },
     { .driver = "virtio-vga-gl",        .flag = &default_vga       },
     { .driver = "virtio-vga-rutabaga",  .flag = &default_vga       },
 };
@@ -1958,17 +1953,6 @@ static bool object_create_early(const char *type)
         return false;
     }
 
-#if defined(CONFIG_VHOST_USER) && defined(CONFIG_LINUX)
-    /* Reason: cryptodev-vhost-user property "chardev" */
-    if (g_str_equal(type, "cryptodev-vhost-user")) {
-        return false;
-    }
-#endif
-
-    /* Reason: vhost-user-blk-server property "node-name" */
-    if (g_str_equal(type, "vhost-user-blk-server")) {
-        return false;
-    }
     /*
      * Reason: filter-* property "netdev" etc.
      */
@@ -2689,9 +2673,6 @@ static void qemu_init_board(void)
 {
     MachineClass *machine_class = MACHINE_GET_CLASS(current_machine);
 
-    /* process plugin before CPUs are created, but once -smp has been parsed */
-    qemu_plugin_load_list(&plugin_list, &error_fatal);
-
     /* From here on we enter MACHINE_PHASE_INITIALIZED.  */
     machine_run_board_init(current_machine, mem_path, &error_fatal);
 
@@ -2845,7 +2826,6 @@ void qemu_init(int argc, char **argv)
     qemu_add_opts(&qemu_global_opts);
     qemu_add_opts(&qemu_mon_opts);
     qemu_add_opts(&qemu_trace_opts);
-    qemu_plugin_add_opts();
     qemu_add_opts(&qemu_option_rom_opts);
     qemu_add_opts(&qemu_accel_opts);
     qemu_add_opts(&qemu_mem_opts);
@@ -3151,41 +3131,6 @@ void qemu_init(int argc, char **argv)
             case QEMU_OPTION_vga:
                 vga_model = optarg;
                 default_vga = 0;
-                break;
-            case QEMU_OPTION_g:
-                {
-                    const char *p;
-                    int w, h, depth;
-                    p = optarg;
-                    w = strtol(p, (char **)&p, 10);
-                    if (w <= 0) {
-                    graphic_error:
-                        error_report("invalid resolution or depth");
-                        exit(1);
-                    }
-                    if (*p != 'x')
-                        goto graphic_error;
-                    p++;
-                    h = strtol(p, (char **)&p, 10);
-                    if (h <= 0)
-                        goto graphic_error;
-                    if (*p == 'x') {
-                        p++;
-                        depth = strtol(p, (char **)&p, 10);
-                        if (depth != 1 && depth != 2 && depth != 4 &&
-                            depth != 8 && depth != 15 && depth != 16 &&
-                            depth != 24 && depth != 32)
-                            goto graphic_error;
-                    } else if (*p == '\0') {
-                        depth = graphic_depth;
-                    } else {
-                        goto graphic_error;
-                    }
-
-                    graphic_width = w;
-                    graphic_height = h;
-                    graphic_depth = depth;
-                }
                 break;
             case QEMU_OPTION_echr:
                 {
@@ -3500,14 +3445,6 @@ void qemu_init(int argc, char **argv)
                 /* Capture guest name if -msg guest-name is used later */
                 error_guest_name = qemu_opt_get(opts, "guest");
                 break;
-            case QEMU_OPTION_prom_env:
-                if (nb_prom_envs >= MAX_PROM_ENVS) {
-                    error_report("too many prom variables");
-                    exit(1);
-                }
-                prom_envs[nb_prom_envs] = optarg;
-                nb_prom_envs++;
-                break;
             case QEMU_OPTION_rtc:
                 opts = qemu_opts_parse_noisily(qemu_find_opts("rtc"), optarg,
                                                false);
@@ -3557,9 +3494,6 @@ void qemu_init(int argc, char **argv)
                 break;
             case QEMU_OPTION_trace:
                 trace_opt_parse(optarg);
-                break;
-            case QEMU_OPTION_plugin:
-                qemu_plugin_opt_parse(optarg, &plugin_list);
                 break;
             case QEMU_OPTION_readconfig:
                 qemu_read_config_file(optarg, qemu_parse_config_group, &error_fatal);

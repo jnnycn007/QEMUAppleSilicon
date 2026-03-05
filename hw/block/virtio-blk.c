@@ -1162,7 +1162,7 @@ static void virtio_blk_update_config(VirtIODevice *vdev, uint8_t *config)
      * sector_mask to adopt the geometry to have a correct picture.
      * For those devices where the capacity is ok for the given geometry
      * we don't touch the sector value of the geometry, since some devices
-     * (like s390 dasd) need a specific value. Here the capacity is already
+     * need a specific value. Here the capacity is already
      * cyls*heads*secs*blk_size and the sector value is not block size
      * divided by 512 - instead it is the amount of blk_size blocks
      * per track (cylinder).

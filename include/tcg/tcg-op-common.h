@@ -75,9 +75,6 @@ void tcg_gen_goto_tb(unsigned idx);
  */
 void tcg_gen_lookup_and_goto_ptr(void);
 
-void tcg_gen_plugin_cb(unsigned from);
-void tcg_gen_plugin_mem_cb(TCGv_i64 addr, unsigned meminfo);
-
 /* 32 bit ops */
 
 void tcg_gen_movi_i32(TCGv_i32 ret, int32_t arg);

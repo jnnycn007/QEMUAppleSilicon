@@ -45,10 +45,6 @@ endif
 
 system_ss.add(when: [libxdp, libbpf], if_true: files('af-xdp.c'))
 
-if have_vhost_net_user
-  system_ss.add(when: 'CONFIG_VIRTIO_NET', if_true: files('vhost-user.c'), if_false: files('vhost-user-stub.c'))
-endif
-
 if host_os == 'windows'
   system_ss.add(files('tap-win32.c'))
 elif host_os == 'linux'

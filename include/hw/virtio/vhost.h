@@ -7,7 +7,6 @@
 #include "system/memory.h"
 
 #define VHOST_F_DEVICE_IOTLB 63
-#define VHOST_USER_F_PROTOCOL_FEATURES 30
 
 #define VU_REALIZE_CONN_RETRIES 3
 
@@ -101,23 +100,14 @@ struct vhost_dev {
      * @features: available features provided by the backend
      * @acked_features: final negotiated features with front-end driver
      *
-     * @backend_features: this is used in a couple of places to either
-     * store VHOST_USER_F_PROTOCOL_FEATURES to apply to
-     * VHOST_USER_SET_FEATURES or VHOST_NET_F_VIRTIO_NET_HDR. Its
+     * @backend_features: this is used in a couple of places to
+     * store VHOST_NET_F_VIRTIO_NET_HDR. Its
      * future use should be discouraged and the variable retired as
      * its easy to confuse with the VirtIO backend_features.
      */
     uint64_t features;
     uint64_t acked_features;
     uint64_t backend_features;
-
-    /**
-     * @protocol_features: is the vhost-user only feature set by
-     * VHOST_USER_SET_PROTOCOL_FEATURES. Protocol features are only
-     * negotiated if VHOST_USER_F_PROTOCOL_FEATURES has been offered
-     * by the backend (see @features).
-     */
-    uint64_t protocol_features;
 
     uint64_t max_queues;
     uint64_t backend_cap;
@@ -146,8 +136,6 @@ struct vhost_net {
     int backend;
     const int *feature_bits;
     int max_tx_queue_size;
-    SaveAcketFeatures *save_acked_features;
-    bool is_vhost_user;
     NetClientState *nc;
 };
 

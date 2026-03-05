@@ -36,11 +36,9 @@
 #include "qapi/qapi-builtin-visit.h"
 #include "qemu/units.h"
 #include "qemu/target-info.h"
-#ifndef CONFIG_USER_ONLY
 #include "hw/boards.h"
 #include "exec/tb-flush.h"
 #include "system/runstate.h"
-#endif
 #include "accel/accel-ops.h"
 #include "accel/accel-cpu-ops.h"
 #include "accel/tcg/cpu-ops.h"
@@ -62,20 +60,18 @@ typedef struct TCGState TCGState;
 DECLARE_INSTANCE_CHECKER(TCGState, TCG_STATE,
                          TYPE_TCG_ACCEL)
 
-#ifndef CONFIG_USER_ONLY
 bool qemu_tcg_mttcg_enabled(void)
 {
     TCGState *s = TCG_STATE(current_accel());
     return s->mttcg_enabled == ON_OFF_AUTO_ON;
 }
-#endif /* !CONFIG_USER_ONLY */
 
 static void tcg_accel_instance_init(Object *obj)
 {
     TCGState *s = TCG_STATE(obj);
 
     /* If debugging enabled, default "auto on", otherwise off. */
-#if defined(CONFIG_DEBUG_TCG) && !defined(CONFIG_USER_ONLY)
+#ifdef CONFIG_DEBUG_TCG
     s->splitwx_enabled = -1;
 #else
     s->splitwx_enabled = 0;
@@ -84,7 +80,6 @@ static void tcg_accel_instance_init(Object *obj)
 
 bool one_insn_per_tb;
 
-#ifndef CONFIG_USER_ONLY
 static void tcg_vm_change_state(void *opaque, bool running, RunState state)
 {
     if (state == RUN_STATE_RESTORE_VM) {
@@ -99,14 +94,12 @@ static void tcg_vm_change_state(void *opaque, bool running, RunState state)
         tb_flush__exclusive_or_serial();
     }
 }
-#endif
 
 static int tcg_init_machine(AccelState *as, MachineState *ms)
 {
     TCGState *s = TCG_STATE(as);
     unsigned max_threads = 1;
 
-#ifndef CONFIG_USER_ONLY
     CPUClass *cc = CPU_CLASS(object_class_by_name(target_cpu_type()));
     bool mttcg_supported = cc->tcg_ops->mttcg_supported;
 
@@ -145,7 +138,6 @@ static int tcg_init_machine(AccelState *as, MachineState *ms)
     }
 
     qemu_add_vm_change_state_handler(tcg_vm_change_state, NULL);
-#endif
 
     tcg_allowed = true;
 
@@ -159,10 +151,6 @@ static int tcg_init_machine(AccelState *as, MachineState *ms)
      * initialize the prologue now.
      */
     tcg_prologue_init();
-#endif
-
-#ifdef CONFIG_USER_ONLY
-    qdev_create_fake_machine();
 #endif
 
     return 0;

@@ -21,7 +21,6 @@
 #include "tcg/tcg.h"
 #include "tcg/helper-info.h"
 #include "tcg/tcg-ldst.h"
-#include "disas/dis-asm.h"
 #include "tcg-has.h"
 #include <ffi.h>
 

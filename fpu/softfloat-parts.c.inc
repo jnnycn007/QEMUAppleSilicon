@@ -727,9 +727,7 @@ static FloatPartsN *partsN(muladd_scalbn)(FloatPartsN *a, FloatPartsN *b,
             goto return_normal;
         }
         if (c->cls == float_class_zero) {
-            if (flags & float_muladd_suppress_add_product_zero) {
-                a->sign = c->sign;
-            } else if (a->sign != c->sign) {
+            if (a->sign != c->sign) {
                 goto return_sub_zero;
             }
             goto return_zero;

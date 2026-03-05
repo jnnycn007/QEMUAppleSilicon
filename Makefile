@@ -53,7 +53,7 @@ ifneq ($(realpath $(SRC_PATH)),$(realpath .))
 ifneq ($(wildcard $(SRC_PATH)/config-host.mak),)
 $(error This is an out of tree build but your source tree ($(SRC_PATH)) \
 seems to have been used for an in-tree build. You can fix this by running \
-"$(MAKE) distclean && rm -rf *-linux-user *-softmmu" in your source tree)
+"$(MAKE) distclean && rm -rf *-softmmu" in your source tree)
 endif
 endif
 
@@ -209,7 +209,6 @@ distclean: clean recurse-distclean
 	rm -f config-host.mak Makefile.prereqs
 	rm -f config.status
 	rm -f roms/seabios/config.mak
-	rm -f qemu-plugins-ld.symbols qemu-plugins-ld64.symbols
 	rm -f *-config-target.h *-config-devices.mak *-config-devices.h
 	rm -rf meson-private meson-logs meson-info compile_commands.json
 	rm -f Makefile.ninja Makefile.mtest build.ninja.stamp meson.stamp
@@ -273,13 +272,6 @@ export DESTDIR
 print-help-run = printf "  %-30s - %s\\n" "$1" "$2"
 print-help = @$(call print-help-run,$1,$2)
 
-.PHONY: update-linux-vdso
-update-linux-vdso:
-	@for m in $(SRC_PATH)/linux-user/*/Makefile.vdso; do \
-	  $(MAKE) $(SUBDIR_MAKEFLAGS) -C $$(dirname $$m) -f Makefile.vdso \
-		SRC_PATH=$(SRC_PATH) BUILD_DIR=$(BUILD_DIR); \
-	done
-
 .PHONY: help
 help:
 	@echo  'Generic targets:'
@@ -294,9 +286,6 @@ help:
 	$(call print-help,clean,Remove most generated files but keep the config)
 	$(call print-help,distclean,Remove all generated files)
 	$(call print-help,dist,Build a distributable tarball)
-	@echo  ''
-	@echo  'Linux-user targets:'
-	$(call print-help,update-linux-vdso,Build linux-user vdso images)
 	@echo  ''
 	@echo  'Documentation targets:'
 	$(call print-help,html man,Build documentation in specified format)

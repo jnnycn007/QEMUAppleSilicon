@@ -156,11 +156,7 @@ DO_GEN_ST(32, MO_UL)
 #undef DO_GEN_LD
 #undef DO_GEN_ST
 
-#if defined(CONFIG_USER_ONLY)
-#define IS_USER(s) 1
-#else
 #define IS_USER(s) (s->user)
-#endif
 
 /* Set NZCV flags from the high 4 bits of var.  */
 #define gen_set_nzcv(var) gen_set_cpsr(var, CPSR_NZCV)

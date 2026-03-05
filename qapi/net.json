@@ -123,8 +123,6 @@
 #
 # @quiet: don't print informational messages (default, passed as '--quiet')
 #
-# @vhost-user: enable vhost-user
-#
 # @mtu: assign MTU via DHCP/NDP
 #
 # @address: IPv4 or IPv6 address
@@ -193,7 +191,6 @@
   'data': {
     '*path':               'str',
     '*quiet':              'bool',
-    '*vhost-user':         'bool',
     '*mtu':                'int',
     '*address':            'str',
     '*netmask':            'str',
@@ -600,26 +597,6 @@
   'if': 'CONFIG_AF_XDP' }
 
 ##
-# @NetdevVhostUserOptions:
-#
-# Vhost-user network backend
-#
-# @chardev: name of a unix socket chardev
-#
-# @vhostforce: vhost on for non-MSIX virtio guests (default: false).
-#
-# @queues: number of queues to be created for multiqueue vhost-user
-#     (default: 1) (Since 2.5)
-#
-# Since: 2.1
-##
-{ 'struct': 'NetdevVhostUserOptions',
-  'data': {
-    'chardev':        'str',
-    '*vhostforce':    'bool',
-    '*queues':        'int' } }
-
-##
 # @NetdevVhostVDPAOptions:
 #
 # Vhost-vdpa network backend
@@ -859,8 +836,7 @@
 ##
 { 'enum': 'NetClientDriver',
   'data': [ 'none', 'nic', 'user', 'tap', 'l2tpv3', 'socket', 'stream',
-            'dgram', 'vde', 'bridge', 'hubport', 'netmap', 'vhost-user',
-            'vhost-vdpa',
+            'dgram', 'vde', 'bridge', 'hubport', 'netmap', 'vhost-vdpa',
             { 'name': 'passt', 'if': 'CONFIG_PASST' },
             { 'name': 'af-xdp', 'if': 'CONFIG_AF_XDP' },
             { 'name': 'vmnet-host', 'if': 'CONFIG_VMNET' },
@@ -897,7 +873,6 @@
     'netmap':   'NetdevNetmapOptions',
     'af-xdp':   { 'type': 'NetdevAFXDPOptions',
                   'if': 'CONFIG_AF_XDP' },
-    'vhost-user': 'NetdevVhostUserOptions',
     'vhost-vdpa': 'NetdevVhostVDPAOptions',
     'vmnet-host': { 'type': 'NetdevVmnetHostOptions',
                     'if': 'CONFIG_VMNET' },
@@ -1159,44 +1134,4 @@
 #          "timestamp": {"seconds": 1663330937, "microseconds": 526695} }
 ##
 { 'event': 'NETDEV_STREAM_DISCONNECTED',
-  'data': { 'netdev-id': 'str' } }
-
-##
-# @NETDEV_VHOST_USER_CONNECTED:
-#
-# Emitted when the vhost-user chardev is connected
-#
-# @netdev-id: QEMU netdev id that is connected
-#
-# @chardev-id: The character device id used by the QEMU netdev
-#
-# Since: 10.0
-#
-# .. qmp-example::
-#
-#     <- { "timestamp": {"seconds": 1739538638, "microseconds": 354181 },
-#          "event": "NETDEV_VHOST_USER_CONNECTED",
-#          "data": { "netdev-id": "netdev0", "chardev-id": "chr0" } }
-#
-##
-{ 'event': 'NETDEV_VHOST_USER_CONNECTED',
-  'data': { 'netdev-id': 'str', 'chardev-id': 'str' } }
-
-##
-# @NETDEV_VHOST_USER_DISCONNECTED:
-#
-# Emitted when the vhost-user chardev is disconnected
-#
-# @netdev-id: QEMU netdev id that is disconnected
-#
-# Since: 10.0
-#
-# .. qmp-example::
-#
-#     <- { "timestamp": { "seconds": 1739538634, "microseconds": 920450 },
-#          "event": "NETDEV_VHOST_USER_DISCONNECTED",
-#          "data": { "netdev-id": "netdev0" } }
-#
-##
-{ 'event': 'NETDEV_VHOST_USER_DISCONNECTED',
   'data': { 'netdev-id': 'str' } }

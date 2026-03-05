@@ -26,7 +26,6 @@
 #include "qapi/error.h"
 #include "hw/pci/msi.h"
 #include "hw/pci/msix.h"
-#include "hw/s390x/adapter.h"
 #include "gdbstub/enums.h"
 #include "system/kvm_int.h"
 #include "system/runstate.h"
@@ -1370,8 +1369,7 @@ static uint32_t adjust_ioeventfd_endianness(uint32_t val, uint32_t size)
         /*
          * The kernel expects ioeventfd values in HOST_BIG_ENDIAN
          * endianness, but the memory core hands them in target endianness.
-         * For example, PPC is always treated as big-endian even if running
-         * on KVM and on PPC64LE.  Correct here, swapping back.
+         * Correct here, swapping back.
          */
         switch (size) {
         case 2:
@@ -2417,15 +2415,7 @@ static void kvm_irqchip_create(KVMState *s)
     int ret;
 
     assert(s->kernel_irqchip_split != ON_OFF_AUTO_AUTO);
-    if (kvm_check_extension(s, KVM_CAP_IRQCHIP)) {
-        ;
-    } else if (kvm_check_extension(s, KVM_CAP_S390_IRQCHIP)) {
-        ret = kvm_vm_enable_cap(s, KVM_CAP_S390_IRQCHIP, 0);
-        if (ret < 0) {
-            fprintf(stderr, "Enable kernel irqchip failed: %s\n", strerror(-ret));
-            exit(1);
-        }
-    } else {
+    if (!kvm_check_extension(s, KVM_CAP_IRQCHIP)){
         return;
     }
 
@@ -2514,23 +2504,6 @@ static int do_kvm_create_vm(KVMState *s, int type)
 
     if (ret < 0) {
         error_report("ioctl(KVM_CREATE_VM) failed: %s", strerror(-ret));
-
-#ifdef TARGET_S390X
-        if (ret == -EINVAL) {
-            error_printf("Host kernel setup problem detected."
-                         " Please verify:\n");
-            error_printf("- for kernels supporting the"
-                        " switch_amode or user_mode parameters, whether");
-            error_printf(" user space is running in primary address space\n");
-            error_printf("- for kernels supporting the vm.allocate_pgste"
-                         " sysctl, whether it is enabled\n");
-        }
-#elif defined(TARGET_PPC)
-        if (ret == -EINVAL) {
-            error_printf("PPC KVM module is not loaded. Try modprobe kvm_%s.\n",
-                         (type == 2) ? "pr" : "hv");
-        }
-#endif
     }
 
     return ret;
@@ -3225,14 +3198,6 @@ int kvm_cpu_exec(CPUState *cpu)
             if (!(run_ret == -EFAULT && run->exit_reason == KVM_EXIT_MEMORY_FAULT)) {
                 fprintf(stderr, "error: kvm run failed %s\n",
                         strerror(-run_ret));
-#ifdef TARGET_PPC
-                if (run_ret == -EBUSY) {
-                    fprintf(stderr,
-                            "This is probably because your SMT is enabled.\n"
-                            "VCPU can only run on primary threads with all "
-                            "secondary threads offline.\n");
-                }
-#endif
                 ret = -1;
                 break;
             }

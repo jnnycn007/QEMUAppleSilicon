@@ -29,11 +29,6 @@ config IDE_CMD646
     bool
     select IDE_PCI
 
-config IDE_MACIO
-    bool
-    select IDE_BUS
-    select IDE_DEV
-
 config IDE_MMIO
     bool
     select IDE_BUS

@@ -69,10 +69,6 @@ util_ss.add(files('memalign.c'))
 util_ss.add(files('interval-tree.c'))
 util_ss.add(files('lockcnt.c'))
 
-if have_user
-  util_ss.add(files('selfmap.c'))
-endif
-
 if have_system
   util_ss.add(files('crc-ccitt.c'))
   util_ss.add(when: gio, if_true: files('dbus.c'))
@@ -89,7 +85,7 @@ if have_block or have_ga
   util_ss.add(files(f'coroutine-@coroutine_backend@.c'))
   util_ss.add(files('thread-pool.c', 'qemu-timer.c'))
 endif
-if have_block or have_ga or have_user
+if have_block or have_ga
   util_ss.add(files('qemu-sockets.c'))
 endif
 if have_block
@@ -118,7 +114,6 @@ if have_block
     util_ss.add(files('filemonitor-stub.c'))
   endif
   if host_os == 'linux'
-    util_ss.add(files('vhost-user-server.c'), vhost_user)
     util_ss.add(files('vfio-helpers.c'))
     util_ss.add(files('chardev_open.c'))
   endif

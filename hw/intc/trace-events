@@ -65,14 +65,6 @@ xics_ics_write_xive(int nr, int srcno, int server, uint8_t priority) "ics_write_
 xics_ics_reject(int nr, int srcno) "reject irq 0x%x [src %d]"
 xics_ics_eoi(int nr) "ics_eoi: irq 0x%x"
 
-# s390_flic_kvm.c
-flic_create_device(int err) "flic: create device failed %d"
-flic_reset_failed(int err) "flic: reset failed %d"
-
-# s390_flic.c
-qemu_s390_airq_suppressed(uint8_t type, uint8_t isc) "flic: adapter I/O interrupt suppressed (type 0x%x isc 0x%x)"
-qemu_s390_suppress_airq(uint8_t isc, const char *from, const char *to) "flic: for isc 0x%x, suppress airq by modifying ais mode from %s to %s"
-
 # aspeed_vic.c
 aspeed_vic_set_irq(int irq, int level) "Enabling IRQ %d: %d"
 aspeed_vic_update_fiq(int flags) "Raising FIQ: %d"

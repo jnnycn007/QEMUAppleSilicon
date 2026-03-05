@@ -4,18 +4,8 @@
 # types such as hwaddr.
 #
 
-# We build two versions of gdbstub, one for each mode
-user_ss.add(files(
-  'gdbstub.c',
-  'syscalls.c',
-  'user.c'
-))
-
 system_ss.add(files(
   'gdbstub.c',
   'syscalls.c',
   'system.c'
 ))
-
-# The user-target is specialised by the guest
-specific_ss.add(when: 'CONFIG_USER_ONLY', if_true: files('user-target.c'))

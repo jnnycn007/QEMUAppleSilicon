@@ -651,13 +651,6 @@ void qemu_system_guest_panicked(GuestPanicInformation *info)
                           info->u.hyper_v.arg3,
                           info->u.hyper_v.arg4,
                           info->u.hyper_v.arg5);
-        } else if (info->type == GUEST_PANIC_INFORMATION_TYPE_S390) {
-            qemu_log_mask(LOG_GUEST_ERROR, " on cpu %d: %s\n"
-                          "PSW: 0x%016" PRIx64 " 0x%016" PRIx64"\n",
-                          info->u.s390.core,
-                          S390CrashReason_str(info->u.s390.reason),
-                          info->u.s390.psw_mask,
-                          info->u.s390.psw_addr);
         } else if (info->type == GUEST_PANIC_INFORMATION_TYPE_TDX) {
             char *message = tdx_parse_panic_message(info->u.tdx.message);
             qemu_log_mask(LOG_GUEST_ERROR,
@@ -993,7 +986,6 @@ void qemu_cleanup(int status)
     job_cancel_sync_all();
     bdrv_close_all();
 
-    /* vhost-user must be cleaned up before chardevs.  */
     tpm_cleanup();
     net_cleanup();
     audio_cleanup();

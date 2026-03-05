@@ -363,7 +363,7 @@ static bool patch_reloc(tcg_insn_unit *code_ptr, int type,
  * r14 will be overwritten by the BLNE branching to the slow path.
  */
 #define ALL_QLDST_REGS \
-    (ALL_GENERAL_REGS & ~((tcg_use_softmmu ? 0xf : 0) | (1 << TCG_REG_R14)))
+    (ALL_GENERAL_REGS & ~(0xf | (1 << TCG_REG_R14)))
 
 /*
  * ARM immediates for ALU instructions are made of an unsigned 8-bit
@@ -1389,108 +1389,87 @@ static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
     MemOp opc = get_memop(oi);
     unsigned a_mask;
 
-    if (tcg_use_softmmu) {
-        *h = (HostAddress){
-            .cond = COND_AL,
-            .base = addr,
-            .index = TCG_REG_R1,
-            .index_scratch = true,
-        };
-    } else {
-        *h = (HostAddress){
-            .cond = COND_AL,
-            .base = addr,
-            .index = guest_base ? TCG_REG_GUEST_BASE : -1,
-            .index_scratch = false,
-        };
-    }
+    *h = (HostAddress){
+        .cond = COND_AL,
+        .base = addr,
+        .index = TCG_REG_R1,
+        .index_scratch = true,
+    };
 
     h->aa = atom_and_align_for_opc(s, opc, MO_ATOM_IFALIGN, false);
     a_mask = (1 << h->aa.align) - 1;
 
-    if (tcg_use_softmmu) {
-        int mem_index = get_mmuidx(oi);
-        int cmp_off = is_ld ? offsetof(CPUTLBEntry, addr_read)
-                            : offsetof(CPUTLBEntry, addr_write);
-        int fast_off = tlb_mask_table_ofs(s, mem_index);
-        unsigned s_mask = (1 << (opc & MO_SIZE)) - 1;
-        TCGReg t_addr;
+    int mem_index = get_mmuidx(oi);
+    int cmp_off = is_ld ? offsetof(CPUTLBEntry, addr_read)
+                        : offsetof(CPUTLBEntry, addr_write);
+    int fast_off = tlb_mask_table_ofs(s, mem_index);
+    unsigned s_mask = (1 << (opc & MO_SIZE)) - 1;
+    TCGReg t_addr;
 
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr;
+    ldst = new_ldst_label(s);
+    ldst->is_ld = is_ld;
+    ldst->oi = oi;
+    ldst->addr_reg = addr;
 
-        /* Load CPUTLBDescFast.{mask,table} into {r0,r1}.  */
-        QEMU_BUILD_BUG_ON(offsetof(CPUTLBDescFast, mask) != 0);
-        QEMU_BUILD_BUG_ON(offsetof(CPUTLBDescFast, table) != 4);
-        tcg_out_ldrd_8(s, COND_AL, TCG_REG_R0, TCG_AREG0, fast_off);
+    /* Load CPUTLBDescFast.{mask,table} into {r0,r1}.  */
+    QEMU_BUILD_BUG_ON(offsetof(CPUTLBDescFast, mask) != 0);
+    QEMU_BUILD_BUG_ON(offsetof(CPUTLBDescFast, table) != 4);
+    tcg_out_ldrd_8(s, COND_AL, TCG_REG_R0, TCG_AREG0, fast_off);
 
-        /* Extract the tlb index from the address into R0.  */
-        tcg_out_dat_reg(s, COND_AL, ARITH_AND, TCG_REG_R0, TCG_REG_R0, addr,
-                        SHIFT_IMM_LSR(TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS));
+    /* Extract the tlb index from the address into R0.  */
+    tcg_out_dat_reg(s, COND_AL, ARITH_AND, TCG_REG_R0, TCG_REG_R0, addr,
+                    SHIFT_IMM_LSR(TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS));
 
-        /*
-         * Add the tlb_table pointer, creating the CPUTLBEntry address in R1.
-         * Load the tlb comparator into R2 and the fast path addend into R1.
-         */
-        if (cmp_off == 0) {
-            tcg_out_ld32_rwb(s, COND_AL, TCG_REG_R2, TCG_REG_R1, TCG_REG_R0);
-        } else {
-            tcg_out_dat_reg(s, COND_AL, ARITH_ADD,
-                            TCG_REG_R1, TCG_REG_R1, TCG_REG_R0, 0);
-            tcg_out_ld32_12(s, COND_AL, TCG_REG_R2, TCG_REG_R1, cmp_off);
+    /*
+        * Add the tlb_table pointer, creating the CPUTLBEntry address in R1.
+        * Load the tlb comparator into R2 and the fast path addend into R1.
+        */
+    if (cmp_off == 0) {
+        tcg_out_ld32_rwb(s, COND_AL, TCG_REG_R2, TCG_REG_R1, TCG_REG_R0);
+    } else {
+        tcg_out_dat_reg(s, COND_AL, ARITH_ADD,
+                        TCG_REG_R1, TCG_REG_R1, TCG_REG_R0, 0);
+        tcg_out_ld32_12(s, COND_AL, TCG_REG_R2, TCG_REG_R1, cmp_off);
+    }
+
+    /* Load the tlb addend.  */
+    tcg_out_ld32_12(s, COND_AL, TCG_REG_R1, TCG_REG_R1,
+                    offsetof(CPUTLBEntry, addend));
+
+    /*
+        * Check alignment, check comparators.
+        * Do this in 2-4 insns.  Use MOVW for v7, if possible,
+        * to reduce the number of sequential conditional instructions.
+        * Almost all guests have at least 4k pages, which means that we need
+        * to clear at least 9 bits even for an 8-byte memory, which means it
+        * isn't worth checking for an immediate operand for BIC.
+        *
+        * For unaligned accesses, test the page of the last unit of alignment.
+        * This leaves the least significant alignment bits unchanged, and of
+        * course must be zero.
+        */
+    t_addr = addr;
+    if (a_mask < s_mask) {
+        t_addr = TCG_REG_R0;
+        tcg_out_dat_imm(s, COND_AL, ARITH_ADD, t_addr,
+                        addr, s_mask - a_mask);
+    }
+    if (use_armv7_instructions && TARGET_PAGE_BITS <= 16) {
+        tcg_out_movi32(s, COND_AL, TCG_REG_TMP, ~(TARGET_PAGE_MASK | a_mask));
+        tcg_out_dat_reg(s, COND_AL, ARITH_BIC, TCG_REG_TMP,
+                        t_addr, TCG_REG_TMP, 0);
+        tcg_out_dat_reg(s, COND_AL, ARITH_CMP, 0,
+                        TCG_REG_R2, TCG_REG_TMP, 0);
+    } else {
+        if (a_mask) {
+            tcg_debug_assert(a_mask <= 0xff);
+            tcg_out_dat_imm(s, COND_AL, ARITH_TST, 0, addr, a_mask);
         }
-
-        /* Load the tlb addend.  */
-        tcg_out_ld32_12(s, COND_AL, TCG_REG_R1, TCG_REG_R1,
-                        offsetof(CPUTLBEntry, addend));
-
-        /*
-         * Check alignment, check comparators.
-         * Do this in 2-4 insns.  Use MOVW for v7, if possible,
-         * to reduce the number of sequential conditional instructions.
-         * Almost all guests have at least 4k pages, which means that we need
-         * to clear at least 9 bits even for an 8-byte memory, which means it
-         * isn't worth checking for an immediate operand for BIC.
-         *
-         * For unaligned accesses, test the page of the last unit of alignment.
-         * This leaves the least significant alignment bits unchanged, and of
-         * course must be zero.
-         */
-        t_addr = addr;
-        if (a_mask < s_mask) {
-            t_addr = TCG_REG_R0;
-            tcg_out_dat_imm(s, COND_AL, ARITH_ADD, t_addr,
-                            addr, s_mask - a_mask);
-        }
-        if (use_armv7_instructions && TARGET_PAGE_BITS <= 16) {
-            tcg_out_movi32(s, COND_AL, TCG_REG_TMP, ~(TARGET_PAGE_MASK | a_mask));
-            tcg_out_dat_reg(s, COND_AL, ARITH_BIC, TCG_REG_TMP,
-                            t_addr, TCG_REG_TMP, 0);
-            tcg_out_dat_reg(s, COND_AL, ARITH_CMP, 0,
-                            TCG_REG_R2, TCG_REG_TMP, 0);
-        } else {
-            if (a_mask) {
-                tcg_debug_assert(a_mask <= 0xff);
-                tcg_out_dat_imm(s, COND_AL, ARITH_TST, 0, addr, a_mask);
-            }
-            tcg_out_dat_reg(s, COND_AL, ARITH_MOV, TCG_REG_TMP, 0, t_addr,
-                            SHIFT_IMM_LSR(TARGET_PAGE_BITS));
-            tcg_out_dat_reg(s, (a_mask ? COND_EQ : COND_AL), ARITH_CMP,
-                            0, TCG_REG_R2, TCG_REG_TMP,
-                            SHIFT_IMM_LSL(TARGET_PAGE_BITS));
-        }
-    } else if (a_mask) {
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr;
-
-        /* We are expecting alignment to max out at 7 */
-        tcg_debug_assert(a_mask <= 0xff);
-        /* tst addr, #mask */
-        tcg_out_dat_imm(s, COND_AL, ARITH_TST, 0, addr, a_mask);
+        tcg_out_dat_reg(s, COND_AL, ARITH_MOV, TCG_REG_TMP, 0, t_addr,
+                        SHIFT_IMM_LSR(TARGET_PAGE_BITS));
+        tcg_out_dat_reg(s, (a_mask ? COND_EQ : COND_AL), ARITH_CMP,
+                        0, TCG_REG_R2, TCG_REG_TMP,
+                        SHIFT_IMM_LSL(TARGET_PAGE_BITS));
     }
 
     return ldst;
@@ -3407,11 +3386,6 @@ static void tcg_target_qemu_prologue(TCGContext *s)
                   CPU_TEMP_BUF_NLONGS * sizeof(long));
 
     tcg_out_mov(s, TCG_TYPE_PTR, TCG_AREG0, tcg_target_call_iarg_regs[0]);
-
-    if (!tcg_use_softmmu && guest_base) {
-        tcg_out_movi(s, TCG_TYPE_PTR, TCG_REG_GUEST_BASE, guest_base);
-        tcg_regset_set_reg(s->reserved_regs, TCG_REG_GUEST_BASE);
-    }
 
     tcg_out_b_reg(s, COND_AL, tcg_target_call_iarg_regs[1]);
 

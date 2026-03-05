@@ -51,15 +51,10 @@ cpu = host_machine.cpu_family()
 target_dirs = config_host['TARGET_DIRS'].split()
 
 # type of binaries to build
-have_linux_user = false
-have_bsd_user = false
 have_system = false
 foreach target : target_dirs
-  have_linux_user = have_linux_user or target.endswith('linux-user')
-  have_bsd_user = have_bsd_user or target.endswith('bsd-user')
   have_system = have_system or target.endswith('-softmmu')
 endforeach
-have_user = have_linux_user or have_bsd_user
 
 ############
 # Programs #
@@ -138,37 +133,25 @@ multiprocess_allowed = get_option('multiprocess') \
   .require(host_os == 'linux', error_message: 'Multiprocess QEMU is supported only on Linux') \
   .allowed()
 
-vfio_user_server_allowed = get_option('vfio_user_server') \
-  .require(host_os == 'linux', error_message: 'vfio-user server is supported only on Linux') \
-  .allowed()
-
 have_tpm = get_option('tpm') \
   .require(host_os != 'windows', error_message: 'TPM emulation only available on POSIX systems') \
   .allowed()
 
 # vhost
-have_vhost_user = get_option('vhost_user') \
-  .disable_auto_if(host_os != 'linux') \
-  .require(host_os != 'windows',
-           error_message: 'vhost-user is not available on Windows').allowed()
 have_vhost_vdpa = get_option('vhost_vdpa') \
   .require(host_os == 'linux',
            error_message: 'vhost-vdpa is only available on Linux').allowed()
 have_vhost_kernel = get_option('vhost_kernel') \
   .require(host_os == 'linux',
            error_message: 'vhost-kernel is only available on Linux').allowed()
-have_vhost_user_crypto = get_option('vhost_crypto') \
-  .require(have_vhost_user,
-           error_message: 'vhost-crypto requires vhost-user to be enabled').allowed()
 
-have_vhost = have_vhost_user or have_vhost_vdpa or have_vhost_kernel
+have_vhost = have_vhost_vdpa or have_vhost_kernel
 
-have_vhost_net_user = have_vhost_user and get_option('vhost_net').allowed()
 have_vhost_net_vdpa = have_vhost_vdpa and get_option('vhost_net').allowed()
 have_vhost_net_kernel = have_vhost_kernel and get_option('vhost_net').allowed()
-have_vhost_net = have_vhost_net_kernel or have_vhost_net_user or have_vhost_net_vdpa
+have_vhost_net = have_vhost_net_kernel or have_vhost_net_vdpa
 
-have_tcg = get_option('tcg').allowed() and (have_system or have_user)
+have_tcg = get_option('tcg').allowed() and have_system
 
 have_tools = get_option('tools') \
   .disable_auto_if(not have_system) \
@@ -209,22 +192,6 @@ elif cpu == 'x86_64'
   kvm_targets = ['i386-softmmu', 'x86_64-softmmu']
 elif cpu == 'aarch64'
   kvm_targets = ['aarch64-softmmu']
-elif cpu == 's390x'
-  kvm_targets = ['s390x-softmmu']
-elif cpu == 'ppc'
-  kvm_targets = ['ppc-softmmu']
-elif cpu == 'ppc64'
-  kvm_targets = ['ppc-softmmu', 'ppc64-softmmu']
-elif cpu == 'mips'
-  kvm_targets = ['mips-softmmu', 'mipsel-softmmu']
-elif cpu == 'mips64'
-  kvm_targets = ['mips-softmmu', 'mipsel-softmmu', 'mips64-softmmu', 'mips64el-softmmu']
-elif cpu == 'riscv32'
-  kvm_targets = ['riscv32-softmmu']
-elif cpu == 'riscv64'
-  kvm_targets = ['riscv64-softmmu']
-elif cpu == 'loongarch64'
-  kvm_targets = ['loongarch64-softmmu']
 else
   kvm_targets = []
 endif
@@ -313,11 +280,6 @@ elif host_os == 'sunos'
   qemu_common_flags += '-D__EXTENSIONS__'
 elif host_os == 'haiku'
   qemu_common_flags += ['-DB_USE_POSITIVE_POSIX_ERRORS', '-D_BSD_SOURCE', '-fPIC']
-elif host_os == 'windows'
-  # plugins use delaylib, and clang needs to be used with lld to make it work.
-  if compiler.get_id() == 'clang' and compiler.get_linker_id() != 'ld.lld'
-    error('On windows, you need to use lld with clang - use msys2 clang64/clangarm64 env')
-  endif
 endif
 
 # Choose instruction set (currently x86-only)
@@ -942,9 +904,6 @@ glib_cflags = []
 if enable_modules
   gmodule = dependency('gmodule-export-2.0', version: glib_req_ver, required: true,
                        method: 'pkg-config')
-elif get_option('plugins')
-  gmodule = dependency('gmodule-no-export-2.0', version: glib_req_ver, required: true,
-                       method: 'pkg-config')
 else
   gmodule = not_found
 endif
@@ -1293,14 +1252,13 @@ endif
 
 virgl = not_found
 
-have_vhost_user_gpu = have_tools and host_os == 'linux' and pixman.found()
-if not get_option('virglrenderer').auto() or have_system or have_vhost_user_gpu
+if not get_option('virglrenderer').auto() or have_system
   virgl = dependency('virglrenderer',
                      method: 'pkg-config',
                      required: get_option('virglrenderer'))
 endif
 rutabaga = not_found
-if not get_option('rutabaga_gfx').auto() or have_system or have_vhost_user_gpu
+if not get_option('rutabaga_gfx').auto() or have_system
   rutabaga = dependency('rutabaga_gfx_ffi',
                          method: 'pkg-config',
                          required: get_option('rutabaga_gfx'))
@@ -1683,7 +1641,7 @@ if not get_option('coreaudio').auto() or (host_os == 'darwin' and have_system)
 endif
 
 opengl = not_found
-if not get_option('opengl').auto() or have_system or have_vhost_user_gpu
+if not get_option('opengl').auto() or have_system
   epoxy = dependency('epoxy', method: 'pkg-config',
                       required: get_option('opengl'))
   if cc.has_header('epoxy/egl.h', dependencies: epoxy)
@@ -1696,7 +1654,6 @@ gbm = not_found
 if (have_system or have_tools) and (virgl.found() or opengl.found())
   gbm = dependency('gbm', method: 'pkg-config', required: false)
 endif
-have_vhost_user_gpu = have_vhost_user_gpu and virgl.found() and opengl.found() and gbm.found()
 
 libcbor = not_found
 if not get_option('libcbor').auto() or have_system
@@ -1840,25 +1797,6 @@ if not gnutls_crypto.found()
       return 0;
       }''', dependencies: nettle)
       crypto_sm3 = not_found
-    endif
-  endif
-endif
-
-capstone = not_found
-if not get_option('capstone').auto() or have_system or have_user
-  capstone = dependency('capstone', version: '>=3.0.5',
-                        method: 'pkg-config',
-                        required: get_option('capstone'))
-
-  # Some versions of capstone have broken pkg-config file
-  # that reports a wrong -I path, causing the #include to
-  # fail later. If the system has such a broken version
-  # do not use it.
-  if capstone.found() and not cc.compiles('#include <capstone.h>',
-                                          dependencies: [capstone])
-    capstone = not_found
-    if get_option('capstone').enabled()
-      error('capstone requested, but it does not appear to work')
     endif
   endif
 endif
@@ -2135,14 +2073,6 @@ osdep_prefix = '''
   #include <fcntl.h>
 '''
 
-have_vhost_user_blk_server = get_option('vhost_user_blk_server') \
-  .require(host_os == 'linux',
-           error_message: 'vhost_user_blk_server requires linux') \
-  .require(have_vhost_user,
-           error_message: 'vhost_user_blk_server requires vhost-user support') \
-  .disable_auto_if(not have_tools and not have_system) \
-  .allowed()
-
 if get_option('fuse').disabled() and get_option('fuse_lseek').enabled()
   error('Cannot enable fuse-lseek while fuse is disabled')
 endif
@@ -2221,7 +2151,7 @@ endif
 # libdw
 libdw = not_found
 if not get_option('libdw').auto() or \
-        (not get_option('prefer_static') and (have_system or have_user))
+        (not get_option('prefer_static') and have_system)
     libdw = dependency('libdw',
                        method: 'pkg-config',
                        required: get_option('libdw'))
@@ -2384,7 +2314,6 @@ config_host_data.set('CONFIG_BDRV_WHITELIST_TOOLS', get_option('block_drv_whitel
 config_host_data.set('CONFIG_BRLAPI', brlapi.found())
 config_host_data.set('CONFIG_BSD', host_os in bsd_oses)
 config_host_data.set('CONFIG_FREEBSD', host_os == 'freebsd')
-config_host_data.set('CONFIG_CAPSTONE', capstone.found())
 config_host_data.set('CONFIG_COCOA', cocoa.found())
 config_host_data.set('CONFIG_DARWIN', host_os == 'darwin')
 config_host_data.set('CONFIG_FDT', fdt.found())
@@ -2418,7 +2347,6 @@ endif
 config_host_data.set('CONFIG_GTK', gtk.found())
 config_host_data.set('CONFIG_VTE', vte.found())
 config_host_data.set('CONFIG_GTK_CLIPBOARD', have_gtk_clipboard)
-config_host_data.set('CONFIG_HEXAGON_IDEF_PARSER', get_option('hexagon_idef_parser'))
 config_host_data.set('CONFIG_LIBATTR', have_old_libattr)
 config_host_data.set('CONFIG_LIBCAP_NG', libcap_ng.found())
 config_host_data.set('CONFIG_EBPF', libbpf.found())
@@ -2438,7 +2366,6 @@ if numa.found()
                                        dependencies: numa))
 endif
 config_host_data.set('CONFIG_OPENGL', opengl.found())
-config_host_data.set('CONFIG_PLUGIN', get_option('plugins'))
 config_host_data.set('CONFIG_RBD', rbd.found())
 config_host_data.set('CONFIG_RDMA', rdma.found())
 config_host_data.set('CONFIG_RELOCATABLE', get_option('relocatable'))
@@ -2464,14 +2391,10 @@ config_host_data.set('CONFIG_USB_LIBUSB', libusb.found())
 config_host_data.set('CONFIG_VDE', vde.found())
 config_host_data.set('CONFIG_VHOST', have_vhost)
 config_host_data.set('CONFIG_VHOST_NET', have_vhost_net)
-config_host_data.set('CONFIG_VHOST_NET_USER', have_vhost_net_user)
 config_host_data.set('CONFIG_VHOST_NET_VDPA', have_vhost_net_vdpa)
 config_host_data.set('CONFIG_VHOST_KERNEL', have_vhost_kernel)
-config_host_data.set('CONFIG_VHOST_USER', have_vhost_user)
-config_host_data.set('CONFIG_VHOST_CRYPTO', have_vhost_user_crypto)
 config_host_data.set('CONFIG_VHOST_VDPA', have_vhost_vdpa)
 config_host_data.set('CONFIG_VMNET', vmnet.found())
-config_host_data.set('CONFIG_VHOST_USER_BLK_SERVER', have_vhost_user_blk_server)
 config_host_data.set('CONFIG_VDUSE_BLK_EXPORT', have_vduse_blk_export)
 config_host_data.set('CONFIG_PNG', png.found())
 config_host_data.set('CONFIG_VNC', vnc.found())
@@ -2999,19 +2922,6 @@ config_host_data.set('CONFIG_ELF_AUX_INFO', cc.links(osdep_prefix + '''
     return hwcap;
   }'''))
 
-config_host_data.set('CONFIG_USBFS', have_linux_user and cc.compiles('''
-  #include <linux/usbdevice_fs.h>
-
-  #ifndef USBDEVFS_GET_CAPABILITIES
-  #error "USBDEVFS_GET_CAPABILITIES undefined"
-  #endif
-
-  #ifndef USBDEVFS_DISCONNECT_CLAIM
-  #error "USBDEVFS_DISCONNECT_CLAIM undefined"
-  #endif
-
-  int main(void) { return 0; }'''))
-
 have_keyring = get_option('keyring') \
   .require(host_os == 'linux', error_message: 'keyring is only available on Linux') \
   .require(cc.compiles('''
@@ -3042,12 +2952,6 @@ have_cpuid_h = cc.links('''
     return 0;
   }''')
 config_host_data.set('CONFIG_CPUID_H', have_cpuid_h)
-
-# Don't bother to advertise asm/hwprobe.h for old versions that do
-# not contain RISCV_HWPROBE_EXT_ZBA.
-config_host_data.set('CONFIG_ASM_HWPROBE_H',
-                     cc.has_header_symbol('asm/hwprobe.h',
-                                          'RISCV_HWPROBE_EXT_ZBA'))
 
 if have_cpuid_h
   have_avx2 = cc.links('''
@@ -3194,27 +3098,6 @@ config_target_h = {}
 config_target_mak = {}
 config_base_arch_mak = {}
 
-disassemblers = {
-  'alpha' : ['CONFIG_ALPHA_DIS'],
-  'avr' : ['CONFIG_AVR_DIS'],
-  'hexagon' : ['CONFIG_HEXAGON_DIS'],
-  'hppa' : ['CONFIG_HPPA_DIS'],
-  'i386' : ['CONFIG_I386_DIS'],
-  'x86_64' : ['CONFIG_I386_DIS'],
-  'm68k' : ['CONFIG_M68K_DIS'],
-  'microblaze' : ['CONFIG_MICROBLAZE_DIS'],
-  'mips' : ['CONFIG_MIPS_DIS'],
-  'or1k' : ['CONFIG_OPENRISC_DIS'],
-  'ppc' : ['CONFIG_PPC_DIS'],
-  'riscv' : ['CONFIG_RISCV_DIS'],
-  'rx' : ['CONFIG_RX_DIS'],
-  's390' : ['CONFIG_S390_DIS'],
-  'sh4' : ['CONFIG_SH4_DIS'],
-  'sparc' : ['CONFIG_SPARC_DIS'],
-  'xtensa' : ['CONFIG_XTENSA_DIS'],
-  'loongarch' : ['CONFIG_LOONGARCH_DIS'],
-}
-
 have_ivshmem = config_host_data.get('CONFIG_EVENTFD')
 host_kconfig = \
   (have_tpm ? ['CONFIG_TPM=y'] : []) + \
@@ -3226,13 +3109,10 @@ host_kconfig = \
   (gnutls.found() ? ['CONFIG_GNUTLS=y'] : []) + \
   (x11.found() ? ['CONFIG_X11=y'] : []) + \
   (fdt.found() ? ['CONFIG_FDT=y'] : []) + \
-  (have_vhost_user ? ['CONFIG_VHOST_USER=y'] : []) + \
   (have_vhost_vdpa ? ['CONFIG_VHOST_VDPA=y'] : []) + \
   (have_vhost_kernel ? ['CONFIG_VHOST_KERNEL=y'] : []) + \
   (have_virtfs ? ['CONFIG_VIRTFS=y'] : []) + \
   (host_os == 'linux' ? ['CONFIG_LINUX=y'] : []) + \
-  (multiprocess_allowed ? ['CONFIG_MULTIPROCESS_ALLOWED=y'] : []) + \
-  (vfio_user_server_allowed ? ['CONFIG_VFIO_USER_SERVER_ALLOWED=y'] : []) + \
   (hv_balloon ? ['CONFIG_HV_BALLOON_POSSIBLE=y'] : [])
 
 ignored = [ 'TARGET_XML_FILES', 'TARGET_ABI_DIR' ]
@@ -3242,33 +3122,9 @@ actual_target_dirs = []
 fdt_required = []
 foreach target : target_dirs
   config_target = { 'TARGET_NAME': target.split('-')[0] }
-  if target.endswith('linux-user')
-    if host_os != 'linux'
-      if default_targets
-        continue
-      endif
-      error('Target @0@ is only available on a Linux host'.format(target))
-    endif
-    config_target += { 'CONFIG_LINUX_USER': 'y' }
-  elif target.endswith('bsd-user')
-    if host_os not in bsd_oses
-      if default_targets
-        continue
-      endif
-      error('Target @0@ is only available on a BSD host'.format(target))
-    endif
-    config_target += { 'CONFIG_BSD_USER': 'y' }
-  elif target.endswith('softmmu')
+  if target.endswith('softmmu')
     config_target += { 'CONFIG_SYSTEM_ONLY': 'y' }
     config_target += { 'CONFIG_SOFTMMU': 'y' }
-  endif
-  if target.endswith('-user')
-    config_target += {
-      'CONFIG_USER_ONLY': 'y',
-      'CONFIG_QEMU_INTERP_PREFIX':
-        get_option('interp_prefix').replace('%M', config_target['TARGET_NAME']),
-      'CONFIG_QEMU_RTSIG_MAP': get_option('rtsig_map'),
-    }
   endif
 
   config_target += keyval.load('configs/targets' / target + '.mak')
@@ -3314,14 +3170,6 @@ foreach target : target_dirs
   if 'TARGET_BIG_ENDIAN' not in config_target
     config_target += {'TARGET_BIG_ENDIAN': 'n'}
   endif
-
-  foreach k, v: disassemblers
-    if host_arch.startswith(k) or config_target['TARGET_BASE_ARCH'].startswith(k)
-      foreach sym: v
-        config_target += { sym: 'y' }
-      endforeach
-    endif
-  endforeach
 
   config_target_data = configuration_data()
   foreach k, v: config_target
@@ -3411,18 +3259,6 @@ endif
 ###############
 # Subprojects #
 ###############
-
-libvfio_user_dep = not_found
-if have_system and vfio_user_server_allowed
-  libvfio_user_proj = subproject('libvfio-user', required: true)
-  libvfio_user_dep = libvfio_user_proj.get_variable('libvfio_user_dep')
-endif
-
-vhost_user = not_found
-if host_os == 'linux' and have_vhost_user
-  libvhost_user = subproject('libvhost-user')
-  vhost_user = libvhost_user.get_variable('vhost_user_dep')
-endif
 
 libvduse = not_found
 if have_libvduse
@@ -3527,12 +3363,6 @@ trace_events_subdirs = [
   'util',
   'gdbstub',
 ]
-if have_linux_user
-  trace_events_subdirs += [ 'linux-user' ]
-endif
-if have_bsd_user
-  trace_events_subdirs += [ 'bsd-user' ]
-endif
 if have_block
   trace_events_subdirs += [
     'authz',
@@ -3554,7 +3384,6 @@ if have_system
     'hw/9pfs',
     'hw/acpi',
     'hw/adc',
-    'hw/alpha',
     'hw/arm',
     'hw/arm/apple-silicon',
     'hw/audio',
@@ -3573,12 +3402,10 @@ if have_system
     'hw/intc',
     'hw/isa',
     'hw/mem',
-    'hw/mips',
     'hw/misc',
     'hw/misc/apple-silicon',
     'hw/misc/apple-silicon/a7iop',
     'hw/misc/apple-silicon/a7iop/mailbox',
-    'hw/misc/macio',
     'hw/net',
     'hw/net/can',
     'hw/nubus',
@@ -3586,16 +3413,10 @@ if have_system
     'hw/nvram',
     'hw/pci',
     'hw/pci-host',
-    'hw/ppc',
     'hw/rtc',
-    'hw/riscv',
-    'hw/s390x',
     'hw/scsi',
     'hw/sd',
     'hw/sensor',
-    'hw/sh4',
-    'hw/sparc',
-    'hw/sparc64',
     'hw/spmi',
     'hw/ssi',
     'hw/timer',
@@ -3604,7 +3425,6 @@ if have_system
     'hw/ufs',
     'hw/usb',
     'hw/vfio',
-    'hw/vfio-user',
     'hw/virtio',
     'hw/vmapple',
     'hw/watchdog',
@@ -3614,25 +3434,16 @@ if have_system
     'net',
     'system',
     'ui',
-    'hw/remote',
   ]
 endif
-if have_system or have_user
+if have_system
   trace_events_subdirs += [
     'accel/tcg',
     'hw/core',
     'target/arm',
     'target/arm/hvf',
-    'target/hppa',
     'target/i386',
     'target/i386/kvm',
-    'target/loongarch',
-    'target/mips/tcg',
-    'target/ppc',
-    'target/riscv',
-    'target/s390x',
-    'target/s390x/kvm',
-    'target/sparc',
   ]
 endif
 
@@ -3654,12 +3465,10 @@ system_ss = ss.source_set()
 specific_ss = ss.source_set()
 stub_ss = ss.source_set()
 trace_ss = ss.source_set()
-user_ss = ss.source_set()
 util_ss = ss.source_set()
 
 modules = {}
 target_modules = {}
-plugin_modules = []
 hw_arch = {}
 target_arch = {}
 target_system_arch = {}
@@ -3721,7 +3530,7 @@ qemuutil = declare_dependency(link_with: libqemuutil,
                               sources: genh + version_res,
                               dependencies: qemuutil_deps)
 
-if have_system or have_user
+if have_system
   decodetree = generator(find_program('scripts/decodetree.py'),
                          output: 'decode-@BASENAME@.c.inc',
                          arguments: ['@INPUT@', '@EXTRA_ARGS@', '-o', '@OUTPUT@'])
@@ -3769,7 +3578,6 @@ if have_block
 endif
 
 common_ss.add(files('cpu-common.c'))
-user_ss.add(files('cpu-target.c'))
 system_ss.add(files('cpu-target.c'))
 
 subdir('system')
@@ -3798,7 +3606,6 @@ common_ss.add(files('target-info.c'))
 specific_ss.add(files('target-info-stub.c'))
 
 subdir('backends')
-subdir('disas')
 subdir('migration')
 subdir('monitor')
 subdir('net')
@@ -3808,18 +3615,7 @@ subdir('stats')
 subdir('tcg')
 subdir('fpu')
 subdir('accel')
-subdir('plugins')
 subdir('ebpf')
-
-if 'CONFIG_TCG' in config_all_accel
-  subdir('contrib/plugins')
-endif
-
-common_user_inc = []
-
-subdir('common-user')
-subdir('bsd-user')
-subdir('linux-user')
 
 ##############################################
 # Internal static_libraries and dependencies #
@@ -4022,18 +3818,9 @@ common_ss.add(hwcore)
 system_ss.add(authz, blockdev, chardev, crypto, io, qmp)
 common_ss.add(qom, qemuutil)
 
-libuser = static_library('user',
-                         user_ss.all_sources() + genh,
-                         c_args: ['-DCONFIG_USER_ONLY',
-                                  '-DCOMPILING_SYSTEM_VS_USER'],
-                         include_directories: common_user_inc,
-                         dependencies: user_ss.all_dependencies(),
-                         build_by_default: false)
-
 libsystem = static_library('system',
                            system_ss.all_sources() + genh,
-                           c_args: ['-DCONFIG_SOFTMMU',
-                                    '-DCOMPILING_SYSTEM_VS_USER'],
+                           c_args: ['-DCONFIG_SOFTMMU'],
                            dependencies: system_ss.all_dependencies(),
                            build_by_default: false)
 
@@ -4051,28 +3838,23 @@ target_common_arch_libs = {}
 target_common_system_arch_libs = {}
 foreach target_base_arch, config_base_arch : config_base_arch_mak
   target_inc = [include_directories('target' / target_base_arch)]
-  inc = [common_user_inc + target_inc]
+  inc = [target_inc]
 
   target_common = common_ss.apply(config_base_arch, strict: false)
   target_system = system_ss.apply(config_base_arch, strict: false)
-  target_user = user_ss.apply(config_base_arch, strict: false)
   common_deps = []
   system_deps = []
-  user_deps = []
   foreach dep: target_common.dependencies()
     common_deps += dep.partial_dependency(compile_args: true, includes: true)
   endforeach
   foreach dep: target_system.dependencies()
     system_deps += dep.partial_dependency(compile_args: true, includes: true)
   endforeach
-  foreach dep: target_user.dependencies()
-    user_deps += dep.partial_dependency(compile_args: true, includes: true)
-  endforeach
 
   # prevent common code to access cpu compile time definition,
   # but still allow access to cpu.h
   target_c_args = ['-DCPU_DEFS_H']
-  target_system_c_args = target_c_args + ['-DCOMPILING_SYSTEM_VS_USER', '-DCONFIG_SOFTMMU']
+  target_system_c_args = target_c_args + ['-DCONFIG_SOFTMMU']
 
   if target_base_arch in target_common_arch
     src = target_common_arch[target_base_arch]
@@ -4083,7 +3865,7 @@ foreach target_base_arch, config_base_arch : config_base_arch_mak
       include_directories: inc,
       c_args: target_c_args,
       dependencies: src.all_dependencies() + common_deps +
-                    system_deps + user_deps)
+                    system_deps)
     target_common_arch_libs += {target_base_arch: lib}
   endif
 
@@ -4133,55 +3915,21 @@ foreach target : target_dirs
   if host_os == 'linux'
     target_inc += include_directories('linux-headers', is_system: true)
   endif
-  if target.endswith('-softmmu')
-    target_type='system'
-    t = target_system_arch[target_base_arch].apply(config_target, strict: false)
-    arch_srcs += t.sources()
-    arch_deps += t.dependencies()
 
-    hw_dir = target_name == 'sparc64' ? 'sparc64' : target_base_arch
-    if hw_arch.has_key(hw_dir)
-      hw = hw_arch[hw_dir].apply(config_target, strict: false)
-      arch_srcs += hw.sources()
-      arch_deps += hw.dependencies()
-    endif
+  t = target_system_arch[target_base_arch].apply(config_target, strict: false)
+  arch_srcs += t.sources()
+  arch_deps += t.dependencies()
 
-    c_args += ['-DCONFIG_DEVICES="@0@-config-devices.h"'.format(target)]
-    arch_srcs += config_devices_h[target]
-    link_args += ['@block.syms', '@qemu.syms']
-  else
-    abi = config_target['TARGET_ABI_DIR']
-    target_type='user'
-    target_inc += common_user_inc
-    if target_base_arch in target_user_arch
-      t = target_user_arch[target_base_arch].apply(config_target, strict: false)
-      arch_srcs += t.sources()
-      arch_deps += t.dependencies()
-    endif
-    if 'CONFIG_LINUX_USER' in config_target
-      base_dir = 'linux-user'
-    endif
-    if 'CONFIG_BSD_USER' in config_target
-      base_dir = 'bsd-user'
-      target_inc += include_directories('bsd-user/' / host_os)
-      target_inc += include_directories('bsd-user/host/' / host_arch)
-      dir = base_dir / abi
-      arch_srcs += files(dir / 'signal.c', dir / 'target_arch_cpu.c')
-    endif
-    target_inc += include_directories(
-      base_dir,
-      base_dir / abi,
-    )
-    if 'CONFIG_LINUX_USER' in config_target
-      dir = base_dir / abi
-      arch_srcs += files(dir / 'signal.c', dir / 'cpu_loop.c')
-      if config_target.has_key('TARGET_SYSTBL_ABI')
-        arch_srcs += \
-          syscall_nr_generators[abi].process(base_dir / abi / config_target['TARGET_SYSTBL'],
-                                             extra_args : config_target['TARGET_SYSTBL_ABI'])
-      endif
-    endif
+  hw_dir = target_name == 'sparc64' ? 'sparc64' : target_base_arch
+  if hw_arch.has_key(hw_dir)
+    hw = hw_arch[hw_dir].apply(config_target, strict: false)
+    arch_srcs += hw.sources()
+    arch_deps += hw.dependencies()
   endif
+
+  c_args += ['-DCONFIG_DEVICES="@0@-config-devices.h"'.format(target)]
+  arch_srcs += config_devices_h[target]
+  link_args += ['@block.syms', '@qemu.syms']
 
   if 'TARGET_XML_FILES' in config_target
     gdbstub_xml = custom_target(target + '-gdbstub-xml.c',
@@ -4205,17 +3953,11 @@ foreach target : target_dirs
     objects += lib.extract_objects(src.sources())
     arch_deps += src.dependencies()
   endif
-  if target_type == 'system'
-    src = system_ss.apply(config_target, strict: false)
-    objects += libsystem.extract_objects(src.sources())
-    arch_deps += src.dependencies()
-  endif
-  if target_type == 'user'
-    src = user_ss.apply(config_target, strict: false)
-    objects += libuser.extract_objects(src.sources())
-    arch_deps += src.dependencies()
-  endif
-  if target_type == 'system' and target_base_arch in target_common_system_arch_libs
+
+  src = system_ss.apply(config_target, strict: false)
+  objects += libsystem.extract_objects(src.sources())
+  arch_deps += src.dependencies()
+  if target_base_arch in target_common_system_arch_libs
     src = target_common_system_arch[target_base_arch].apply(config_target, strict: false)
     lib = target_common_system_arch_libs[target_base_arch]
     objects += lib.extract_objects(src.sources())
@@ -4308,22 +4050,13 @@ foreach target : target_dirs
 
     traceable += [{
       'exe': exe['name'],
-      'probe-prefix': 'qemu.' + target_type + '.' + target_name,
+      'probe-prefix': 'qemu.system.' + target_name,
     }]
 
   endforeach
 endforeach
 
 # Other build targets
-
-if get_option('plugins')
-  install_headers('include/qemu/qemu-plugin.h')
-  if host_os == 'windows'
-    # On windows, we want to deliver the qemu_plugin_api.lib file in the qemu installer,
-    # so that plugin authors can compile against it.
-    install_data(win32_qemu_plugin_api_lib, install_dir: 'lib')
-  endif
-endif
 
 subdir('qga')
 
@@ -4361,13 +4094,6 @@ if have_tools
   executable('qemu-edid', files('qemu-edid.c', 'hw/display/edid-generate.c'),
              dependencies: [qemuutil, rt],
              install: true)
-
-  if have_vhost_user
-    subdir('contrib/vhost-user-blk')
-    subdir('contrib/vhost-user-gpu')
-    subdir('contrib/vhost-user-input')
-    subdir('contrib/vhost-user-scsi')
-  endif
 
   if host_os == 'linux'
     executable('qemu-bridge-helper', files('qemu-bridge-helper.c'),
@@ -4504,7 +4230,6 @@ summary(summary_info, bool_yn: true, section: 'Host binaries')
 # Configurable features
 summary_info = {}
 summary_info += {'system-mode emulation': have_system}
-summary_info += {'user-mode emulation': have_user}
 summary_info += {'block layer':       have_block}
 summary_info += {'Install blobs':     get_option('install_blobs')}
 summary_info += {'module support':    enable_modules}
@@ -4522,9 +4247,6 @@ summary_info += {'QOM debugging':     get_option('qom_cast_debug')}
 summary_info += {'Relocatable install': get_option('relocatable')}
 summary_info += {'vhost-kernel support': have_vhost_kernel}
 summary_info += {'vhost-net support': have_vhost_net}
-summary_info += {'vhost-user support': have_vhost_user}
-summary_info += {'vhost-user-crypto support': have_vhost_user_crypto}
-summary_info += {'vhost-user-blk server support': have_vhost_user_blk_server}
 summary_info += {'vhost-vdpa support': have_vhost_vdpa}
 summary_info += {'build guest agent': have_ga}
 summary(summary_info, bool_yn: true, section: 'Configurable features')
@@ -4610,17 +4332,12 @@ if config_all_accel.has_key('CONFIG_TCG')
   else
     summary_info += {'TCG backend':   'native (@0@)'.format(cpu)}
   endif
-  summary_info += {'TCG plugins':       get_option('plugins')}
   summary_info += {'TCG debug enabled': get_option('debug_tcg')}
-  if have_linux_user or have_bsd_user
-    summary_info += {'syscall buffer debugging support': get_option('debug_remap')}
-  endif
 endif
 summary_info += {'target list':       ' '.join(target_dirs)}
 if have_system
   summary_info += {'default devices':   get_option('default_devices')}
   summary_info += {'out of process emulation': multiprocess_allowed}
-  summary_info += {'vfio-user server': vfio_user_server_allowed}
 endif
 summary(summary_info, bool_yn: true, section: 'Targets and accelerators')
 
@@ -4777,7 +4494,6 @@ summary_info += {'Query Processing Library support': qpl}
 summary_info += {'UADK Library support': uadk}
 summary_info += {'qatzip support':    qatzip}
 summary_info += {'NUMA host support': numa}
-summary_info += {'capstone':          capstone}
 summary_info += {'libpmem support':   libpmem}
 summary_info += {'libdaxctl support': libdaxctl}
 summary_info += {'libcbor support':   libcbor}

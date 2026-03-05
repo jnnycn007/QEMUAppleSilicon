@@ -58,33 +58,6 @@ static bool check_prop_still_unset(Object *obj, const char *name,
     return false;
 }
 
-bool qdev_prop_sanitize_s390x_loadparm(uint8_t *loadparm, const char *str,
-                                       Error **errp)
-{
-    int i, len;
-
-    len = strlen(str);
-    if (len > 8) {
-        error_setg(errp, "'loadparm' can only contain up to 8 characters");
-        return false;
-    }
-
-    for (i = 0; i < len; i++) {
-        uint8_t c = qemu_toupper(str[i]); /* mimic HMC */
-
-        if (qemu_isalnum(c) || c == '.' || c == ' ') {
-            loadparm[i] = c;
-        } else {
-            error_setg(errp,
-                       "invalid character in 'loadparm': '%c' (ASCII 0x%02x)",
-                       c, c);
-            return false;
-        }
-    }
-
-    return true;
-}
-
 /* --- drive --- */
 
 static void get_drive(Object *obj, Visitor *v, const char *name, void *opaque,
@@ -1220,19 +1193,6 @@ const PropertyInfo qdev_prop_uuid = {
     .get   = get_uuid,
     .set   = set_uuid,
     .set_default_value = set_default_uuid_auto,
-};
-
-/* --- s390 cpu entitlement policy --- */
-
-QEMU_BUILD_BUG_ON(sizeof(S390CpuEntitlement) != sizeof(int));
-
-const PropertyInfo qdev_prop_cpus390entitlement = {
-    .type  = "S390CpuEntitlement",
-    .description = "auto/low/medium/high (default medium)",
-    .enum_table  = &S390CpuEntitlement_lookup,
-    .get   = qdev_propinfo_get_enum,
-    .set   = qdev_propinfo_set_enum,
-    .set_default_value = qdev_propinfo_set_default_value_enum,
 };
 
 /* --- IOThreadVirtQueueMappingList --- */

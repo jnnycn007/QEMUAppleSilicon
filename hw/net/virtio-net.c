@@ -697,9 +697,6 @@ static int peer_attach(VirtIONet *n, int index)
     }
 
     net = get_vhost_net(nc->peer);
-    if (net && net->is_vhost_user) {
-        vhost_net_set_vring_enable(nc->peer, 1);
-    }
 
     if (nc->peer->info->type != NET_CLIENT_DRIVER_TAP) {
         return 0;
@@ -722,9 +719,6 @@ static int peer_detach(VirtIONet *n, int index)
     }
 
     net = get_vhost_net(nc->peer);
-    if (net && net->is_vhost_user) {
-        vhost_net_set_vring_enable(nc->peer, 0);
-    }
 
     if (nc->peer->info->type !=  NET_CLIENT_DRIVER_TAP) {
         return 0;
@@ -920,12 +914,6 @@ static void virtio_net_set_features(VirtIODevice *vdev, uint64_t features)
             continue;
         }
         vhost_net_ack_features(get_vhost_net(nc->peer), features);
-
-        /*
-         * keep acked_features in NetVhostUserState up-to-date so it
-         * can't miss any features configured by guest virtio driver.
-         */
-        vhost_net_save_acked_features(nc->peer);
     }
 
     if (virtio_has_feature(vdev->guest_features ^ features, VIRTIO_NET_F_CTRL_VLAN)) {
@@ -3401,94 +3389,6 @@ static struct vhost_dev *virtio_net_get_vhost(VirtIODevice *vdev)
     return &net->dev;
 }
 
-static int vhost_user_net_save_state(QEMUFile *f, void *pv, size_t size,
-                                     const VMStateField *field,
-                                     JSONWriter *vmdesc)
-{
-    VirtIONet *n = pv;
-    VirtIODevice *vdev = VIRTIO_DEVICE(n);
-    struct vhost_dev *vhdev;
-    Error *local_error = NULL;
-    int ret;
-
-    vhdev = virtio_net_get_vhost(vdev);
-    if (vhdev == NULL) {
-        error_reportf_err(local_error,
-                          "Error getting vhost back-end of %s device %s: ",
-                          vdev->name, vdev->parent_obj.canonical_path);
-        return -1;
-    }
-
-    ret = vhost_save_backend_state(vhdev, f, &local_error);
-    if (ret < 0) {
-        error_reportf_err(local_error,
-                          "Error saving back-end state of %s device %s: ",
-                          vdev->name, vdev->parent_obj.canonical_path);
-        return ret;
-    }
-
-    return 0;
-}
-
-static int vhost_user_net_load_state(QEMUFile *f, void *pv, size_t size,
-                                     const VMStateField *field)
-{
-    VirtIONet *n = pv;
-    VirtIODevice *vdev = VIRTIO_DEVICE(n);
-    struct vhost_dev *vhdev;
-    Error *local_error = NULL;
-    int ret;
-
-    vhdev = virtio_net_get_vhost(vdev);
-    if (vhdev == NULL) {
-        error_reportf_err(local_error,
-                          "Error getting vhost back-end of %s device %s: ",
-                          vdev->name, vdev->parent_obj.canonical_path);
-        return -1;
-    }
-
-    ret = vhost_load_backend_state(vhdev, f, &local_error);
-    if (ret < 0) {
-        error_reportf_err(local_error,
-                          "Error loading  back-end state of %s device %s: ",
-                          vdev->name, vdev->parent_obj.canonical_path);
-        return ret;
-    }
-
-    return 0;
-}
-
-static bool vhost_user_net_is_internal_migration(void *opaque)
-{
-    VirtIONet *n = opaque;
-    VirtIODevice *vdev = VIRTIO_DEVICE(n);
-    struct vhost_dev *vhdev;
-
-    vhdev = virtio_net_get_vhost(vdev);
-    if (vhdev == NULL) {
-        return false;
-    }
-
-    return vhost_supports_device_state(vhdev);
-}
-
-static const VMStateDescription vhost_user_net_backend_state = {
-    .name = "virtio-net-device/backend",
-    .version_id = 0,
-    .needed = vhost_user_net_is_internal_migration,
-    .fields = (const VMStateField[]) {
-        {
-            .name = "backend",
-            .info = &(const VMStateInfo) {
-                .name = "virtio-net vhost-user backend state",
-                .get = vhost_user_net_load_state,
-                .put = vhost_user_net_save_state,
-            },
-         },
-         VMSTATE_END_OF_LIST()
-    }
-};
-
 static const VMStateDescription vmstate_virtio_net_device = {
     .name = "virtio-net-device",
     .version_id = VIRTIO_NET_VM_VERSION,
@@ -3541,7 +3441,6 @@ static const VMStateDescription vmstate_virtio_net_device = {
     },
     .subsections = (const VMStateDescription * const []) {
         &vmstate_virtio_net_rss,
-        &vhost_user_net_backend_state,
         NULL
     }
 };

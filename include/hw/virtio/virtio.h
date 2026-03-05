@@ -154,7 +154,7 @@ struct VirtIODevice
     char *bus_name;
     uint8_t device_endian;
     /**
-     * @user_guest_notifier_mask: gate usage of ->guest_notifier_mask() callback.
+     * @use_guest_notifier_mask: gate usage of ->guest_notifier_mask() callback.
      * This is used to suppress the masking of guest updates for
      * vhost-user devices which are asynchronous by design.
      */

@@ -46,23 +46,9 @@ if have_block or have_ga
   stub_ss.add(files('qmp-quit.c'))
 endif
 
-if have_block or have_user
+if have_block
   stub_ss.add(files('vm-stop.c'))
   stub_ss.add(files('vmstate.c'))
-endif
-
-if have_user
-  # Symbols that are used by hw/core.
-  stub_ss.add(files('cpu-synchronize-state.c'))
-  stub_ss.add(files('cpu-destroy-address-spaces.c'))
-
-  # Stubs for QAPI events.  Those can always be included in the build, but
-  # they are not built at all for --disable-system builds.
-  if not have_system
-    stub_ss.add(files('qdev.c'))
-  endif
-
-  stub_ss.add(files('monitor-internal.c'))
 endif
 
 if have_system
@@ -83,11 +69,9 @@ if have_system
   stub_ss.add(files('monitor-i386-sgx.c'))
   stub_ss.add(files('monitor-i386-xen.c'))
   stub_ss.add(files('monitor-cpu.c'))
-  stub_ss.add(files('monitor-cpu-s390x.c'))
-  stub_ss.add(files('monitor-cpu-s390x-kvm.c'))
 endif
 
-if have_system or have_user
+if have_system
   stub_ss.add(files('gdbstub.c'))
 
   # Also included in have_system for --disable-tcg builds

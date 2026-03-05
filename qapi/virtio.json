@@ -87,8 +87,6 @@
 #
 # @backend-features: vhost_dev backend_features
 #
-# @protocol-features: vhost_dev protocol_features
-#
 # @max-queues: vhost_dev max_queues
 #
 # @backend-cap: vhost_dev backend_cap
@@ -107,7 +105,6 @@
             'features': 'VirtioDeviceFeatures',
             'acked-features': 'VirtioDeviceFeatures',
             'backend-features': 'VirtioDeviceFeatures',
-            'protocol-features': 'VhostDeviceProtocols',
             'max-queues': 'uint64',
             'backend-cap': 'uint64',
             'log-enabled': 'bool',
@@ -324,7 +321,6 @@
 #              },
 #              "backend-features": {
 #                  "dev-features": [
-#                      "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features negotiation supported",
 #                      "VIRTIO_NET_F_GSO: Handling GSO-type packets supported",
 #                      "VIRTIO_NET_F_CTRL_MAC_ADDR: MAC address set through control channel",
 #                      "VIRTIO_NET_F_GUEST_ANNOUNCE: Driver sending gratuitous packets supported",
@@ -397,7 +393,6 @@
 #              },
 #              "host-features": {
 #                  "dev-features": [
-#                      "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features negotiation supported",
 #                      "VIRTIO_NET_F_GSO: Handling GSO-type packets supported",
 #                      "VIRTIO_NET_F_CTRL_MAC_ADDR: MAC address set through control channel",
 #                      "VIRTIO_NET_F_GUEST_ANNOUNCE: Driver sending gratuitous packets supported",
@@ -459,24 +454,6 @@
 { 'struct': 'VirtioDeviceStatus',
   'data': { 'statuses': [ 'str' ],
             '*unknown-statuses': 'uint8' } }
-
-##
-# @VhostDeviceProtocols:
-#
-# A structure defined to list the vhost user protocol features of a
-# Vhost User device
-#
-# @protocols: List of decoded vhost user protocol features of a vhost
-#     user device
-#
-# @unknown-protocols: Vhost user device protocol features bitmap that
-#     have not been decoded
-#
-# Since: 7.2
-##
-{ 'struct': 'VhostDeviceProtocols',
-  'data': { 'protocols': [ 'str' ],
-            '*unknown-protocols': 'uint64' } }
 
 ##
 # @VirtioDeviceFeatures:

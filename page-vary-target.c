@@ -22,7 +22,7 @@
 #include "qemu/osdep.h"
 #include "exec/page-vary.h"
 #include "exec/target_page.h"
-
+#include "exec/tlb-flags.h"
 
 /*
  * For system mode, the minimum comes from the number of bits
@@ -38,30 +38,27 @@
  */
 #define TARGET_PAGE_BITS_MIN 9
 
-#ifndef TARGET_PAGE_BITS_VARY
+#ifdef TARGET_PAGE_BITS_VARY
+QEMU_BUILD_BUG_ON(TARGET_PAGE_BITS_LEGACY < TARGET_PAGE_BITS_MIN);
+#else
 QEMU_BUILD_BUG_ON(TARGET_PAGE_BITS < TARGET_PAGE_BITS_MIN);
 #endif
-
-#ifndef CONFIG_USER_ONLY
-#include "exec/tlb-flags.h"
 
 QEMU_BUILD_BUG_ON(TLB_FLAGS_MASK & ((1u < TARGET_PAGE_BITS_MIN) - 1));
 
 int migration_legacy_page_bits(void)
 {
 #ifdef TARGET_PAGE_BITS_VARY
-    QEMU_BUILD_BUG_ON(TARGET_PAGE_BITS_LEGACY < TARGET_PAGE_BITS_MIN);
     return TARGET_PAGE_BITS_LEGACY;
 #else
     return TARGET_PAGE_BITS;
 #endif
 }
-#endif
 
 bool set_preferred_target_page_bits(int bits)
 {
-    assert(bits >= TARGET_PAGE_BITS_MIN);
 #ifdef TARGET_PAGE_BITS_VARY
+    assert(bits >= TARGET_PAGE_BITS_MIN);
     return set_preferred_target_page_bits_common(bits);
 #else
     return true;
@@ -70,12 +67,9 @@ bool set_preferred_target_page_bits(int bits)
 
 void finalize_target_page_bits(void)
 {
-#ifndef TARGET_PAGE_BITS_VARY
-    finalize_target_page_bits_common(TARGET_PAGE_BITS);
-#elif defined(CONFIG_USER_ONLY)
-    assert(target_page.bits != 0);
-    finalize_target_page_bits_common(target_page.bits);
-#else
+#ifdef TARGET_PAGE_BITS_VARY
     finalize_target_page_bits_common(TARGET_PAGE_BITS_LEGACY);
+#else
+    finalize_target_page_bits_common(TARGET_PAGE_BITS);
 #endif
 }

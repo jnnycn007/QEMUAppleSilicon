@@ -29,14 +29,6 @@ extern ICountMode use_icount;
 #define icount_enabled() ICOUNT_DISABLED
 #endif
 
-/* Protect the CONFIG_USER_ONLY test vs poisoning. */
-#if defined(COMPILING_PER_TARGET) || defined(COMPILING_SYSTEM_VS_USER)
-# ifdef CONFIG_USER_ONLY
-#  undef  icount_enabled
-#  define icount_enabled() ICOUNT_DISABLED
-# endif
-#endif
-
 /*
  * Update the icount with the executed instructions. Called by
  * cpus-tcg vCPU thread so the main-loop can see time has moved forward.

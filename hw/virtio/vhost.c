@@ -310,11 +310,6 @@ static int vhost_set_backend_type(struct vhost_dev *dev,
         dev->vhost_ops = &kernel_ops;
         break;
 #endif
-#ifdef CONFIG_VHOST_USER
-    case VHOST_BACKEND_TYPE_USER:
-        dev->vhost_ops = &user_ops;
-        break;
-#endif
 #ifdef CONFIG_VHOST_VDPA
     case VHOST_BACKEND_TYPE_VDPA:
         dev->vhost_ops = &vdpa_ops;
@@ -586,7 +581,7 @@ static bool vhost_section(struct vhost_dev *dev, MemoryRegionSection *section)
         }
 
         /*
-         * Some backends (like vhost-user) can only handle memory regions
+         * Some backends can only handle memory regions
          * that have an fd (can be mapped into a different process). Filter
          * the ones without an fd out, if requested.
          *
@@ -1084,11 +1079,7 @@ static int vhost_migration_log(MemoryListener *listener, bool enable)
 
 check_dev_state:
     dev->log_enabled = enable;
-    /*
-     * vhost-user-* devices could change their state during log
-     * initialization due to disconnect. So check dev state after
-     * vhost communication.
-     */
+
     if (!dev->started) {
         /*
          * Since device is in the stopped state, it is okay for
@@ -1986,18 +1977,6 @@ static int vhost_dev_set_vring_enable(struct vhost_dev *hdev, int enable)
         return 0;
     }
 
-    /*
-     * For vhost-user devices, if VHOST_USER_F_PROTOCOL_FEATURES has not
-     * been negotiated, the rings start directly in the enabled state, and
-     * .vhost_set_vring_enable callback will fail since
-     * VHOST_USER_SET_VRING_ENABLE is not supported.
-     */
-    if (hdev->vhost_ops->backend_type == VHOST_BACKEND_TYPE_USER &&
-        !virtio_has_feature(hdev->backend_features,
-                            VHOST_USER_F_PROTOCOL_FEATURES)) {
-        return 0;
-    }
-
     return hdev->vhost_ops->vhost_set_vring_enable(hdev, enable);
 }
 
@@ -2271,8 +2250,6 @@ int vhost_save_backend_state(struct vhost_dev *dev, QEMUFile *f, Error **errp)
 
     /*
      * VHOST_TRANSFER_STATE_PHASE_STOPPED means the device must be stopped.
-     * Ideally, it is suspended, but SUSPEND/RESUME currently do not exist for
-     * vhost-user, so just check that it is stopped at all.
      */
     assert(!dev->started);
 
@@ -2363,8 +2340,6 @@ int vhost_load_backend_state(struct vhost_dev *dev, QEMUFile *f, Error **errp)
 
     /*
      * VHOST_TRANSFER_STATE_PHASE_STOPPED means the device must be stopped.
-     * Ideally, it is suspended, but SUSPEND/RESUME currently do not exist for
-     * vhost-user, so just check that it is stopped at all.
      */
     assert(!dev->started);
 

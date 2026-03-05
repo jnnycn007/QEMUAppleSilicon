@@ -62,15 +62,6 @@ config MAX78000_TRNG
 config MOS6522
     bool
 
-config MACIO
-    bool
-    select CUDA
-    select ESCC
-    select IDE_MACIO
-    select MAC_DBDMA
-    select MAC_NVRAM
-    select MOS6522
-
 config IVSHMEM_DEVICE
     bool
     default y if PCI_DEVICES
@@ -116,10 +107,6 @@ config STM32L4X5_SYSCFG
 
 config STM32L4X5_RCC
     bool
-
-config MIPS_ITU
-    bool
-    depends on TCG
 
 config MPS2_FPGAIO
     bool
@@ -175,38 +162,6 @@ config UNIMP
 config LED
     bool
 
-config MAC_VIA
-    bool
-    select MOS6522
-    select ADB
-
-config AVR_POWER
-    bool
-
-config MCHP_PFSOC_DMC
-    bool
-
-config MCHP_PFSOC_IOSCB
-    bool
-
-config MCHP_PFSOC_SYSREG
-    bool
-
-config SIFIVE_TEST
-    bool
-
-config SIFIVE_E_PRCI
-    bool
-
-config SIFIVE_E_AON
-    bool
-
-config SIFIVE_U_OTP
-    bool
-
-config SIFIVE_U_PRCI
-    bool
-
 config VIRT_CTRL
     bool
 
@@ -244,5 +199,3 @@ config IOSB
 
 config XLNX_VERSAL_TRNG
     bool
-
-source macio/Kconfig

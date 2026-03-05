@@ -4,15 +4,11 @@ if unpack_edk2_blobs
     'edk2-aarch64-code.fd',
     'edk2-arm-code.fd',
     'edk2-arm-vars.fd',
-    'edk2-riscv-code.fd',
-    'edk2-riscv-vars.fd',
     'edk2-i386-code.fd',
     'edk2-i386-secure-code.fd',
     'edk2-i386-vars.fd',
     'edk2-x86_64-code.fd',
     'edk2-x86_64-secure-code.fd',
-    'edk2-loongarch64-code.fd',
-    'edk2-loongarch64-vars.fd',
   ]
 
   foreach f : fds
@@ -68,8 +64,6 @@ blobs = [
   'linuxboot_dma.bin',
   'kvmvapic.bin',
   'pvh.bin',
-  's390-ccw.img',
-  'slof.bin',
   'skiboot.lid',
   'pnv-pnor.bin',
   'palcode-clipper',
@@ -77,14 +71,8 @@ blobs = [
   'u-boot-sam460-20100605.bin',
   'qemu_vga.ndrv',
   'edk2-licenses.txt',
-  'hppa-firmware.img',
-  'hppa-firmware64.img',
-  'opensbi-riscv32-generic-fw_dynamic.bin',
-  'opensbi-riscv64-generic-fw_dynamic.bin',
   'npcm7xx_bootrom.bin',
   'npcm8xx_bootrom.bin',
-  'vof.bin',
-  'vof-nvram.bin',
 ]
 
 if get_option('install_blobs')

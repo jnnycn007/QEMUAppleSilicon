@@ -120,28 +120,6 @@
             '*allocation-depth': 'bool' } }
 
 ##
-# @BlockExportOptionsVhostUserBlk:
-#
-# A vhost-user-blk block export.
-#
-# @addr: The vhost-user socket on which to listen.  Both 'unix' and
-#     'fd' `SocketAddress` types are supported.  Passed fds must be UNIX
-#     domain sockets.
-#
-# @logical-block-size: Logical block size in bytes.  Defaults to 512
-#     bytes.
-#
-# @num-queues: Number of request virtqueues.  Must be greater than 0.
-#     Defaults to 1.
-#
-# Since: 5.2
-##
-{ 'struct': 'BlockExportOptionsVhostUserBlk',
-  'data': { 'addr': 'SocketAddress',
-	    '*logical-block-size': 'size',
-            '*num-queues': 'uint16'} }
-
-##
 # @FuseExportAllowOther:
 #
 # Possible allow_other modes for FUSE exports.
@@ -327,8 +305,6 @@
 #
 # @nbd: NBD export
 #
-# @vhost-user-blk: vhost-user-blk export (since 5.2)
-#
 # @fuse: FUSE export (since: 6.0)
 #
 # @vduse-blk: vduse-blk export (since 7.1)
@@ -337,8 +313,6 @@
 ##
 { 'enum': 'BlockExportType',
   'data': [ 'nbd',
-            { 'name': 'vhost-user-blk',
-              'if': 'CONFIG_VHOST_USER_BLK_SERVER' },
             { 'name': 'fuse', 'if': 'CONFIG_FUSE' },
             { 'name': 'vduse-blk', 'if': 'CONFIG_VDUSE_BLK_EXPORT' } ] }
 
@@ -394,8 +368,6 @@
   'discriminator': 'type',
   'data': {
       'nbd': 'BlockExportOptionsNbd',
-      'vhost-user-blk': { 'type': 'BlockExportOptionsVhostUserBlk',
-                          'if': 'CONFIG_VHOST_USER_BLK_SERVER' },
       'fuse': { 'type': 'BlockExportOptionsFuse',
                 'if': 'CONFIG_FUSE' },
       'vduse-blk': { 'type': 'BlockExportOptionsVduseBlk',

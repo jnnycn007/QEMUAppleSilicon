@@ -1,9 +1,6 @@
 [submodule "roms/seabios"]
 	path = roms/seabios
 	url = https://gitlab.com/qemu-project/seabios.git/
-[submodule "roms/SLOF"]
-	path = roms/SLOF
-	url = https://gitlab.com/qemu-project/SLOF.git
 [submodule "roms/ipxe"]
 	path = roms/ipxe
 	url = https://gitlab.com/qemu-project/ipxe.git
@@ -22,9 +19,6 @@
 [submodule "roms/QemuMacDrivers"]
 	path = roms/QemuMacDrivers
 	url = https://gitlab.com/qemu-project/QemuMacDrivers.git
-[submodule "roms/seabios-hppa"]
-	path = roms/seabios-hppa
-	url = https://gitlab.com/qemu-project/seabios-hppa.git
 [submodule "roms/u-boot-sam460ex"]
 	path = roms/u-boot-sam460ex
 	url = https://gitlab.com/qemu-project-mirrors/u-boot-sam460ex.git

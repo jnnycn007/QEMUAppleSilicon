@@ -48,7 +48,6 @@ OPTION_NAMES = {
 
 # Options that configure autodetects, even though meson defines them as boolean
 AUTO_OPTIONS = {
-    "plugins",
     "werror",
 }
 

@@ -15,10 +15,8 @@
 #include "accel/tcg/cpu-mmu-index.h"
 #include "exec/target_page.h"
 #include "exec/translator.h"
-#include "exec/plugin-gen.h"
 #include "tcg/tcg-op-common.h"
 #include "internal-common.h"
-#include "disas/disas.h"
 #include "tb-internal.h"
 
 static void set_can_do_io(DisasContextBase *db, bool val)
@@ -126,7 +124,6 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
     uint32_t cflags = tb_cflags(tb);
     TCGOp *icount_start_insn;
     TCGOp *first_insn_start = NULL;
-    bool plugin_enabled;
 
     /* Initialize DisasContext */
     db->tb = tb;
@@ -151,9 +148,6 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
     ops->tb_start(db, cpu);
     tcg_debug_assert(db->is_jmp == DISAS_NEXT);  /* no early exit */
 
-    plugin_enabled = plugin_gen_tb_start(cpu, db);
-    db->plugin_enabled = plugin_enabled;
-
     while (true) {
         *max_insns = ++db->num_insns;
         ops->insn_start(db, cpu);
@@ -163,10 +157,6 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
         }
         tcg_debug_assert(db->is_jmp == DISAS_NEXT);  /* no early exit */
 
-        if (plugin_enabled) {
-            plugin_gen_insn_start(cpu, db);
-        }
-
         /*
          * Disassemble one instruction.  The translate_insn hook should
          * update db->pc_next and db->is_jmp to indicate what should be
@@ -174,19 +164,6 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
          * the next instruction.
          */
         ops->translate_insn(db, cpu);
-
-        /*
-         * We can't instrument after instructions that change control
-         * flow although this only really affects post-load operations.
-         *
-         * Calling plugin_gen_insn_end() before we possibly stop translation
-         * is important. Even if this ends up as dead code, plugin generation
-         * needs to see a matching plugin_gen_insn_{start,end}() pair in order
-         * to accurately track instrumented helpers that might access memory.
-         */
-        if (plugin_enabled) {
-            plugin_gen_insn_end();
-        }
 
         /* Stop translation if translate_insn so indicated.  */
         if (db->is_jmp != DISAS_NEXT) {
@@ -220,13 +197,9 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
     set_can_do_io(db, true);
     tcg_ctx->emit_before_op = NULL;
 
-    /* May be used by disas_log or plugin callbacks. */
+    /* May be used by disas_log. */
     tb->size = db->pc_next - db->pc_first;
     tb->icount = db->num_insns;
-
-    if (plugin_enabled) {
-        plugin_gen_tb_end(cpu, db->num_insns);
-    }
 
     if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
         && qemu_log_in_addr_range(db->pc_first)) {
@@ -236,8 +209,7 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
 
             if (!ops->disas_log ||
                 !ops->disas_log(db, cpu, logfile)) {
-                fprintf(logfile, "IN: %s\n", lookup_symbol(db->pc_first));
-                target_disas(logfile, cpu, db);
+                fprintf(logfile, "IN: %016" VADDR_PRIx "\n", db->pc_first);
             }
             fprintf(logfile, "\n");
             qemu_log_unlock(logfile);

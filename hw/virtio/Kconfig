@@ -36,11 +36,6 @@ config VIRTIO_BALLOON
     default y
     depends on VIRTIO
 
-config VIRTIO_CRYPTO
-    bool
-    default y
-    depends on VIRTIO
-
 # not all virtio transports support memory devices; if none does,
 # no need to include the code
 config VIRTIO_MD_SUPPORTED
@@ -86,43 +81,7 @@ config VHOST_VSOCK
     select VHOST_VSOCK_COMMON
     depends on VIRTIO && VHOST_KERNEL
 
-config VHOST_USER_VSOCK
-    bool
-    default y
-    select VHOST_VSOCK_COMMON
-    depends on VIRTIO && VHOST_USER
-
-config VHOST_USER_I2C
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER
-
-config VHOST_USER_RNG
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER
-
-config VHOST_USER_FS
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER
-
-config VHOST_USER_GPIO
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER
-
 config VHOST_VDPA_DEV
     bool
     default y
     depends on VIRTIO && VHOST_VDPA && LINUX
-
-config VHOST_USER_SND
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER
-
-config VHOST_USER_SCMI
-    bool
-    default y
-    depends on VIRTIO && VHOST_USER && ARM

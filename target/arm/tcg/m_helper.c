@@ -20,9 +20,7 @@
 #include "accel/tcg/cpu-ldst.h"
 #include "semihosting/common-semi.h"
 #endif
-#if !defined(CONFIG_USER_ONLY)
 #include "hw/intc/armv7m_nvic.h"
-#endif
 
 static void v7m_msr_xpsr(CPUARMState *env, uint32_t mask,
                          uint32_t reg, uint32_t val)
@@ -68,99 +66,6 @@ uint32_t arm_v7m_mrs_control(CPUARMState *env, uint32_t secure)
     }
     return value;
 }
-
-#ifdef CONFIG_USER_ONLY
-
-void HELPER(v7m_msr)(CPUARMState *env, uint32_t maskreg, uint32_t val)
-{
-    uint32_t mask = extract32(maskreg, 8, 4);
-    uint32_t reg = extract32(maskreg, 0, 8);
-
-    switch (reg) {
-    case 0 ... 7: /* xPSR sub-fields */
-        v7m_msr_xpsr(env, mask, reg, val);
-        break;
-    case 20: /* CONTROL */
-        /* There are no sub-fields that are actually writable from EL0. */
-        break;
-    default:
-        /* Unprivileged writes to other registers are ignored */
-        break;
-    }
-}
-
-uint32_t HELPER(v7m_mrs)(CPUARMState *env, uint32_t reg)
-{
-    switch (reg) {
-    case 0 ... 7: /* xPSR sub-fields */
-        return v7m_mrs_xpsr(env, reg, 0);
-    case 20: /* CONTROL */
-        return arm_v7m_mrs_control(env, 0);
-    default:
-        /* Unprivileged reads others as zero.  */
-        return 0;
-    }
-}
-
-void HELPER(v7m_bxns)(CPUARMState *env, uint32_t dest)
-{
-    /* translate.c should never generate calls here in user-only mode */
-    g_assert_not_reached();
-}
-
-void HELPER(v7m_blxns)(CPUARMState *env, uint32_t dest)
-{
-    /* translate.c should never generate calls here in user-only mode */
-    g_assert_not_reached();
-}
-
-void HELPER(v7m_preserve_fp_state)(CPUARMState *env)
-{
-    /* translate.c should never generate calls here in user-only mode */
-    g_assert_not_reached();
-}
-
-void HELPER(v7m_vlstm)(CPUARMState *env, uint32_t fptr)
-{
-    /* translate.c should never generate calls here in user-only mode */
-    g_assert_not_reached();
-}
-
-void HELPER(v7m_vlldm)(CPUARMState *env, uint32_t fptr)
-{
-    /* translate.c should never generate calls here in user-only mode */
-    g_assert_not_reached();
-}
-
-uint32_t HELPER(v7m_tt)(CPUARMState *env, uint32_t addr, uint32_t op)
-{
-    /*
-     * The TT instructions can be used by unprivileged code, but in
-     * user-only emulation we don't have the MPU.
-     * Luckily since we know we are NonSecure unprivileged (and that in
-     * turn means that the A flag wasn't specified), all the bits in the
-     * register must be zero:
-     *  IREGION: 0 because IRVALID is 0
-     *  IRVALID: 0 because NS
-     *  S: 0 because NS
-     *  NSRW: 0 because NS
-     *  NSR: 0 because NS
-     *  RW: 0 because unpriv and A flag not set
-     *  R: 0 because unpriv and A flag not set
-     *  SRVALID: 0 because NS
-     *  MRVALID: 0 because unpriv and A flag not set
-     *  SREGION: 0 because SRVALID is 0
-     *  MREGION: 0 because MRVALID is 0
-     */
-    return 0;
-}
-
-ARMMMUIdx arm_v7m_mmu_idx_for_secstate(CPUARMState *env, bool secstate)
-{
-    return ARMMMUIdx_MUser;
-}
-
-#else /* !CONFIG_USER_ONLY */
 
 static ARMMMUIdx arm_v7m_mmu_idx_all(CPUARMState *env,
                                      bool secstate, bool priv, bool negpri)
@@ -2871,8 +2776,6 @@ uint32_t HELPER(v7m_tt)(CPUARMState *env, uint32_t addr, uint32_t op)
 
     return tt_resp;
 }
-
-#endif /* !CONFIG_USER_ONLY */
 
 uint32_t *arm_v7m_get_sp_ptr(CPUARMState *env, bool secure, bool threadmode,
                              bool spsel)

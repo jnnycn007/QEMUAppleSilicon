@@ -10,10 +10,6 @@
 #ifndef SEMIHOSTING_UACCESS_H
 #define SEMIHOSTING_UACCESS_H
 
-#ifdef CONFIG_USER_ONLY
-#error Cannot include semihosting/uaccess.h from user emulation
-#endif
-
 #include "exec/cpu-common.h"
 #include "exec/tswap.h"
 #include "exec/page-protection.h"

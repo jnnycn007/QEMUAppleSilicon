@@ -58,9 +58,6 @@
 #include "tcg-internal.h"
 #include "tcg/perf.h"
 #include "tcg-has.h"
-#ifdef CONFIG_USER_ONLY
-#include "user/guest-base.h"
-#endif
 
 /* Forward declarations for functions declared in tcg-target.c.inc and
    used here. */
@@ -188,10 +185,6 @@ static TCGReg tcg_target_call_oarg_reg(TCGCallReturnKind kind, int slot);
 static bool tcg_target_const_match(int64_t val, int ct,
                                    TCGType type, TCGCond cond, int vece);
 
-#ifndef CONFIG_USER_ONLY
-#define guest_base  ({ qemu_build_not_reached(); (uintptr_t)0; })
-#endif
-
 typedef struct TCGLdstHelperParam {
     TCGReg (*ra_gen)(TCGContext *s, const TCGLabelQemuLdst *l, int arg_reg);
     unsigned ntmp;
@@ -239,10 +232,6 @@ typedef struct {
 static TCGAtomAlign atom_and_align_for_opc(TCGContext *s, MemOp opc,
                                            MemOp host_atom, bool allow_two_ops)
     __attribute__((unused));
-
-#ifdef CONFIG_USER_ONLY
-bool tcg_use_softmmu;
-#endif
 
 TCGContext tcg_init_ctx;
 __thread TCGContext *tcg_ctx;
@@ -1269,23 +1258,10 @@ static const TCGOutOp * const all_outop[NB_OPS] = {
  * and registered the target's TCG globals) must register with this function
  * before initiating translation.
  *
- * In user-mode we just point tcg_ctx to tcg_init_ctx. See the documentation
- * of tcg_region_init() for the reasoning behind this.
- *
- * In system-mode each caller registers its context in tcg_ctxs[]. Note that in
- * system-mode tcg_ctxs[] does not track tcg_ctx_init, since the initial context
+ * Each caller registers its context in tcg_ctxs[]. Note that
+ * tcg_ctxs[] does not track tcg_ctx_init, since the initial context
  * is not used anymore for translation once this function is called.
- *
- * Not tracking tcg_init_ctx in tcg_ctxs[] in system-mode keeps code that
- * iterates over the array (e.g. tcg_code_size() the same for both system/user
- * modes.
  */
-#ifdef CONFIG_USER_ONLY
-void tcg_register_thread(void)
-{
-    tcg_ctx = &tcg_init_ctx;
-}
-#else
 void tcg_register_thread(void)
 {
     TCGContext *s = g_malloc(sizeof(*s));
@@ -1313,7 +1289,6 @@ void tcg_register_thread(void)
     qatomic_set(&tcg_ctxs[n], s);
     tcg_ctx = s;
 }
-#endif /* !CONFIG_USER_ONLY */
 
 /* pool based memory allocation */
 void *tcg_malloc_internal(TCGContext *s, int size)
@@ -1836,20 +1811,8 @@ static void tcg_context_init(unsigned max_threads)
     }
 
     tcg_ctx = s;
-    /*
-     * In user-mode we simply share the init context among threads, since we
-     * use a single region. See the documentation tcg_region_init() for the
-     * reasoning behind this.
-     * In system-mode we will have at most max_threads TCG threads.
-     */
-#ifdef CONFIG_USER_ONLY
-    tcg_ctxs = &tcg_ctx;
-    tcg_cur_ctxs = 1;
-    tcg_max_ctxs = 1;
-#else
     tcg_max_ctxs = max_threads;
     tcg_ctxs = g_new0(TCGContext *, max_threads);
-#endif
 
     tcg_debug_assert(!tcg_regset_test_reg(s->reserved_regs, TCG_AREG0));
     ts = tcg_global_reg_new_internal(s, TCG_TYPE_PTR, TCG_AREG0, "env");
@@ -1928,8 +1891,6 @@ void tcg_prologue_init(void)
                 size_t data_size = prologue_size - code_size;
                 size_t i;
 
-                disas(logfile, s->code_gen_ptr, code_size);
-
                 for (i = 0; i < data_size; i += sizeof(tcg_target_ulong)) {
                     if (sizeof(tcg_target_ulong) == 8) {
                         fprintf(logfile,
@@ -1943,8 +1904,6 @@ void tcg_prologue_init(void)
                                 *(uint32_t *)(s->data_gen_ptr + i));
                     }
                 }
-            } else {
-                disas(logfile, s->code_gen_ptr, prologue_size);
             }
             fprintf(logfile, "\n");
             qemu_log_unlock(logfile);
@@ -2632,13 +2591,6 @@ static void tcg_gen_callN(void *func, TCGHelperInfo *info,
     total_args = info->nr_out + info->nr_in + 2;
     op = tcg_op_alloc(INDEX_op_call, total_args);
 
-#ifdef CONFIG_PLUGIN
-    /* Flag helpers that may affect guest state */
-    if (tcg_ctx->plugin_insn && !(info->flags & TCG_CALL_NO_SIDE_EFFECTS)) {
-        tcg_ctx->plugin_insn->calls_helpers = true;
-    }
-#endif
-
     TCGOP_CALLO(op) = n = info->nr_out;
     switch (n) {
     case 0:
@@ -2905,15 +2857,6 @@ static const char bswap_flag_name[][6] = {
     [TCG_BSWAP_IZ | TCG_BSWAP_OS] = "iz,os",
 };
 
-#ifdef CONFIG_PLUGIN
-static const char * const plugin_from_name[] = {
-    "from-tb",
-    "from-insn",
-    "after-insn",
-    "after-tb",
-};
-#endif
-
 static inline bool tcg_regset_single(TCGRegSet d)
 {
     return d != 0 && (d & (d - 1)) == 0;
@@ -2967,14 +2910,8 @@ void tcg_dump_ops(TCGContext *s, FILE *f, bool have_prefs)
 
             /*
              * Print the function name from TCGHelperInfo, if available.
-             * Note that plugins have a template function for the info,
-             * but the actual function pointer comes from the plugin.
              */
-            if (func == info->func) {
-                col += ne_fprintf(f, "%s", info->name);
-            } else {
-                col += ne_fprintf(f, "plugin(%p)", func);
-            }
+            col += ne_fprintf(f, "%s", info->name);
 
             col += ne_fprintf(f, ",$0x%x,$%d", info->flags, nb_oargs);
             for (i = 0; i < nb_oargs; i++) {
@@ -3078,24 +3015,6 @@ void tcg_dump_ops(TCGContext *s, FILE *f, bool have_prefs)
                     i = k = 1;
                 }
                 break;
-#ifdef CONFIG_PLUGIN
-            case INDEX_op_plugin_cb:
-                {
-                    TCGArg from = op->args[k++];
-                    const char *name = NULL;
-
-                    if (from < ARRAY_SIZE(plugin_from_name)) {
-                        name = plugin_from_name[from];
-                    }
-                    if (name) {
-                        col += ne_fprintf(f, "%s", name);
-                    } else {
-                        col += ne_fprintf(f, "$0x%" TCG_PRIlx, from);
-                    }
-                    i = 1;
-                }
-                break;
-#endif
             default:
                 i = 0;
                 break;
@@ -3780,10 +3699,10 @@ static inline TCGRegSet *la_temp_pref(TCGTemp *ts)
 static inline void la_set_pref(TCGTemp *ts, TCGRegSet value)
 {
     TCGRegSet *temp_pref;
-    
+
     temp_pref = la_temp_pref(ts);
     tcg_debug_assert(temp_pref);
-    
+
     *temp_pref = value;
 }
 

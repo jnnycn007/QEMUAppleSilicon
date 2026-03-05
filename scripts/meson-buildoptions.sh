@@ -13,9 +13,6 @@ meson_options_help() {
   printf "%s\n" '  --datadir=VALUE          Data file directory [share]'
   printf "%s\n" '  --disable-coroutine-pool coroutine freelist (better performance)'
   printf "%s\n" '  --disable-debug-info     Enable debug symbols and other information'
-  printf "%s\n" '  --disable-hexagon-idef-parser'
-  printf "%s\n" '                           use idef-parser to automatically generate TCG'
-  printf "%s\n" '                           code for the Hexagon frontend'
   printf "%s\n" '  --disable-install-blobs  install provided firmware blobs'
   printf "%s\n" '  --disable-qom-cast-debug cast debugging support'
   printf "%s\n" '  --disable-relocatable    toggle relocatable install'
@@ -101,7 +98,6 @@ meson_options_help() {
   printf "%s\n" '  bzip2           bzip2 support for DMG images'
   printf "%s\n" '  canokey         CanoKey support'
   printf "%s\n" '  cap-ng          cap_ng support'
-  printf "%s\n" '  capstone        Whether and how to find the capstone library'
   printf "%s\n" '  cloop           cloop image format support'
   printf "%s\n" '  cocoa           Cocoa user interface (macOS only)'
   printf "%s\n" '  colo-proxy      colo-proxy support'
@@ -162,7 +158,6 @@ meson_options_help() {
   printf "%s\n" '  passt           passt network backend support'
   printf "%s\n" '  pipewire        PipeWire sound support'
   printf "%s\n" '  pixman          pixman support'
-  printf "%s\n" '  plugins         TCG plugins via shared library loading'
   printf "%s\n" '  png             PNG support with libpng'
   printf "%s\n" '  pvg             macOS paravirtualized graphics support'
   printf "%s\n" '  qatzip          QATzip compression support'
@@ -198,15 +193,9 @@ meson_options_help() {
   printf "%s\n" '  vdi             vdi image format support'
   printf "%s\n" '  vduse-blk-export'
   printf "%s\n" '                  VDUSE block export support'
-  printf "%s\n" '  vfio-user-server'
-  printf "%s\n" '                  vfio-user server support'
   printf "%s\n" '  vhdx            vhdx image format support'
-  printf "%s\n" '  vhost-crypto    vhost-user crypto backend support'
   printf "%s\n" '  vhost-kernel    vhost kernel backend support'
   printf "%s\n" '  vhost-net       vhost-net kernel acceleration support'
-  printf "%s\n" '  vhost-user      vhost-user backend support'
-  printf "%s\n" '  vhost-user-blk-server'
-  printf "%s\n" '                  build vhost-user-blk server'
   printf "%s\n" '  vhost-vdpa      vhost-vdpa kernel backend support'
   printf "%s\n" '  virglrenderer   virgl rendering support'
   printf "%s\n" '  virtfs          virtio-9p support'
@@ -262,8 +251,6 @@ _meson_option_parse() {
     --disable-canokey) printf "%s" -Dcanokey=disabled ;;
     --enable-cap-ng) printf "%s" -Dcap_ng=enabled ;;
     --disable-cap-ng) printf "%s" -Dcap_ng=disabled ;;
-    --enable-capstone) printf "%s" -Dcapstone=enabled ;;
-    --disable-capstone) printf "%s" -Dcapstone=disabled ;;
     --enable-cfi) printf "%s" -Dcfi=true ;;
     --disable-cfi) printf "%s" -Dcfi=false ;;
     --enable-cfi-debug) printf "%s" -Dcfi_debug=true ;;
@@ -330,8 +317,6 @@ _meson_option_parse() {
     --disable-guest-agent) printf "%s" -Dguest_agent=disabled ;;
     --enable-guest-agent-msi) printf "%s" -Dguest_agent_msi=enabled ;;
     --disable-guest-agent-msi) printf "%s" -Dguest_agent_msi=disabled ;;
-    --enable-hexagon-idef-parser) printf "%s" -Dhexagon_idef_parser=true ;;
-    --disable-hexagon-idef-parser) printf "%s" -Dhexagon_idef_parser=false ;;
     --enable-hv-balloon) printf "%s" -Dhv_balloon=enabled ;;
     --disable-hv-balloon) printf "%s" -Dhv_balloon=disabled ;;
     --enable-hvf) printf "%s" -Dhvf=enabled ;;
@@ -424,8 +409,6 @@ _meson_option_parse() {
     --enable-pixman) printf "%s" -Dpixman=enabled ;;
     --disable-pixman) printf "%s" -Dpixman=disabled ;;
     --with-pkgversion=*) quote_sh "-Dpkgversion=$2" ;;
-    --enable-plugins) printf "%s" -Dplugins=true ;;
-    --disable-plugins) printf "%s" -Dplugins=false ;;
     --enable-png) printf "%s" -Dpng=enabled ;;
     --disable-png) printf "%s" -Dpng=disabled ;;
     --prefix=*) quote_sh "-Dprefix=$2" ;;
@@ -522,20 +505,12 @@ _meson_option_parse() {
     --disable-vdi) printf "%s" -Dvdi=disabled ;;
     --enable-vduse-blk-export) printf "%s" -Dvduse_blk_export=enabled ;;
     --disable-vduse-blk-export) printf "%s" -Dvduse_blk_export=disabled ;;
-    --enable-vfio-user-server) printf "%s" -Dvfio_user_server=enabled ;;
-    --disable-vfio-user-server) printf "%s" -Dvfio_user_server=disabled ;;
     --enable-vhdx) printf "%s" -Dvhdx=enabled ;;
     --disable-vhdx) printf "%s" -Dvhdx=disabled ;;
-    --enable-vhost-crypto) printf "%s" -Dvhost_crypto=enabled ;;
-    --disable-vhost-crypto) printf "%s" -Dvhost_crypto=disabled ;;
     --enable-vhost-kernel) printf "%s" -Dvhost_kernel=enabled ;;
     --disable-vhost-kernel) printf "%s" -Dvhost_kernel=disabled ;;
     --enable-vhost-net) printf "%s" -Dvhost_net=enabled ;;
     --disable-vhost-net) printf "%s" -Dvhost_net=disabled ;;
-    --enable-vhost-user) printf "%s" -Dvhost_user=enabled ;;
-    --disable-vhost-user) printf "%s" -Dvhost_user=disabled ;;
-    --enable-vhost-user-blk-server) printf "%s" -Dvhost_user_blk_server=enabled ;;
-    --disable-vhost-user-blk-server) printf "%s" -Dvhost_user_blk_server=disabled ;;
     --enable-vhost-vdpa) printf "%s" -Dvhost_vdpa=enabled ;;
     --disable-vhost-vdpa) printf "%s" -Dvhost_vdpa=disabled ;;
     --enable-virglrenderer) printf "%s" -Dvirglrenderer=enabled ;;

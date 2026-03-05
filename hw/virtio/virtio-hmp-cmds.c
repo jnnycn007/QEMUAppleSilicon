@@ -12,24 +12,6 @@
 #include "qobject/qdict.h"
 
 
-static void hmp_virtio_dump_protocols(Monitor *mon,
-                                      VhostDeviceProtocols *pcol)
-{
-    strList *pcol_list = pcol->protocols;
-    while (pcol_list) {
-        monitor_printf(mon, "\t%s", pcol_list->value);
-        pcol_list = pcol_list->next;
-        if (pcol_list != NULL) {
-            monitor_printf(mon, ",\n");
-        }
-    }
-    monitor_printf(mon, "\n");
-    if (pcol->has_unknown_protocols) {
-        monitor_printf(mon, "  unknown-protocols(0x%016"PRIx64")\n",
-                       pcol->unknown_protocols);
-    }
-}
-
 static void hmp_virtio_dump_status(Monitor *mon,
                                    VirtioDeviceStatus *status)
 {
@@ -177,8 +159,6 @@ void hmp_virtio_status(Monitor *mon, const QDict *qdict)
         hmp_virtio_dump_features(mon, s->vhost_dev->acked_features);
         monitor_printf(mon, "    Backend features:\n");
         hmp_virtio_dump_features(mon, s->vhost_dev->backend_features);
-        monitor_printf(mon, "    Protocol features:\n");
-        hmp_virtio_dump_protocols(mon, s->vhost_dev->protocol_features);
     }
 
     qapi_free_VirtioStatus(s);

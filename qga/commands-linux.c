@@ -535,8 +535,8 @@ cleanup:
 }
 
 /*
- * Store disk device info for non-PCI virtio devices (for example s390x
- * channel I/O devices). Returns true if information has been stored, or
+ * Store disk device info for non-PCI virtio devices.
+ * Returns true if information has been stored, or
  * false for failure.
  */
 static bool build_guest_fsinfo_for_nonpci_virtio(char const *syspath,
@@ -568,7 +568,7 @@ static bool build_guest_fsinfo_for_nonpci_virtio(char const *syspath,
 }
 
 /*
- * Store disk device info for CCW devices (s390x channel I/O devices).
+ * Store disk device info for CCW devices.
  * Returns true if information has been stored, or false for failure.
  */
 static bool build_guest_fsinfo_for_ccw_dev(char const *syspath,

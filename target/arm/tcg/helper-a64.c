@@ -30,7 +30,6 @@
 #include "qemu/crc32c.h"
 #include "exec/cpu-common.h"
 #include "accel/tcg/cpu-ldst.h"
-#include "accel/tcg/helper-retaddr.h"
 #include "accel/tcg/probe.h"
 #include "exec/target_page.h"
 #include "exec/tlb-flags.h"
@@ -38,9 +37,6 @@
 #include "qemu/atomic128.h"
 #include "fpu/softfloat.h"
 #include <zlib.h> /* for crc32 */
-#ifdef CONFIG_USER_ONLY
-#include "user/page-protection.h"
-#endif
 #include "vec_internal.h"
 #include "WKdm.h"
 
@@ -847,7 +843,6 @@ void HELPER(dc_zva)(CPUARMState *env, uint64_t vaddr_in)
      */
     mem = tlb_vaddr_to_host(env, vaddr, MMU_DATA_STORE, mmu_idx);
 
-#ifndef CONFIG_USER_ONLY
     if (unlikely(!mem)) {
         /*
          * Trap if accessing an invalid page.  DC_ZVA requires that we supply
@@ -868,11 +863,8 @@ void HELPER(dc_zva)(CPUARMState *env, uint64_t vaddr_in)
             return;
         }
     }
-#endif
 
-    set_helper_retaddr(ra);
     memset(mem, 0, blocklen);
-    clear_helper_retaddr();
 }
 
 void HELPER(unaligned_access)(CPUARMState *env, uint64_t addr,
@@ -1001,14 +993,11 @@ static uint64_t set_step(CPUARMState *env, uint64_t toaddr,
         }
     }
 
-    toaddr = useronly_clean_ptr(toaddr);
     /*
      * Trapless lookup: returns NULL for invalid page, I/O,
      * watchpoints, clean pages, etc.
      */
     mem = tlb_vaddr_to_host(env, toaddr, MMU_DATA_STORE, memidx);
-
-#ifndef CONFIG_USER_ONLY
     if (unlikely(!mem)) {
         /*
          * Slow-path: just do one byte write. This will handle the
@@ -1019,11 +1008,9 @@ static uint64_t set_step(CPUARMState *env, uint64_t toaddr,
         cpu_stb_mmuidx_ra(env, toaddr, data, memidx, ra);
         return 1;
     }
-#endif
+
     /* Easy case: just memset the host memory */
-    set_helper_retaddr(ra);
     memset(mem, data, setsize);
-    clear_helper_retaddr();
     return setsize;
 }
 
@@ -1037,18 +1024,14 @@ static uint64_t set_step_tags(CPUARMState *env, uint64_t toaddr,
                               uint32_t *mtedesc, uintptr_t ra)
 {
     void *mem;
-    uint64_t cleanaddr;
 
     setsize = MIN(setsize, page_limit(toaddr));
 
-    cleanaddr = useronly_clean_ptr(toaddr);
     /*
      * Trapless lookup: returns NULL for invalid page, I/O,
      * watchpoints, clean pages, etc.
      */
-    mem = tlb_vaddr_to_host(env, cleanaddr, MMU_DATA_STORE, memidx);
-
-#ifndef CONFIG_USER_ONLY
+    mem = tlb_vaddr_to_host(env, toaddr, MMU_DATA_STORE, memidx);
     if (unlikely(!mem)) {
         /*
          * Slow-path: just do one write. This will handle the
@@ -1064,11 +1047,9 @@ static uint64_t set_step_tags(CPUARMState *env, uint64_t toaddr,
         mte_mops_set_tags(env, toaddr, 16, *mtedesc);
         return 16;
     }
-#endif
+
     /* Easy case: just memset the host memory */
-    set_helper_retaddr(ra);
     memset(mem, data, setsize);
-    clear_helper_retaddr();
     mte_mops_set_tags(env, toaddr, setsize, *mtedesc);
     return setsize;
 }
@@ -1372,13 +1353,10 @@ static uint64_t copy_step(CPUARMState *env, uint64_t toaddr, uint64_t fromaddr,
         }
     }
 
-    toaddr = useronly_clean_ptr(toaddr);
-    fromaddr = useronly_clean_ptr(fromaddr);
     /* Trapless lookup of whether we can get a host memory pointer */
     wmem = tlb_vaddr_to_host(env, toaddr, MMU_DATA_STORE, wmemidx);
     rmem = tlb_vaddr_to_host(env, fromaddr, MMU_DATA_LOAD, rmemidx);
 
-#ifndef CONFIG_USER_ONLY
     /*
      * If we don't have host memory for both source and dest then just
      * do a single byte copy. This will handle watchpoints, invalid pages,
@@ -1399,11 +1377,9 @@ static uint64_t copy_step(CPUARMState *env, uint64_t toaddr, uint64_t fromaddr,
         }
         return 1;
     }
-#endif
+
     /* Easy case: just memmove the host memory */
-    set_helper_retaddr(ra);
     memmove(wmem, rmem, copysize);
-    clear_helper_retaddr();
     return copysize;
 }
 
@@ -1446,13 +1422,10 @@ static uint64_t copy_step_rev(CPUARMState *env, uint64_t toaddr,
         }
     }
 
-    toaddr = useronly_clean_ptr(toaddr);
-    fromaddr = useronly_clean_ptr(fromaddr);
     /* Trapless lookup of whether we can get a host memory pointer */
     wmem = tlb_vaddr_to_host(env, toaddr, MMU_DATA_STORE, wmemidx);
     rmem = tlb_vaddr_to_host(env, fromaddr, MMU_DATA_LOAD, rmemidx);
 
-#ifndef CONFIG_USER_ONLY
     /*
      * If we don't have host memory for both source and dest then just
      * do a single byte copy. This will handle watchpoints, invalid pages,
@@ -1473,14 +1446,12 @@ static uint64_t copy_step_rev(CPUARMState *env, uint64_t toaddr,
         }
         return 1;
     }
-#endif
+
     /*
      * Easy case: just memmove the host memory. Note that wmem and
      * rmem here point to the *last* byte to copy.
      */
-    set_helper_retaddr(ra);
     memmove(wmem - (copysize - 1), rmem - (copysize - 1), copysize);
-    clear_helper_retaddr();
     return copysize;
 }
 
@@ -1777,9 +1748,6 @@ void HELPER(cpyfe)(CPUARMState *env, uint32_t syndrome, uint32_t wdesc,
 
 static bool is_guarded_page(CPUARMState *env, target_ulong addr, uintptr_t ra)
 {
-#ifdef CONFIG_USER_ONLY
-    return page_get_flags(addr) & PAGE_BTI;
-#else
     CPUTLBEntryFull *full;
     void *host;
     int mmu_idx = cpu_mmu_index(env_cpu(env), true);
@@ -1788,7 +1756,6 @@ static bool is_guarded_page(CPUARMState *env, target_ulong addr, uintptr_t ra)
 
     assert(!(flags & TLB_INVALID_MASK));
     return full->extra.arm.guarded;
-#endif
 }
 
 void HELPER(guarded_page_check)(CPUARMState *env)
@@ -1819,7 +1786,6 @@ static void *get_page_read(CPUARMState *env, uint64_t vaddr_in, int mmu_idx)
     uint64_t vaddr = vaddr_in & TARGET_PAGE_MASK;
 
     void *mem = tlb_vaddr_to_host(env, vaddr, MMU_DATA_LOAD, mmu_idx);
-#ifndef CONFIG_USER_ONLY
     if (unlikely(!mem)) {
         uintptr_t ra = GETPC();
 
@@ -1829,7 +1795,6 @@ static void *get_page_read(CPUARMState *env, uint64_t vaddr_in, int mmu_idx)
         (void) probe_read(env, vaddr_in, 1, mmu_idx, ra);
         mem = probe_read(env, vaddr, TARGET_PAGE_SIZE, mmu_idx, ra);
     }
-#endif
 
     return mem;
 }
@@ -1839,7 +1804,6 @@ static void *get_page_write(CPUARMState *env, uint64_t vaddr_in, int mmu_idx)
     uint64_t vaddr = vaddr_in & TARGET_PAGE_MASK;
 
     void *mem = tlb_vaddr_to_host(env, vaddr, MMU_DATA_STORE, mmu_idx);
-#ifndef CONFIG_USER_ONLY
     if (unlikely(!mem)) {
         uintptr_t ra = GETPC();
 
@@ -1849,7 +1813,6 @@ static void *get_page_write(CPUARMState *env, uint64_t vaddr_in, int mmu_idx)
         (void) probe_write(env, vaddr_in, 1, mmu_idx, ra);
         mem = probe_write(env, vaddr, TARGET_PAGE_SIZE, mmu_idx, ra);
     }
-#endif
 
     return mem;
 }

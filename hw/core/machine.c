@@ -124,7 +124,6 @@ GlobalProperty hw_compat_6_2[] = {
 const size_t hw_compat_6_2_len = G_N_ELEMENTS(hw_compat_6_2);
 
 GlobalProperty hw_compat_6_1[] = {
-    { "vhost-user-vsock-device", "seqpacket", "off" },
     { "nvme-ns", "shared", "off" },
 };
 const size_t hw_compat_6_1_len = G_N_ELEMENTS(hw_compat_6_1);
@@ -150,8 +149,6 @@ const size_t hw_compat_5_2_len = G_N_ELEMENTS(hw_compat_5_2);
 
 GlobalProperty hw_compat_5_1[] = {
     { "vhost-scsi", "num_queues", "1"},
-    { "vhost-user-blk", "num-queues", "1"},
-    { "vhost-user-scsi", "num_queues", "1"},
     { "virtio-blk-device", "num-queues", "1"},
     { "virtio-scsi-device", "num_queues", "1"},
     { "nvme", "use-intel-id", "on"},
@@ -237,7 +234,6 @@ const size_t hw_compat_2_12_len = G_N_ELEMENTS(hw_compat_2_12);
 GlobalProperty hw_compat_2_11[] = {
     { "hpet", "hpet-offset-saved", "false" },
     { "virtio-blk-pci", "vectors", "2" },
-    { "vhost-user-blk-pci", "vectors", "2" },
     { "e1000", "migrate_tso_props", "off" },
 };
 const size_t hw_compat_2_11_len = G_N_ELEMENTS(hw_compat_2_11);

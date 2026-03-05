@@ -377,9 +377,8 @@ static unsigned int get_global_pool_hard_max_size(void)
                             NULL) &&
         qemu_strtoi(contents, NULL, 10, &max_map_count) == 0) {
         /*
-         * This is an upper bound that avoids exceeding max_map_count. Leave a
-         * fixed amount for non-coroutine users like library dependencies,
-         * vhost-user, etc. Each coroutine takes up 2 VMAs so halve the
+         * This is an upper bound that avoids exceeding max_map_count.
+         * Each coroutine takes up 2 VMAs so halve the
          * remaining amount.
          */
         if (max_map_count > 5000) {

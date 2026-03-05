@@ -23,18 +23,12 @@
 #include "qapi/qapi-commands-block-export.h"
 #include "qapi/qapi-events-block-export.h"
 #include "qemu/id.h"
-#ifdef CONFIG_VHOST_USER_BLK_SERVER
-#include "vhost-user-blk-server.h"
-#endif
 #ifdef CONFIG_VDUSE_BLK_EXPORT
 #include "vduse-blk.h"
 #endif
 
 static const BlockExportDriver *blk_exp_drivers[] = {
     &blk_exp_nbd,
-#ifdef CONFIG_VHOST_USER_BLK_SERVER
-    &blk_exp_vhost_user_blk,
-#endif
 #ifdef CONFIG_FUSE
     &blk_exp_fuse,
 #endif

@@ -22,12 +22,7 @@
 #include "cpu.h"
 #include "internals.h"
 #include "exec/page-protection.h"
-#ifdef CONFIG_USER_ONLY
-#include "user/cpu_loop.h"
-#include "user/page-protection.h"
-#else
 #include "system/ram_addr.h"
-#endif
 #include "accel/tcg/cpu-ldst.h"
 #include "accel/tcg/probe.h"
 #include "exec/helper-proto.h"
@@ -61,34 +56,6 @@ uint8_t *allocation_tag_mem_probe(CPUARMState *env, int ptr_mmu_idx,
                                   int ptr_size, MMUAccessType tag_access,
                                   bool probe, uintptr_t ra)
 {
-#ifdef CONFIG_USER_ONLY
-    const size_t page_data_size = TARGET_PAGE_SIZE >> (LOG2_TAG_GRANULE + 1);
-    uint64_t clean_ptr = useronly_clean_ptr(ptr);
-    int flags = page_get_flags(clean_ptr);
-    uint8_t *tags;
-    uintptr_t index;
-
-    assert(!(probe && ra));
-
-    if (!(flags & (ptr_access == MMU_DATA_STORE ? PAGE_WRITE_ORG : PAGE_READ))) {
-        if (probe) {
-            return NULL;
-        }
-        cpu_loop_exit_sigsegv(env_cpu(env), ptr, ptr_access,
-                              !(flags & PAGE_VALID), ra);
-    }
-
-    /* Require both MAP_ANON and PROT_MTE for the page. */
-    if (!(flags & PAGE_ANON) || !(flags & PAGE_MTE)) {
-        return NULL;
-    }
-
-    tags = page_get_target_data(clean_ptr, page_data_size);
-
-    index = extract32(ptr, LOG2_TAG_GRANULE + 1,
-                      TARGET_PAGE_BITS - LOG2_TAG_GRANULE - 1);
-    return tags + index;
-#else
     CPUTLBEntryFull *full;
     MemTxAttrs attrs;
     int in_page, flags;
@@ -192,7 +159,6 @@ uint8_t *allocation_tag_mem_probe(CPUARMState *env, int ptr_mmu_idx,
     }
 
     return memory_region_get_ram_ptr(mr) + xlat;
-#endif
 }
 
 static uint8_t *allocation_tag_mem(CPUARMState *env, int ptr_mmu_idx,
@@ -583,16 +549,6 @@ static void mte_async_check_fail(CPUARMState *env, uint64_t dirty_ptr,
         select = 0;
     }
     env->cp15.tfsr_el[el] |= 1 << select;
-#ifdef CONFIG_USER_ONLY
-    /*
-     * Stand in for a timer irq, setting _TIF_MTE_ASYNC_FAULT,
-     * which then sends a SIGSEGV when the thread is next scheduled.
-     * This cpu will return to the main loop at the end of the TB,
-     * which is rather sooner than "normal".  But the alternative
-     * is waiting until the next syscall.
-     */
-    cpu_exit(env_cpu(env));
-#endif
 }
 
 /* Record a tag check failure.  */
@@ -874,7 +830,7 @@ uint64_t mte_check(CPUARMState *env, uint32_t desc, uint64_t ptr, uintptr_t ra)
     } else if (ret < 0) {
         return ptr;
     }
-    return useronly_clean_ptr(ptr);
+    return ptr;
 }
 
 uint64_t HELPER(mte_check)(CPUARMState *env, uint32_t desc, uint64_t ptr)
@@ -1017,7 +973,7 @@ uint64_t HELPER(mte_check_zva)(CPUARMState *env, uint32_t desc, uint64_t ptr)
     mte_check_fail(env, desc, align_ptr + i * TAG_GRANULE, ra);
 
  done:
-    return useronly_clean_ptr(ptr);
+    return ptr;
 }
 
 uint64_t mte_mops_probe(CPUARMState *env, uint64_t ptr, uint64_t size,

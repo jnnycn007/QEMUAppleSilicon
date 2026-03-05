@@ -20,9 +20,7 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 #include "qemu/qemu-print.h"
-#ifndef CONFIG_USER_ONLY
 #include "hw/i386/apic_internal.h"
-#endif
 
 /***********************************************************/
 /* x86 debug */
@@ -151,8 +149,6 @@ cpu_x86_dump_seg_cache(CPUX86State *env, FILE *f,
 done:
     qemu_fprintf(f, "\n");
 }
-
-#ifndef CONFIG_USER_ONLY
 
 /* ARRAY_SIZE check is not required because
  * DeliveryMode(dm) has a size of 3 bit.
@@ -335,8 +331,6 @@ void x86_cpu_dump_local_apic_state(CPUState *cs, int flags)
     }
     qemu_printf(" PPR 0x%02x\n", apic_get_ppr(s));
 }
-
-#endif /* !CONFIG_USER_ONLY */
 
 #define DUMP_CODE_BYTES_TOTAL    50
 #define DUMP_CODE_BYTES_BACKWARD 20

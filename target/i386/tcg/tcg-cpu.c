@@ -131,7 +131,6 @@ static int x86_cpu_mmu_index(CPUState *cs, bool ifetch)
     return x86_mmu_index_pl(env, env->hflags & HF_CPL_MASK);
 }
 
-#ifndef CONFIG_USER_ONLY
 static bool x86_debug_check_breakpoint(CPUState *cs)
 {
     X86CPU *cpu = X86_CPU(cs);
@@ -155,7 +154,6 @@ static vaddr x86_pointer_wrap(CPUState *cs, int mmu_idx,
 {
     return cpu_env(cs)->hflags & HF_CS64_MASK ? result : (uint32_t)result;
 }
-#endif
 
 const TCGCPUOps x86_tcg_ops = {
     .mttcg_supported = true,
@@ -172,11 +170,6 @@ const TCGCPUOps x86_tcg_ops = {
     .mmu_index = x86_cpu_mmu_index,
     .cpu_exec_enter = x86_cpu_exec_enter,
     .cpu_exec_exit = x86_cpu_exec_exit,
-#ifdef CONFIG_USER_ONLY
-    .fake_user_interrupt = x86_cpu_do_interrupt,
-    .record_sigsegv = x86_cpu_record_sigsegv,
-    .record_sigbus = x86_cpu_record_sigbus,
-#else
     .tlb_fill = x86_cpu_tlb_fill,
     .pointer_wrap = x86_pointer_wrap,
     .do_interrupt = x86_cpu_do_interrupt,
@@ -187,7 +180,6 @@ const TCGCPUOps x86_tcg_ops = {
     .debug_excp_handler = breakpoint_handler,
     .debug_check_breakpoint = x86_debug_check_breakpoint,
     .need_replay_interrupt = x86_need_replay_interrupt,
-#endif /* !CONFIG_USER_ONLY */
 };
 
 static void x86_tcg_cpu_xsave_init(void)
@@ -234,9 +226,7 @@ static void x86_tcg_cpu_accel_class_init(ObjectClass *oc, const void *data)
 {
     AccelCPUClass *acc = ACCEL_CPU_CLASS(oc);
 
-#ifndef CONFIG_USER_ONLY
     acc->cpu_target_realize = tcg_cpu_realizefn;
-#endif /* CONFIG_USER_ONLY */
 
     acc->cpu_instance_init = x86_tcg_cpu_instance_init;
 }

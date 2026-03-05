@@ -20,9 +20,7 @@
 #include "qemu/osdep.h"
 
 #include "trace.h"
-#include "disas/disas.h"
 #include "tcg/tcg.h"
-#include "exec/mmap-lock.h"
 #include "tb-internal.h"
 #include "exec/tb-flush.h"
 #include "qemu/cacheinfo.h"
@@ -257,7 +255,6 @@ static int setjmp_gen_code(CPUArchState *env, TranslationBlock *tb,
     return tcg_gen_code(tcg_ctx, tb, pc);
 }
 
-/* Called with mmap_lock held for user mode emulation.  */
 TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
 {
     CPUArchState *env = cpu_env(cpu);
@@ -268,7 +265,6 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
     int64_t ti;
     void *host_pc;
 
-    assert_memory_lock();
     qemu_thread_jit_write();
 
     phys_pc = get_page_addr_code_hostp(env, s.pc, &host_pc);
@@ -294,7 +290,7 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
             goto buffer_overflow;
         }
         queue_tb_flush(cpu);
-        mmap_unlock();
+
         /* Make the execution loop process the flush as soon as possible.  */
         cpu->exception_index = EXCP_INTERRUPT;
         cpu_loop_exit(cpu);
@@ -425,7 +421,6 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
                     "  -- guest addr 0x%016" PRIx64 " + tb prologue\n",
                     tcg_ctx->gen_insn_data[insn * INSN_START_WORDS]);
             chunk_start = tcg_ctx->gen_insn_end_off[insn];
-            disas(logfile, tb->tc.ptr, chunk_start);
 
             /*
              * Dump each instruction chunk, wrapping up empty chunks into
@@ -437,8 +432,6 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
                 if (chunk_end > chunk_start) {
                     fprintf(logfile, "  -- guest addr 0x%016" PRIx64 "\n",
                             tcg_ctx->gen_insn_data[insn * INSN_START_WORDS]);
-                    disas(logfile, tb->tc.ptr + chunk_start,
-                          chunk_end - chunk_start);
                     chunk_start = chunk_end;
                 }
                 insn++;
@@ -446,8 +439,6 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
 
             if (chunk_start < code_size) {
                 fprintf(logfile, "  -- tb slow paths + alignment\n");
-                disas(logfile, tb->tc.ptr + chunk_start,
-                      code_size - chunk_start);
             }
 
             /* Finally dump any data we may have after the block */
@@ -538,12 +529,9 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
     return tb;
 }
 
-/* user-mode: call with mmap_lock held */
 void tb_check_watchpoint(CPUState *cpu, uintptr_t retaddr)
 {
     TranslationBlock *tb;
-
-    assert_memory_lock();
 
     tb = tcg_tb_lookup(retaddr);
     if (tb) {
@@ -563,7 +551,6 @@ void tb_check_watchpoint(CPUState *cpu, uintptr_t retaddr)
     }
 }
 
-#ifndef CONFIG_USER_ONLY
 /*
  * In deterministic execution mode, instructions doing device I/Os
  * must be at the end of the TB.
@@ -615,8 +602,6 @@ void cpu_io_recompile(CPUState *cpu, uintptr_t retaddr)
 
     cpu_loop_exit_noexc(cpu);
 }
-
-#endif /* CONFIG_USER_ONLY */
 
 /*
  * Called by generic code at e.g. cpu reset after cpu creation,

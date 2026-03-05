@@ -327,17 +327,13 @@ void store_reg(DisasContext *s, int reg, TCGv_i32 var)
 /*
  * Variant of store_reg which applies v8M stack-limit checks before updating
  * SP. If the check fails this will result in an exception being taken.
- * We disable the stack checks for CONFIG_USER_ONLY because we have
- * no idea what the stack limits should be in that case.
- * If stack checking is not being done this just acts like store_reg().
  */
 static void store_sp_checked(DisasContext *s, TCGv_i32 var)
 {
-#ifndef CONFIG_USER_ONLY
     if (s->v8m_stackcheck) {
         gen_helper_v8m_stackcheck(tcg_env, var);
     }
-#endif
+
     store_reg(s, 13, var);
 }
 
@@ -784,12 +780,11 @@ static inline void gen_bx_excret(DisasContext *s, TCGv_i32 var)
      * s->base.is_jmp that we need to do the rest of the work later.
      */
     gen_bx(s, var);
-#ifndef CONFIG_USER_ONLY
+
     if (arm_dc_feature(s, ARM_FEATURE_M_SECURITY) ||
         (s->v7m_handler_mode && arm_dc_feature(s, ARM_FEATURE_M))) {
         s->base.is_jmp = DISAS_BX_EXCRET;
     }
-#endif
 }
 
 static inline void gen_bx_excret_final_code(DisasContext *s)
@@ -886,12 +881,6 @@ static inline void store_reg_from_load(DisasContext *s, int reg, TCGv_i32 var)
     }
 }
 
-#ifdef CONFIG_USER_ONLY
-#define IS_USER_ONLY 1
-#else
-#define IS_USER_ONLY 0
-#endif
-
 MemOp pow2_align(unsigned i)
 {
     static const MemOp mop_align[] = {
@@ -915,8 +904,7 @@ static TCGv gen_aa32_addr(DisasContext *s, TCGv_i32 a32, MemOp op)
     TCGv addr = tcg_temp_new();
     tcg_gen_extu_i32_tl(addr, a32);
 
-    /* Not needed for user-mode BE32, where we use MO_BE instead.  */
-    if (!IS_USER_ONLY && s->sctlr_b && (op & MO_SIZE) < MO_32) {
+    if (s->sctlr_b && (op & MO_SIZE) < MO_32) {
         tcg_gen_xori_tl(addr, addr, 4 - (1 << (op & MO_SIZE)));
     }
     return addr;
@@ -947,8 +935,7 @@ void gen_aa32_ld_internal_i64(DisasContext *s, TCGv_i64 val,
 
     tcg_gen_qemu_ld_i64(val, addr, index, opc);
 
-    /* Not needed for user-mode BE32, where we use MO_BE instead.  */
-    if (!IS_USER_ONLY && s->sctlr_b && (opc & MO_SIZE) == MO_64) {
+    if (s->sctlr_b && (opc & MO_SIZE) == MO_64) {
         tcg_gen_rotri_i64(val, val, 32);
     }
 }
@@ -958,8 +945,7 @@ void gen_aa32_st_internal_i64(DisasContext *s, TCGv_i64 val,
 {
     TCGv addr = gen_aa32_addr(s, a32, opc);
 
-    /* Not needed for user-mode BE32, where we use MO_BE instead.  */
-    if (!IS_USER_ONLY && s->sctlr_b && (opc & MO_SIZE) == MO_64) {
+    if (s->sctlr_b && (opc & MO_SIZE) == MO_64) {
         TCGv_i64 tmp = tcg_temp_new_i64();
         tcg_gen_rotri_i64(tmp, val, 32);
         tcg_gen_qemu_st_i64(tmp, addr, index, opc);
@@ -3454,7 +3440,7 @@ static bool trans_BLX_r(DisasContext *s, arg_BLX_r *a)
  */
 static bool trans_BXNS(DisasContext *s, arg_BXNS *a)
 {
-    if (!s->v8m_secure || IS_USER_ONLY) {
+    if (!s->v8m_secure) {
         unallocated_encoding(s);
     } else {
         gen_bxns(s, a->rm);
@@ -3464,7 +3450,7 @@ static bool trans_BXNS(DisasContext *s, arg_BXNS *a)
 
 static bool trans_BLXNS(DisasContext *s, arg_BLXNS *a)
 {
-    if (!s->v8m_secure || IS_USER_ONLY) {
+    if (!s->v8m_secure) {
         unallocated_encoding(s);
     } else {
         gen_blxns(s, a->rm);
@@ -6279,9 +6265,7 @@ static void arm_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
     core_mmu_idx = EX_TBFLAG_ANY(tb_flags, MMUIDX);
     dc->mmu_idx = core_to_arm_mmu_idx(env, core_mmu_idx);
     dc->current_el = arm_mmu_idx_to_el(dc->mmu_idx);
-#if !defined(CONFIG_USER_ONLY)
     dc->user = (dc->current_el == 0);
-#endif
     dc->fp_excp_el = EX_TBFLAG_ANY(tb_flags, FPEXC_EL);
     dc->align_mem = EX_TBFLAG_ANY(tb_flags, ALIGN_MEM);
     dc->pstate_il = EX_TBFLAG_ANY(tb_flags, PSTATE__IL);
@@ -6411,21 +6395,6 @@ static void arm_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
     dc->insn_start_updated = false;
 }
 
-static bool arm_check_kernelpage(DisasContext *dc)
-{
-#ifdef CONFIG_USER_ONLY
-    /* Intercept jump to the magic kernel page.  */
-    if (dc->base.pc_next >= 0xffff0000) {
-        /* We always get here via a jump, so know we are not in a
-           conditional execution block.  */
-        gen_exception_internal(EXCP_KERNEL_TRAP);
-        dc->base.is_jmp = DISAS_NORETURN;
-        return true;
-    }
-#endif
-    return false;
-}
-
 static bool arm_check_ss_active(DisasContext *dc)
 {
     if (dc->ss_active && !dc->pstate_ss) {
@@ -6484,11 +6453,6 @@ static void arm_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
         gen_helper_exception_pc_alignment(tcg_env, tcg_constant_vaddr(pc));
         dc->base.is_jmp = DISAS_NORETURN;
         dc->base.pc_next = QEMU_ALIGN_UP(pc, 4);
-        return;
-    }
-
-    if (arm_check_kernelpage(dc)) {
-        dc->base.pc_next = pc + 4;
         return;
     }
 
@@ -6564,7 +6528,7 @@ static void thumb_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
     /* Misaligned thumb PC is architecturally impossible. */
     assert((dc->base.pc_next & 1) == 0);
 
-    if (arm_check_ss_active(dc) || arm_check_kernelpage(dc)) {
+    if (arm_check_ss_active(dc)) {
         dc->base.pc_next = pc + 2;
         return;
     }

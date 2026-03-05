@@ -51,10 +51,6 @@ void gdb_unregister_coprocessor_all(CPUState *cpu);
  * @port_or_device: connection spec for gdb
  * @errp: error handle
  *
- * For CONFIG_USER this is either a tcp port or a path to a fifo. For
- * system emulation you can use a full chardev spec for your gdbserver
- * port.
- *
  * The error handle should be either &error_fatal (for start-up) or
  * &error_warn (for QMP/HMP initiated sessions).
  *

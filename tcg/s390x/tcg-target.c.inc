@@ -1989,94 +1989,66 @@ static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
     h->aa = atom_and_align_for_opc(s, opc, MO_ATOM_IFALIGN, s_bits == MO_128);
     a_mask = (1 << h->aa.align) - 1;
 
-    if (tcg_use_softmmu) {
-        unsigned s_mask = (1 << s_bits) - 1;
-        int mem_index = get_mmuidx(oi);
-        int fast_off = tlb_mask_table_ofs(s, mem_index);
-        int mask_off = fast_off + offsetof(CPUTLBDescFast, mask);
-        int table_off = fast_off + offsetof(CPUTLBDescFast, table);
-        int ofs, a_off;
-        uint64_t tlb_mask;
+    unsigned s_mask = (1 << s_bits) - 1;
+    int mem_index = get_mmuidx(oi);
+    int fast_off = tlb_mask_table_ofs(s, mem_index);
+    int mask_off = fast_off + offsetof(CPUTLBDescFast, mask);
+    int table_off = fast_off + offsetof(CPUTLBDescFast, table);
+    int ofs, a_off;
+    uint64_t tlb_mask;
 
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr_reg;
+    ldst = new_ldst_label(s);
+    ldst->is_ld = is_ld;
+    ldst->oi = oi;
+    ldst->addr_reg = addr_reg;
 
-        tcg_out_sh64(s, RSY_SRLG, TCG_TMP0, addr_reg, TCG_REG_NONE,
-                     TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
+    tcg_out_sh64(s, RSY_SRLG, TCG_TMP0, addr_reg, TCG_REG_NONE,
+                    TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
 
-        tcg_out_insn(s, RXY, NG, TCG_TMP0, TCG_AREG0, TCG_REG_NONE, mask_off);
-        tcg_out_insn(s, RXY, AG, TCG_TMP0, TCG_AREG0, TCG_REG_NONE, table_off);
+    tcg_out_insn(s, RXY, NG, TCG_TMP0, TCG_AREG0, TCG_REG_NONE, mask_off);
+    tcg_out_insn(s, RXY, AG, TCG_TMP0, TCG_AREG0, TCG_REG_NONE, table_off);
 
-        /*
-         * For aligned accesses, we check the first byte and include the
-         * alignment bits within the address.  For unaligned access, we
-         * check that we don't cross pages using the address of the last
-         * byte of the access.
-         */
-        a_off = (a_mask >= s_mask ? 0 : s_mask - a_mask);
-        tlb_mask = (uint64_t)TARGET_PAGE_MASK | a_mask;
-        if (a_off == 0) {
-            tgen_andi_risbg(s, TCG_REG_R0, addr_reg, tlb_mask);
-        } else {
-            tcg_out_insn(s, RX, LA, TCG_REG_R0, addr_reg, TCG_REG_NONE, a_off);
-            tgen_andi(s, addr_type, TCG_REG_R0, tlb_mask);
-        }
-
-        if (is_ld) {
-            ofs = offsetof(CPUTLBEntry, addr_read);
-        } else {
-            ofs = offsetof(CPUTLBEntry, addr_write);
-        }
-        if (addr_type == TCG_TYPE_I32) {
-            ofs += HOST_BIG_ENDIAN * 4;
-            tcg_out_insn(s, RX, C, TCG_REG_R0, TCG_TMP0, TCG_REG_NONE, ofs);
-        } else {
-            tcg_out_insn(s, RXY, CG, TCG_REG_R0, TCG_TMP0, TCG_REG_NONE, ofs);
-        }
-
-        tcg_out16(s, RI_BRC | (S390_CC_NE << 4));
-        ldst->label_ptr[0] = s->code_ptr++;
-
-        h->index = TCG_TMP0;
-        tcg_out_insn(s, RXY, LG, h->index, TCG_TMP0, TCG_REG_NONE,
-                     offsetof(CPUTLBEntry, addend));
-
-        if (addr_type == TCG_TYPE_I32) {
-            tcg_out_insn(s, RRE, ALGFR, h->index, addr_reg);
-            h->base = TCG_REG_NONE;
-        } else {
-            h->base = addr_reg;
-        }
-        h->disp = 0;
+    /*
+        * For aligned accesses, we check the first byte and include the
+        * alignment bits within the address.  For unaligned access, we
+        * check that we don't cross pages using the address of the last
+        * byte of the access.
+        */
+    a_off = (a_mask >= s_mask ? 0 : s_mask - a_mask);
+    tlb_mask = (uint64_t)TARGET_PAGE_MASK | a_mask;
+    if (a_off == 0) {
+        tgen_andi_risbg(s, TCG_REG_R0, addr_reg, tlb_mask);
     } else {
-        if (a_mask) {
-            ldst = new_ldst_label(s);
-            ldst->is_ld = is_ld;
-            ldst->oi = oi;
-            ldst->addr_reg = addr_reg;
-
-            tcg_debug_assert(a_mask <= 0xffff);
-            tcg_out_insn(s, RI, TMLL, addr_reg, a_mask);
-
-            tcg_out16(s, RI_BRC | (S390_TM_NE << 4));
-            ldst->label_ptr[0] = s->code_ptr++;
-        }
-
-        h->base = addr_reg;
-        if (addr_type == TCG_TYPE_I32) {
-            tcg_out_ext32u(s, TCG_TMP0, addr_reg);
-            h->base = TCG_TMP0;
-        }
-        if (guest_base < 0x80000) {
-            h->index = TCG_REG_NONE;
-            h->disp = guest_base;
-        } else {
-            h->index = TCG_GUEST_BASE_REG;
-            h->disp = 0;
-        }
+        tcg_out_insn(s, RX, LA, TCG_REG_R0, addr_reg, TCG_REG_NONE, a_off);
+        tgen_andi(s, addr_type, TCG_REG_R0, tlb_mask);
     }
+
+    if (is_ld) {
+        ofs = offsetof(CPUTLBEntry, addr_read);
+    } else {
+        ofs = offsetof(CPUTLBEntry, addr_write);
+    }
+    if (addr_type == TCG_TYPE_I32) {
+        ofs += HOST_BIG_ENDIAN * 4;
+        tcg_out_insn(s, RX, C, TCG_REG_R0, TCG_TMP0, TCG_REG_NONE, ofs);
+    } else {
+        tcg_out_insn(s, RXY, CG, TCG_REG_R0, TCG_TMP0, TCG_REG_NONE, ofs);
+    }
+
+    tcg_out16(s, RI_BRC | (S390_CC_NE << 4));
+    ldst->label_ptr[0] = s->code_ptr++;
+
+    h->index = TCG_TMP0;
+    tcg_out_insn(s, RXY, LG, h->index, TCG_TMP0, TCG_REG_NONE,
+                    offsetof(CPUTLBEntry, addend));
+
+    if (addr_type == TCG_TYPE_I32) {
+        tcg_out_insn(s, RRE, ALGFR, h->index, addr_reg);
+        h->base = TCG_REG_NONE;
+    } else {
+        h->base = addr_reg;
+    }
+    h->disp = 0;
 
     return ldst;
 }
@@ -3796,11 +3768,6 @@ static void tcg_target_qemu_prologue(TCGContext *s)
     tcg_set_frame(s, TCG_REG_CALL_STACK,
                   TCG_STATIC_CALL_ARGS_SIZE + TCG_TARGET_CALL_STACK_OFFSET,
                   CPU_TEMP_BUF_NLONGS * sizeof(long));
-
-    if (!tcg_use_softmmu && guest_base >= 0x80000) {
-        tcg_out_movi(s, TCG_TYPE_PTR, TCG_GUEST_BASE_REG, guest_base);
-        tcg_regset_set_reg(s->reserved_regs, TCG_GUEST_BASE_REG);
-    }
 
     tcg_out_mov(s, TCG_TYPE_PTR, TCG_AREG0, tcg_target_call_iarg_regs[0]);
 

@@ -20,24 +20,6 @@
 #define TLB_FLAGS_H
 
 /*
- * Flags returned for lookup of a TLB virtual address.
- */
-
-#ifdef CONFIG_USER_ONLY
-
-/*
- * Allow some level of source compatibility with softmmu.
- * Invalid is set when the page does not have requested permissions.
- * MMIO is set when we want the target helper to use the functional
- * interface for load/store so that plugins see the access.
- */
-#define TLB_INVALID_MASK     (1 << 0)
-#define TLB_MMIO             (1 << 1)
-#define TLB_WATCHPOINT       0
-
-#else
-
-/*
  * Flags stored in CPUTLBEntryFull.slow_flags[x].
  * TLB_FORCE_SLOW must be set in CPUTLBEntry.addr_idx[x].
  */
@@ -80,7 +62,5 @@
 
 /* The two sets of flags must not overlap. */
 QEMU_BUILD_BUG_ON(TLB_FLAGS_MASK & TLB_SLOW_FLAGS_MASK);
-
-#endif /* !CONFIG_USER_ONLY */
 
 #endif /* TLB_FLAGS_H */

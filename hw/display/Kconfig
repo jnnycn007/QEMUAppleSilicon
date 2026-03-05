@@ -55,7 +55,7 @@ config VGA_MMIO
 
 config VMWARE_VGA
     bool
-    default y if PCI_DEVICES && (PC_PCI || MIPS)
+    default y if PCI_DEVICES && PC_PCI
     depends on PCI
     select VGA
 
@@ -105,16 +105,6 @@ config VIRTIO_VGA
     # defaults to "N", enabled by specific boards
     depends on VIRTIO_PCI
     select VGA
-
-config VHOST_USER_GPU
-    bool
-    default y
-    depends on VIRTIO_GPU && VHOST_USER
-
-config VHOST_USER_VGA
-    bool
-    default y
-    depends on VIRTIO_VGA && VHOST_USER_GPU
 
 config DPCD
     bool

@@ -21,7 +21,6 @@
 #define QEMU_CPU_H
 
 #include "hw/qdev-core.h"
-#include "disas/dis-asm.h"
 #include "exec/breakpoint.h"
 #include "exec/hwaddr.h"
 #include "exec/vaddr.h"
@@ -140,7 +139,6 @@ struct SysemuCPUOps;
  * @gdb_arch_name: Optional callback that returns the architecture name known
  * to GDB. The returned value is expected to be a simple constant string:
  * the caller will not g_free() it.
- * @disas_set_info: Setup architecture specific components of disassembly info
  * @adjust_watchpoint_address: Perform a target-specific adjustment to an
  * address before attempting to match it against watchpoints.
  * @deprecation_note: If this CPUClass is deprecated, this field provides
@@ -171,8 +169,6 @@ struct CPUClass {
     const char *gdb_core_xml_file;
     const gchar * (*gdb_arch_name)(CPUState *cpu);
     const char * (*gdb_get_core_xml_file)(CPUState *cpu);
-
-    void (*disas_set_info)(CPUState *cpu, disassemble_info *info);
 
     const char *deprecation_note;
     struct AccelCPUClass *accel_cpu;
@@ -356,21 +352,9 @@ typedef union IcountDecr {
  * CPUNegativeOffsetState: Elements of CPUState most efficiently accessed
  *                         from CPUArchState, via small negative offsets.
  * @can_do_io: True if memory-mapped IO is allowed.
- * @plugin_mem_cbs: active plugin memory callbacks
- * @plugin_mem_value_low: 64 lower bits of latest accessed mem value.
- * @plugin_mem_value_high: 64 higher bits of latest accessed mem value.
  */
 typedef struct CPUNegativeOffsetState {
     CPUTLB tlb;
-#ifdef CONFIG_PLUGIN
-    /*
-     * The callback pointer are accessed via TCG (see gen_empty_mem_helper).
-     */
-    GArray *plugin_mem_cbs;
-    uint64_t plugin_mem_value_low;
-    uint64_t plugin_mem_value_high;
-    int32_t plugin_cb_flags;
-#endif
     IcountDecr icount_decr;
     bool can_do_io;
 } CPUNegativeOffsetState;
@@ -456,7 +440,6 @@ struct qemu_work_item;
  * @kvm_fd: vCPU file descriptor for KVM.
  * @work_mutex: Lock to prevent multiple access to @work_list.
  * @work_list: List of pending asynchronous work.
- * @plugin_state: per-CPU plugin state
  * @ignore_memory_transaction_failures: Cached copy of the MachineState
  *    flag of the same name: allows the board to suppress calling of the
  *    CPU do_transaction_failed hook function.
@@ -547,10 +530,6 @@ struct CPUState {
 
     /* Use by accel-block: CPU is executing an ioctl() */
     QemuLockCnt in_ioctl_lock;
-
-#ifdef CONFIG_PLUGIN
-    CPUPluginState *plugin_state;
-#endif
 
     /* TODO Move common fields from CPUArchState here. */
     int cpu_index;

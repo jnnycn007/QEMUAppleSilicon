@@ -298,19 +298,7 @@ typedef enum {
     PL1_W = 0x04 | PL2_W,
     PL0_R = 0x02 | PL1_R,
     PL0_W = 0x01 | PL1_W,
-
-    /*
-     * For user-mode some registers are accessible to EL0 via a kernel
-     * trap-and-emulate ABI. In this case we define the read permissions
-     * as actually being PL0_R. However some bits of any given register
-     * may still be masked.
-     */
-#ifdef CONFIG_USER_ONLY
-    PL0U_R = PL0_R,
-#else
     PL0U_R = PL1_R,
-#endif
-
     PL3_RW = PL3_R | PL3_W,
     PL2_RW = PL2_R | PL2_W,
     PL1_RW = PL1_R | PL1_W,
@@ -1141,11 +1129,7 @@ static inline bool arm_cpreg_in_idspace(const ARMCPRegInfo *ri)
                                       ri->crn, ri->crm);
 }
 
-#ifdef CONFIG_USER_ONLY
-static inline void define_cortex_a72_a57_a53_cp_reginfo(ARMCPU *cpu) { }
-#else
 void define_cortex_a72_a57_a53_cp_reginfo(ARMCPU *cpu);
-#endif
 
 CPAccessResult access_tvm_trvm(CPUARMState *, const ARMCPRegInfo *, bool);
 

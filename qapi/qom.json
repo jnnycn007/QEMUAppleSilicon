@@ -344,21 +344,6 @@
             '*throttle-ops': 'uint64' } }
 
 ##
-# @CryptodevVhostUserProperties:
-#
-# Properties for cryptodev-vhost-user objects.
-#
-# @chardev: the name of a Unix domain socket character device that
-#     connects to the vhost-user server
-#
-# Since: 2.12
-##
-{ 'struct': 'CryptodevVhostUserProperties',
-  'base': 'CryptodevBackendProperties',
-  'data': { 'chardev': 'str' },
-  'if': 'CONFIG_VHOST_CRYPTO' }
-
-##
 # @DBusVMStateProperties:
 #
 # Properties for dbus-vmstate objects.
@@ -1180,8 +1165,6 @@
     'cryptodev-backend',
     'cryptodev-backend-builtin',
     'cryptodev-backend-lkcf',
-    { 'name': 'cryptodev-vhost-user',
-      'if': 'CONFIG_VHOST_CRYPTO' },
     'dbus-vmstate',
     'filter-buffer',
     'filter-dump',
@@ -1218,7 +1201,6 @@
     'sev-guest',
     'sev-snp-guest',
     'thread-context',
-    's390-pv-guest',
     'tdx-guest',
     'throttle-group',
     'tls-creds-anon',
@@ -1257,8 +1239,6 @@
       'cryptodev-backend':          'CryptodevBackendProperties',
       'cryptodev-backend-builtin':  'CryptodevBackendProperties',
       'cryptodev-backend-lkcf':     'CryptodevBackendProperties',
-      'cryptodev-vhost-user':       { 'type': 'CryptodevVhostUserProperties',
-                                      'if': 'CONFIG_VHOST_CRYPTO' },
       'dbus-vmstate':               'DBusVMStateProperties',
       'filter-buffer':              'FilterBufferProperties',
       'filter-dump':                'FilterDumpProperties',

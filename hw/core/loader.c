@@ -50,7 +50,6 @@
 #include "qapi/type-helpers.h"
 #include "trace.h"
 #include "hw/hw.h"
-#include "disas/disas.h"
 #include "migration/cpr.h"
 #include "migration/vmstate.h"
 #include "monitor/monitor.h"
@@ -301,6 +300,25 @@ static void *load_at(int fd, off_t offset, size_t size)
 
 #define ELF_CLASS   ELFCLASS32
 #include "elf.h"
+
+struct syminfo;
+struct elf32_sym;
+struct elf64_sym;
+
+typedef const char *(*lookup_symbol_t)(struct syminfo *s, uint64_t orig_addr);
+
+struct syminfo {
+    lookup_symbol_t lookup_symbol;
+    unsigned int disas_num_syms;
+    union {
+      struct elf32_sym *elf32;
+      struct elf64_sym *elf64;
+    } disas_symtab;
+    const char *disas_strtab;
+    struct syminfo *next;
+};
+
+struct syminfo *syminfos = NULL;
 
 #define SZ              32
 #define elf_word        uint32_t

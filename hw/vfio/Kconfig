@@ -11,12 +11,6 @@ config VFIO_PCI
     select EDID
     depends on LINUX && PCI
 
-config VFIO_CCW
-    bool
-    default y
-    select VFIO
-    depends on LINUX && S390_CCW_VIRTIO
-
 config VFIO_PLATFORM
     bool
     default y
@@ -32,12 +26,6 @@ config VFIO_AMD_XGBE
     bool
     default y
     depends on VFIO_PLATFORM
-
-config VFIO_AP
-    bool
-    default y
-    select VFIO
-    depends on LINUX && S390_CCW_VIRTIO
 
 config VFIO_IGD
     bool

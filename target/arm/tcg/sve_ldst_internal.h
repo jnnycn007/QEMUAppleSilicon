@@ -51,7 +51,7 @@ static inline void sve_##NAME##_host(void *vd, intptr_t reg_off, void *host) \
 static inline void sve_##NAME##_tlb(CPUARMState *env, void *vd,            \
                         intptr_t reg_off, target_ulong addr, uintptr_t ra) \
 {                                                                          \
-    TYPEM val = TLB(env, useronly_clean_ptr(addr), ra);                    \
+    TYPEM val = TLB(env, addr, ra);                                        \
     *(TYPEE *)(vd + H(reg_off)) = val;                                     \
 }
 
@@ -60,7 +60,7 @@ static inline void sve_##NAME##_tlb(CPUARMState *env, void *vd,            \
                         intptr_t reg_off, target_ulong addr, uintptr_t ra) \
 {                                                                          \
     TYPEM val = *(TYPEE *)(vd + H(reg_off));                               \
-    TLB(env, useronly_clean_ptr(addr), val, ra);                           \
+    TLB(env, addr, val, ra);                                               \
 }
 
 #define DO_LD_PRIM_1(NAME, H, TE, TM)                   \
@@ -291,18 +291,10 @@ bool sve_cont_ldst_pages(SVEContLdSt *info, SVEContFault fault,
                          CPUARMState *env, target_ulong addr,
                          MMUAccessType access_type, uintptr_t retaddr);
 
-#ifdef CONFIG_USER_ONLY
-static inline void
-sve_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env, uint64_t *vg,
-                          target_ulong addr, int esize, int msize,
-                          int wp_access, uintptr_t retaddr)
-{ }
-#else
 void sve_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env,
                                uint64_t *vg, target_ulong addr,
                                int esize, int msize, int wp_access,
                                uintptr_t retaddr);
-#endif
 
 void sve_cont_ldst_mte_check(SVEContLdSt *info, CPUARMState *env, uint64_t *vg,
                              target_ulong addr, int esize, int msize,

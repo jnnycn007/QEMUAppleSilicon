@@ -24,12 +24,10 @@
 #include "exec/translation-block.h"
 #include "exec/target_page.h"
 #include "system/runstate.h"
-#ifndef CONFIG_USER_ONLY
 #include "system/hw_accel.h"
 #include "system/memory.h"
 #include "monitor/monitor.h"
 #include "kvm/kvm_i386.h"
-#endif
 #include "qemu/log.h"
 #ifdef CONFIG_TCG
 #include "tcg/insn-start-words.h"
@@ -110,7 +108,6 @@ int cpu_x86_support_mca_broadcast(CPUX86State *env)
 /* x86 mmu */
 /* XXX: add PGE support */
 
-#ifndef CONFIG_USER_ONLY
 void x86_cpu_set_a20(X86CPU *cpu, int a20_state)
 {
     CPUX86State *env = &cpu->env;
@@ -130,7 +127,6 @@ void x86_cpu_set_a20(X86CPU *cpu, int a20_state)
         env->a20_mask = ~(1 << 20) | (a20_state << 20);
     }
 }
-#endif
 
 void cpu_x86_update_cr0(CPUX86State *env, uint32_t new_cr0)
 {
@@ -239,7 +235,6 @@ void cpu_x86_update_cr4(CPUX86State *env, uint32_t new_cr4)
     cpu_sync_avx_hflag(env);
 }
 
-#if !defined(CONFIG_USER_ONLY)
 hwaddr x86_cpu_get_phys_page_attrs_debug(CPUState *cs, vaddr addr,
                                          MemTxAttrs *attrs)
 {
@@ -561,7 +556,6 @@ void cpu_report_tpr_access(CPUX86State *env, TPRAccess access)
         apic_handle_tpr_access_report(cpu->apic_state, eip, access);
     }
 }
-#endif /* !CONFIG_USER_ONLY */
 
 int cpu_x86_get_descr_debug(CPUX86State *env, unsigned int selector,
                             target_ulong *base, unsigned int *limit,
@@ -595,7 +589,6 @@ int cpu_x86_get_descr_debug(CPUX86State *env, unsigned int selector,
 
 void do_cpu_init(X86CPU *cpu)
 {
-#if !defined(CONFIG_USER_ONLY)
     CPUState *cs = CPU(cpu);
     CPUX86State *env = &cpu->env;
     CPUX86State *save = g_new(CPUX86State, 1);
@@ -614,10 +607,7 @@ void do_cpu_init(X86CPU *cpu)
         kvm_arch_do_init_vcpu(cpu);
     }
     apic_init_reset(cpu->apic_state);
-#endif /* CONFIG_USER_ONLY */
 }
-
-#ifndef CONFIG_USER_ONLY
 
 void do_cpu_sipi(X86CPU *cpu)
 {
@@ -729,4 +719,3 @@ void x86_stq_phys(CPUState *cs, hwaddr addr, uint64_t val)
 
     address_space_stq(as, addr, val, attrs, NULL);
 }
-#endif

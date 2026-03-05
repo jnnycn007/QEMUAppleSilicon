@@ -26,8 +26,6 @@ i386_system_ss.add(files(
 i386_system_ss.add(when: 'CONFIG_SEV', if_true: files('sev.c'),
                                        if_false: files('sev-system-stub.c'))
 
-i386_user_ss = ss.source_set()
-
 subdir('kvm')
 subdir('whpx')
 subdir('nvmm')
@@ -37,4 +35,3 @@ subdir('emulate')
 
 target_arch += {'i386': i386_ss}
 target_system_arch += {'i386': i386_system_ss}
-target_user_arch += {'i386': i386_user_ss}

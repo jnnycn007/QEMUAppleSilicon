@@ -19,7 +19,6 @@
 #include "ui/console.h"
 #include "hw/virtio/virtio.h"
 #include "qemu/log.h"
-#include "system/vhost-user-backend.h"
 #include "qapi/qapi-types-virtio.h"
 
 #include "standard-headers/linux/virtio_gpu.h"
@@ -35,9 +34,6 @@ OBJECT_DECLARE_TYPE(VirtIOGPU, VirtIOGPUClass, VIRTIO_GPU)
 
 #define TYPE_VIRTIO_GPU_GL "virtio-gpu-gl-device"
 OBJECT_DECLARE_SIMPLE_TYPE(VirtIOGPUGL, VIRTIO_GPU_GL)
-
-#define TYPE_VHOST_USER_GPU "vhost-user-gpu"
-OBJECT_DECLARE_SIMPLE_TYPE(VhostUserGPU, VHOST_USER_GPU)
 
 #define TYPE_VIRTIO_GPU_RUTABAGA "virtio-gpu-rutabaga-device"
 OBJECT_DECLARE_SIMPLE_TYPE(VirtIOGPURutabaga, VIRTIO_GPU_RUTABAGA)
@@ -250,16 +246,6 @@ struct VirtIOGPUGL {
     QEMUTimer *print_stats;
 
     QEMUBH *cmdq_resume_bh;
-};
-
-struct VhostUserGPU {
-    VirtIOGPUBase parent_obj;
-
-    VhostUserBackend *vhost;
-    int vhost_gpu_fd; /* closed by the chardev */
-    CharBackend vhost_chr;
-    QemuDmaBuf *dmabuf[VIRTIO_GPU_MAX_SCANOUTS];
-    bool backend_blocked;
 };
 
 #define MAX_SLOTS 4096

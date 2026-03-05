@@ -40,16 +40,9 @@
 #include "semihosting/common-semi.h"
 #include "semihosting/guestfd.h"
 #include "semihosting/syscalls.h"
-
-#ifdef CONFIG_USER_ONLY
-#include "qemu.h"
-
-#define COMMON_SEMI_HEAP_SIZE (128 * 1024 * 1024)
-#else
 #include "qemu/cutils.h"
 #include "hw/loader.h"
 #include "hw/boards.h"
-#endif
 
 #define TARGET_SYS_OPEN        0x01
 #define TARGET_SYS_CLOSE       0x02
@@ -99,8 +92,6 @@ static int gdb_open_modeflags[12] = {
     GDB_O_RDWR | GDB_O_CREAT | GDB_O_APPEND,
     GDB_O_RDWR | GDB_O_CREAT | GDB_O_APPEND,
 };
-
-#ifndef CONFIG_USER_ONLY
 
 /**
  * common_semi_find_bases: find information about ram and heap base
@@ -164,8 +155,6 @@ static LayoutInfo common_semi_find_bases(CPUState *cs)
     return info;
 }
 
-#endif
-
 #include "cpu.h"
 #include "common-semi-target.h"
 
@@ -198,40 +187,19 @@ static LayoutInfo common_semi_find_bases(CPUState *cs)
      put_user_u64(val, args + (n) * 8) :                \
      put_user_u32(val, args + (n) * 4))
 
-
-/*
- * The semihosting API has no concept of its errno being thread-safe,
- * as the API design predates SMP CPUs and was intended as a simple
- * real-hardware set of debug functionality. For QEMU, we make the
- * errno be per-thread in linux-user mode; in system-mode it is a simple
- * global, and we assume that the guest takes care of avoiding any races.
- */
-#ifndef CONFIG_USER_ONLY
 static target_ulong syscall_err;
 
 #include "semihosting/uaccess.h"
-#endif
 
 static inline uint32_t get_swi_errno(CPUState *cs)
 {
-#ifdef CONFIG_USER_ONLY
-    TaskState *ts = get_task_state(cs);
-
-    return ts->swi_errno;
-#else
     return syscall_err;
-#endif
 }
 
 static void common_semi_cb(CPUState *cs, uint64_t ret, int err)
 {
     if (err) {
-#ifdef CONFIG_USER_ONLY
-        TaskState *ts = get_task_state(cs);
-        ts->swi_errno = err;
-#else
         syscall_err = err;
-#endif
     }
     common_semi_set_ret(cs, ret);
 }
@@ -584,33 +552,16 @@ void do_common_semihosting(CPUState *cs)
             size_t input_size;
             size_t output_size;
             int status = 0;
-#if !defined(CONFIG_USER_ONLY)
             const char *cmdline;
-#else
-            TaskState *ts = get_task_state(cs);
-#endif
             GET_ARG(0);
             GET_ARG(1);
             input_size = arg1;
             /* Compute the size of the output string.  */
-#if !defined(CONFIG_USER_ONLY)
             cmdline = semihosting_get_cmdline();
             if (cmdline == NULL) {
                 cmdline = ""; /* Default to an empty line. */
             }
             output_size = strlen(cmdline) + 1; /* Count terminating 0. */
-#else
-            unsigned int i;
-
-            output_size = ts->info->env_strings - ts->info->arg_strings;
-            if (!output_size) {
-                /*
-                 * We special-case the "empty command line" case (argc==0).
-                 * Just provide the terminating 0.
-                 */
-                output_size = 1;
-            }
-#endif
 
             if (output_size > input_size) {
                 /* Not enough space to store command-line arguments.  */
@@ -631,29 +582,8 @@ void do_common_semihosting(CPUState *cs)
             }
 
             /* Copy the command-line arguments.  */
-#if !defined(CONFIG_USER_ONLY)
             pstrcpy(output_buffer, output_size, cmdline);
-#else
-            if (output_size == 1) {
-                /* Empty command-line.  */
-                output_buffer[0] = '\0';
-                goto out;
-            }
 
-            if (copy_from_user(output_buffer, ts->info->arg_strings,
-                               output_size)) {
-                unlock_user(output_buffer, arg0, 0);
-                goto do_fault;
-            }
-
-            /* Separate arguments by white spaces.  */
-            for (i = 0; i < output_size - 1; i++) {
-                if (output_buffer[i] == 0) {
-                    output_buffer[i] = ' ';
-                }
-            }
-        out:
-#endif
             /* Unlock the buffer on the ARM side.  */
             unlock_user(output_buffer, arg0, output_size);
             common_semi_cb(cs, status, 0);
@@ -664,46 +594,14 @@ void do_common_semihosting(CPUState *cs)
         {
             target_ulong retvals[4];
             int i;
-#ifdef CONFIG_USER_ONLY
-            TaskState *ts = get_task_state(cs);
-            target_ulong limit;
-#else
             LayoutInfo info = common_semi_find_bases(cs);
-#endif
 
             GET_ARG(0);
 
-#ifdef CONFIG_USER_ONLY
-            /*
-             * Some C libraries assume the heap immediately follows .bss, so
-             * allocate it using sbrk.
-             */
-            if (!ts->heap_limit) {
-                abi_ulong ret;
-
-                ts->heap_base = do_brk(0);
-                limit = ts->heap_base + COMMON_SEMI_HEAP_SIZE;
-                /* Try a big heap, and reduce the size if that fails.  */
-                for (;;) {
-                    ret = do_brk(limit);
-                    if (ret >= limit) {
-                        break;
-                    }
-                    limit = (ts->heap_base >> 1) + (limit >> 1);
-                }
-                ts->heap_limit = limit;
-            }
-
-            retvals[0] = ts->heap_base;
-            retvals[1] = ts->heap_limit;
-            retvals[2] = ts->stack_base;
-            retvals[3] = 0; /* Stack limit.  */
-#else
             retvals[0] = info.heapbase;  /* Heap Base */
             retvals[1] = info.heaplimit; /* Heap Limit */
             retvals[2] = info.heaplimit; /* Stack base */
             retvals[3] = info.heapbase;  /* Stack limit.  */
-#endif
 
             for (i = 0; i < ARRAY_SIZE(retvals); i++) {
                 bool fail;

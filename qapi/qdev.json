@@ -171,8 +171,7 @@
 # configuration changed.
 #
 # The command may be used to notify the guest about block device
-# capacity change.  Currently only vhost-user-blk device supports
-# this.
+# capacity change.
 #
 # @id: the device's ID or QOM path
 #

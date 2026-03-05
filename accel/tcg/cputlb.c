@@ -46,9 +46,6 @@
 #include "tb-internal.h"
 #include "tlb-bounds.h"
 #include "internal-common.h"
-#ifdef CONFIG_PLUGIN
-#include "qemu/plugin-memory.h"
-#endif
 #include "tcg/tcg-ldst.h"
 #include "backend-ldst.h"
 
@@ -1359,14 +1356,13 @@ static int probe_access_internal(CPUState *cpu, vaddr addr,
                                  int fault_size, MMUAccessType access_type,
                                  int mmu_idx, bool nonfault,
                                  void **phost, CPUTLBEntryFull **pfull,
-                                 uintptr_t retaddr, bool check_mem_cbs)
+                                 uintptr_t retaddr)
 {
     uintptr_t index = tlb_index(cpu, mmu_idx, addr);
     CPUTLBEntry *entry = tlb_entry(cpu, mmu_idx, addr);
     uint64_t tlb_addr = tlb_read_idx(entry, access_type);
     vaddr page_addr = addr & TARGET_PAGE_MASK;
     int flags = TLB_FLAGS_MASK & ~TLB_FORCE_SLOW;
-    bool force_mmio = check_mem_cbs && cpu_plugin_mem_cbs_enabled(cpu);
     CPUTLBEntryFull *full;
 
     if (!tlb_hit_page(tlb_addr, page_addr)) {
@@ -1398,8 +1394,7 @@ static int probe_access_internal(CPUState *cpu, vaddr addr,
     flags |= full->slow_flags[access_type];
 
     /* Fold all "mmio-like" bits into TLB_MMIO.  This is not RAM.  */
-    if (unlikely(flags & ~(TLB_WATCHPOINT | TLB_NOTDIRTY | TLB_CHECK_ALIGNED))
-        || (access_type != MMU_INST_FETCH && force_mmio)) {
+    if (unlikely(flags & ~(TLB_WATCHPOINT | TLB_NOTDIRTY | TLB_CHECK_ALIGNED))) {
         *phost = NULL;
         return TLB_MMIO;
     }
@@ -1415,8 +1410,7 @@ int probe_access_full(CPUArchState *env, vaddr addr, int size,
                       uintptr_t retaddr)
 {
     int flags = probe_access_internal(env_cpu(env), addr, size, access_type,
-                                      mmu_idx, nonfault, phost, pfull, retaddr,
-                                      true);
+                                      mmu_idx, nonfault, phost, pfull, retaddr);
 
     /* Handle clean RAM pages.  */
     if (unlikely(flags & TLB_NOTDIRTY)) {
@@ -1440,7 +1434,7 @@ int probe_access_full_mmu(CPUArchState *env, vaddr addr, int size,
     pfull = pfull ? pfull : &discard_tlb;
 
     int flags = probe_access_internal(env_cpu(env), addr, size, access_type,
-                                      mmu_idx, true, phost, pfull, 0, false);
+                                      mmu_idx, true, phost, pfull, 0);
 
     /* Handle clean RAM pages.  */
     if (unlikely(flags & TLB_NOTDIRTY)) {
@@ -1462,8 +1456,7 @@ int probe_access_flags(CPUArchState *env, vaddr addr, int size,
     g_assert(-(addr | TARGET_PAGE_MASK) >= size);
 
     flags = probe_access_internal(env_cpu(env), addr, size, access_type,
-                                  mmu_idx, nonfault, phost, &full, retaddr,
-                                  true);
+                                  mmu_idx, nonfault, phost, &full, retaddr);
 
     /* Handle clean RAM pages. */
     if (unlikely(flags & TLB_NOTDIRTY)) {
@@ -1485,8 +1478,7 @@ void *probe_access(CPUArchState *env, vaddr addr, int size,
     g_assert(-(addr | TARGET_PAGE_MASK) >= size);
 
     flags = probe_access_internal(env_cpu(env), addr, size, access_type,
-                                  mmu_idx, false, &host, &full, retaddr,
-                                  true);
+                                  mmu_idx, false, &host, &full, retaddr);
 
     /* Per the interface, size == 0 merely faults the access. */
     if (size == 0) {
@@ -1519,7 +1511,7 @@ void *tlb_vaddr_to_host(CPUArchState *env, vaddr addr,
     int flags;
 
     flags = probe_access_internal(env_cpu(env), addr, 0, access_type,
-                                  mmu_idx, true, &host, &full, 0, false);
+                                  mmu_idx, true, &host, &full, 0);
 
     /* No combination of flags are expected by the caller. */
     return flags ? NULL : host;
@@ -1543,7 +1535,7 @@ tb_page_addr_t get_page_addr_code_hostp(CPUArchState *env, vaddr addr,
 
     (void)probe_access_internal(env_cpu(env), addr, 1, MMU_INST_FETCH,
                                 cpu_mmu_index(env_cpu(env), true), false,
-                                hostp, &full, 0, false);
+                                hostp, &full, 0);
 
     p = *hostp;
     if (p == NULL) {
@@ -1560,47 +1552,6 @@ tb_page_addr_t get_page_addr_code_hostp(CPUArchState *env, vaddr addr,
 
 /* Load/store with atomicity primitives. */
 #include "ldst_atomicity.c.inc"
-
-#ifdef CONFIG_PLUGIN
-/*
- * Perform a TLB lookup and populate the qemu_plugin_hwaddr structure.
- * This should be a hot path as we will have just looked this path up
- * in the softmmu lookup code (or helper). We don't handle re-fills or
- * checking the victim table. This is purely informational.
- *
- * The one corner case is i/o write, which can cause changes to the
- * address space.  Those changes, and the corresponding tlb flush,
- * should be delayed until the next TB, so even then this ought not fail.
- * But check, Just in Case.
- */
-bool tlb_plugin_lookup(CPUState *cpu, vaddr addr, int mmu_idx,
-                       bool is_store, struct qemu_plugin_hwaddr *data)
-{
-    CPUTLBEntry *tlbe = tlb_entry(cpu, mmu_idx, addr);
-    uintptr_t index = tlb_index(cpu, mmu_idx, addr);
-    MMUAccessType access_type = is_store ? MMU_DATA_STORE : MMU_DATA_LOAD;
-    uint64_t tlb_addr = tlb_read_idx(tlbe, access_type);
-    CPUTLBEntryFull *full;
-
-    if (unlikely(!tlb_hit(tlb_addr, addr))) {
-        return false;
-    }
-
-    full = &cpu->neg.tlb.d[mmu_idx].fulltlb[index];
-    data->phys_addr = full->phys_addr | (addr & ~TARGET_PAGE_MASK);
-
-    /* We must have an iotlb entry for MMIO */
-    if (tlb_addr & TLB_MMIO) {
-        MemoryRegionSection *section = full->section;
-        data->is_io = true;
-        data->mr = section->mr;
-    } else {
-        data->is_io = false;
-        data->mr = NULL;
-    }
-    return true;
-}
-#endif
 
 /*
  * Probe for a load/store operation.

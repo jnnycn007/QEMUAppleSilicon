@@ -18,8 +18,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/plugin.h"
-
 #if DATA_SIZE == 16
 # define SUFFIX     o
 # define DATA_TYPE  Int128
@@ -91,12 +89,6 @@ ABI_TYPE ATOMIC_NAME(cmpxchg)(CPUArchState *env, vaddr addr,
     ret = qatomic_cmpxchg__nocheck(haddr, cmpv, newv);
 #endif
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(newv),
-                          VALUE_HIGH(newv),
-                          oi);
     return ret;
 }
 
@@ -113,12 +105,6 @@ ABI_TYPE ATOMIC_NAME(xchg)(CPUArchState *env, vaddr addr, ABI_TYPE val,
     ret = qatomic_xchg__nocheck(haddr, val);
 #endif
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return ret;
 }
 
@@ -130,12 +116,6 @@ ABI_TYPE ATOMIC_NAME(fetch_and)(CPUArchState *env, vaddr addr, ABI_TYPE val,
                                          DATA_SIZE, retaddr);
     DATA_TYPE ret = atomic16_fetch_and(haddr, val);
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return ret;
 }
 
@@ -146,12 +126,6 @@ ABI_TYPE ATOMIC_NAME(fetch_or)(CPUArchState *env, vaddr addr, ABI_TYPE val,
                                          DATA_SIZE, retaddr);
     DATA_TYPE ret = atomic16_fetch_or(haddr, val);
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return ret;
 }
 #else
@@ -163,12 +137,6 @@ ABI_TYPE ATOMIC_NAME(X)(CPUArchState *env, vaddr addr,              \
     haddr = atomic_mmu_lookup(env_cpu(env), addr, oi, DATA_SIZE, retaddr);   \
     ret = qatomic_##X(haddr, val);                                  \
     ATOMIC_MMU_CLEANUP;                                             \
-    atomic_trace_rmw_post(env, addr,                                \
-                          VALUE_LOW(ret),                           \
-                          VALUE_HIGH(ret),                          \
-                          VALUE_LOW(val),                           \
-                          VALUE_HIGH(val),                          \
-                          oi);                                      \
     return ret;                                                     \
 }
 
@@ -204,12 +172,6 @@ ABI_TYPE ATOMIC_NAME(X)(CPUArchState *env, vaddr addr,              \
         cmp = qatomic_cmpxchg__nocheck(haddr, old, new);            \
     } while (cmp != old);                                           \
     ATOMIC_MMU_CLEANUP;                                             \
-    atomic_trace_rmw_post(env, addr,                                \
-                          VALUE_LOW(old),                           \
-                          VALUE_HIGH(old),                          \
-                          VALUE_LOW(xval),                          \
-                          VALUE_HIGH(xval),                         \
-                          oi);                                      \
     return RET;                                                     \
 }
 
@@ -252,12 +214,6 @@ ABI_TYPE ATOMIC_NAME(cmpxchg)(CPUArchState *env, vaddr addr,
     ret = qatomic_cmpxchg__nocheck(haddr, BSWAP(cmpv), BSWAP(newv));
 #endif
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(newv),
-                          VALUE_HIGH(newv),
-                          oi);
     return BSWAP(ret);
 }
 
@@ -274,12 +230,6 @@ ABI_TYPE ATOMIC_NAME(xchg)(CPUArchState *env, vaddr addr, ABI_TYPE val,
     ret = qatomic_xchg__nocheck(haddr, BSWAP(val));
 #endif
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return BSWAP(ret);
 }
 
@@ -291,12 +241,6 @@ ABI_TYPE ATOMIC_NAME(fetch_and)(CPUArchState *env, vaddr addr, ABI_TYPE val,
                                          DATA_SIZE, retaddr);
     DATA_TYPE ret = atomic16_fetch_and(haddr, BSWAP(val));
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return BSWAP(ret);
 }
 
@@ -307,12 +251,6 @@ ABI_TYPE ATOMIC_NAME(fetch_or)(CPUArchState *env, vaddr addr, ABI_TYPE val,
                                          DATA_SIZE, retaddr);
     DATA_TYPE ret = atomic16_fetch_or(haddr, BSWAP(val));
     ATOMIC_MMU_CLEANUP;
-    atomic_trace_rmw_post(env, addr,
-                          VALUE_LOW(ret),
-                          VALUE_HIGH(ret),
-                          VALUE_LOW(val),
-                          VALUE_HIGH(val),
-                          oi);
     return BSWAP(ret);
 }
 #else
@@ -324,12 +262,6 @@ ABI_TYPE ATOMIC_NAME(X)(CPUArchState *env, vaddr addr,              \
     haddr = atomic_mmu_lookup(env_cpu(env), addr, oi, DATA_SIZE, retaddr);   \
     ret = qatomic_##X(haddr, BSWAP(val));                           \
     ATOMIC_MMU_CLEANUP;                                             \
-    atomic_trace_rmw_post(env, addr,                                \
-                          VALUE_LOW(ret),                           \
-                          VALUE_HIGH(ret),                          \
-                          VALUE_LOW(val),                           \
-                          VALUE_HIGH(val),                          \
-                          oi);                                      \
     return BSWAP(ret);                                              \
 }
 
@@ -362,12 +294,6 @@ ABI_TYPE ATOMIC_NAME(X)(CPUArchState *env, vaddr addr,              \
         ldn = qatomic_cmpxchg__nocheck(haddr, ldo, BSWAP(new));     \
     } while (ldo != ldn);                                           \
     ATOMIC_MMU_CLEANUP;                                             \
-    atomic_trace_rmw_post(env, addr,                                \
-                          VALUE_LOW(old),                           \
-                          VALUE_HIGH(old),                          \
-                          VALUE_LOW(xval),                          \
-                          VALUE_HIGH(xval),                         \
-                          oi);                                      \
     return RET;                                                     \
 }
 

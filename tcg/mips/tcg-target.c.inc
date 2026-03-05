@@ -1177,112 +1177,75 @@ static TCGLabelQemuLdst *prepare_host_addr(TCGContext *s, HostAddress *h,
     a_bits = h->aa.align;
     a_mask = (1 << a_bits) - 1;
 
-    if (tcg_use_softmmu) {
-        unsigned s_mask = (1 << s_bits) - 1;
-        int mem_index = get_mmuidx(oi);
-        int fast_off = tlb_mask_table_ofs(s, mem_index);
-        int mask_off = fast_off + offsetof(CPUTLBDescFast, mask);
-        int table_off = fast_off + offsetof(CPUTLBDescFast, table);
-        int add_off = offsetof(CPUTLBEntry, addend);
-        int cmp_off = is_ld ? offsetof(CPUTLBEntry, addr_read)
-                            : offsetof(CPUTLBEntry, addr_write);
+    unsigned s_mask = (1 << s_bits) - 1;
+    int mem_index = get_mmuidx(oi);
+    int fast_off = tlb_mask_table_ofs(s, mem_index);
+    int mask_off = fast_off + offsetof(CPUTLBDescFast, mask);
+    int table_off = fast_off + offsetof(CPUTLBDescFast, table);
+    int add_off = offsetof(CPUTLBEntry, addend);
+    int cmp_off = is_ld ? offsetof(CPUTLBEntry, addr_read)
+                        : offsetof(CPUTLBEntry, addr_write);
 
-        ldst = new_ldst_label(s);
-        ldst->is_ld = is_ld;
-        ldst->oi = oi;
-        ldst->addr_reg = addr;
+    ldst = new_ldst_label(s);
+    ldst->is_ld = is_ld;
+    ldst->oi = oi;
+    ldst->addr_reg = addr;
 
-        /* Load tlb_mask[mmu_idx] and tlb_table[mmu_idx].  */
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP0, TCG_AREG0, mask_off);
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP1, TCG_AREG0, table_off);
+    /* Load tlb_mask[mmu_idx] and tlb_table[mmu_idx].  */
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP0, TCG_AREG0, mask_off);
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP1, TCG_AREG0, table_off);
 
-        /* Extract the TLB index from the address into TMP3.  */
-        if (TCG_TARGET_REG_BITS == 32 || addr_type == TCG_TYPE_I32) {
-            tcg_out_opc_sa(s, OPC_SRL, TCG_TMP3, addr,
-                           TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
-        } else {
-            tcg_out_dsrl(s, TCG_TMP3, addr, TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
-        }
-        tcg_out_opc_reg(s, OPC_AND, TCG_TMP3, TCG_TMP3, TCG_TMP0);
-
-        /* Add the tlb_table pointer, creating the CPUTLBEntry address.  */
-        tcg_out_opc_reg(s, ALIAS_PADD, TCG_TMP3, TCG_TMP3, TCG_TMP1);
-
-        /* Load the tlb comparator.  */
-        if (TCG_TARGET_REG_BITS == 64 && addr_type == TCG_TYPE_I32) {
-            tcg_out_ld(s, TCG_TYPE_I32, TCG_TMP0, TCG_TMP3,
-                       cmp_off + HOST_BIG_ENDIAN * 4);
-        } else {
-            tcg_out_ld(s, TCG_TYPE_REG, TCG_TMP0, TCG_TMP3, cmp_off);
-        }
-
-        /* Load the tlb addend for the fast path.  */
-        tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP3, TCG_TMP3, add_off);
-
-        /*
-         * Mask the page bits, keeping the alignment bits to compare against.
-         * For unaligned accesses, compare against the end of the access to
-         * verify that it does not cross a page boundary.
-         */
-        tcg_out_movi(s, addr_type, TCG_TMP1, TARGET_PAGE_MASK | a_mask);
-        if (a_mask < s_mask) {
-            tcg_out_opc_imm(s, (TCG_TARGET_REG_BITS == 32
-                                || addr_type == TCG_TYPE_I32
-                                ? OPC_ADDIU : OPC_DADDIU),
-                            TCG_TMP2, addr, s_mask - a_mask);
-            tcg_out_opc_reg(s, OPC_AND, TCG_TMP1, TCG_TMP1, TCG_TMP2);
-        } else {
-            tcg_out_opc_reg(s, OPC_AND, TCG_TMP1, TCG_TMP1, addr);
-        }
-
-        /* Zero extend a 32-bit guest address for a 64-bit host. */
-        if (TCG_TARGET_REG_BITS == 64 && addr_type == TCG_TYPE_I32) {
-            tcg_out_ext32u(s, TCG_TMP2, addr);
-            addr = TCG_TMP2;
-        }
-
-        ldst->label_ptr[0] = s->code_ptr;
-        tcg_out_opc_br(s, OPC_BNE, TCG_TMP1, TCG_TMP0);
-
-        /* delay slot */
-        base = TCG_TMP3;
-        tcg_out_opc_reg(s, ALIAS_PADD, base, TCG_TMP3, addr);
+    /* Extract the TLB index from the address into TMP3.  */
+    if (TCG_TARGET_REG_BITS == 32 || addr_type == TCG_TYPE_I32) {
+        tcg_out_opc_sa(s, OPC_SRL, TCG_TMP3, addr,
+                        TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
     } else {
-        if (a_mask && (use_mips32r6_instructions || a_bits != s_bits)) {
-            ldst = new_ldst_label(s);
-
-            ldst->is_ld = is_ld;
-            ldst->oi = oi;
-            ldst->addr_reg = addr;
-
-            /* We are expecting a_bits to max out at 7, much lower than ANDI. */
-            tcg_debug_assert(a_bits < 16);
-            tcg_out_opc_imm(s, OPC_ANDI, TCG_TMP0, addr, a_mask);
-
-            ldst->label_ptr[0] = s->code_ptr;
-            if (use_mips32r6_instructions) {
-                tcg_out_opc_br(s, OPC_BNEZALC_R6, TCG_REG_ZERO, TCG_TMP0);
-            } else {
-                tcg_out_opc_br(s, OPC_BNEL, TCG_TMP0, TCG_REG_ZERO);
-                tcg_out_nop(s);
-            }
-        }
-
-        base = addr;
-        if (TCG_TARGET_REG_BITS == 64 && addr_type == TCG_TYPE_I32) {
-            tcg_out_ext32u(s, TCG_REG_A0, base);
-            base = TCG_REG_A0;
-        }
-        if (guest_base) {
-            if (guest_base == (int16_t)guest_base) {
-                tcg_out_opc_imm(s, ALIAS_PADDI, TCG_REG_A0, base, guest_base);
-            } else {
-                tcg_out_opc_reg(s, ALIAS_PADD, TCG_REG_A0, base,
-                                TCG_GUEST_BASE_REG);
-            }
-            base = TCG_REG_A0;
-        }
+        tcg_out_dsrl(s, TCG_TMP3, addr, TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
     }
+    tcg_out_opc_reg(s, OPC_AND, TCG_TMP3, TCG_TMP3, TCG_TMP0);
+
+    /* Add the tlb_table pointer, creating the CPUTLBEntry address.  */
+    tcg_out_opc_reg(s, ALIAS_PADD, TCG_TMP3, TCG_TMP3, TCG_TMP1);
+
+    /* Load the tlb comparator.  */
+    if (TCG_TARGET_REG_BITS == 64 && addr_type == TCG_TYPE_I32) {
+        tcg_out_ld(s, TCG_TYPE_I32, TCG_TMP0, TCG_TMP3,
+                    cmp_off + HOST_BIG_ENDIAN * 4);
+    } else {
+        tcg_out_ld(s, TCG_TYPE_REG, TCG_TMP0, TCG_TMP3, cmp_off);
+    }
+
+    /* Load the tlb addend for the fast path.  */
+    tcg_out_ld(s, TCG_TYPE_PTR, TCG_TMP3, TCG_TMP3, add_off);
+
+    /*
+        * Mask the page bits, keeping the alignment bits to compare against.
+        * For unaligned accesses, compare against the end of the access to
+        * verify that it does not cross a page boundary.
+        */
+    tcg_out_movi(s, addr_type, TCG_TMP1, TARGET_PAGE_MASK | a_mask);
+    if (a_mask < s_mask) {
+        tcg_out_opc_imm(s, (TCG_TARGET_REG_BITS == 32
+                            || addr_type == TCG_TYPE_I32
+                            ? OPC_ADDIU : OPC_DADDIU),
+                        TCG_TMP2, addr, s_mask - a_mask);
+        tcg_out_opc_reg(s, OPC_AND, TCG_TMP1, TCG_TMP1, TCG_TMP2);
+    } else {
+        tcg_out_opc_reg(s, OPC_AND, TCG_TMP1, TCG_TMP1, addr);
+    }
+
+    /* Zero extend a 32-bit guest address for a 64-bit host. */
+    if (TCG_TARGET_REG_BITS == 64 && addr_type == TCG_TYPE_I32) {
+        tcg_out_ext32u(s, TCG_TMP2, addr);
+        addr = TCG_TMP2;
+    }
+
+    ldst->label_ptr[0] = s->code_ptr;
+    tcg_out_opc_br(s, OPC_BNE, TCG_TMP1, TCG_TMP0);
+
+    /* delay slot */
+    base = TCG_TMP3;
+    tcg_out_opc_reg(s, ALIAS_PADD, base, TCG_TMP3, addr);
 
     h->base = base;
     return ldst;
@@ -2577,20 +2540,6 @@ static void tcg_target_qemu_prologue(TCGContext *s)
     for (i = 0; i < ARRAY_SIZE(tcg_target_callee_save_regs); i++) {
         tcg_out_st(s, TCG_TYPE_REG, tcg_target_callee_save_regs[i],
                    TCG_REG_SP, SAVE_OFS + i * REG_SIZE);
-    }
-
-    if (!tcg_use_softmmu && guest_base != (int16_t)guest_base) {
-        /*
-         * The function call abi for n32 and n64 will have loaded $25 (t9)
-         * with the address of the prologue, so we can use that instead
-         * of TCG_REG_TB.
-         */
-#if TCG_TARGET_REG_BITS == 64 && !defined(__mips_abicalls)
-# error "Unknown mips abi"
-#endif
-        tcg_out_movi_int(s, TCG_TYPE_PTR, TCG_GUEST_BASE_REG, guest_base,
-                         TCG_TARGET_REG_BITS == 64 ? TCG_REG_T9 : 0);
-        tcg_regset_set_reg(s->reserved_regs, TCG_GUEST_BASE_REG);
     }
 
     if (TCG_TARGET_REG_BITS == 64) {

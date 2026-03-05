@@ -8,7 +8,6 @@ struct vhost_net;
 typedef struct vhost_net VHostNetState;
 
 typedef uint64_t (GetAckedFeatures)(NetClientState *nc);
-typedef void (SaveAcketFeatures)(NetClientState *nc);
 
 typedef struct VhostNetOptions {
     VhostBackendType backend_type;
@@ -17,9 +16,6 @@ typedef struct VhostNetOptions {
     unsigned int nvqs;
     const int *feature_bits;
     int max_tx_queue_size;
-    bool is_vhost_user;
-    GetAckedFeatures *get_acked_features;
-    SaveAcketFeatures *save_acked_features;
     void *opaque;
 } VhostNetOptions;
 
@@ -51,14 +47,10 @@ VHostNetState *get_vhost_net(NetClientState *nc);
 
 int vhost_net_set_vring_enable(NetClientState *nc, int enable);
 
-uint64_t vhost_net_get_acked_features(VHostNetState *net);
-
 int vhost_net_set_mtu(struct vhost_net *net, uint16_t mtu);
 
 void vhost_net_virtqueue_reset(VirtIODevice *vdev, NetClientState *nc,
                                int vq_index);
 int vhost_net_virtqueue_restart(VirtIODevice *vdev, NetClientState *nc,
                                 int vq_index);
-
-void vhost_net_save_acked_features(NetClientState *nc);
 #endif

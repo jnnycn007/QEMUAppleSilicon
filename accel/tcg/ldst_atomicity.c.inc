@@ -152,21 +152,6 @@ static uint64_t load_atomic8_or_exit(CPUState *cpu, uintptr_t ra, void *pv)
         return load_atomic8(pv);
     }
 
-#ifdef CONFIG_USER_ONLY
-    /*
-     * If the page is not writable, then assume the value is immutable
-     * and requires no locking.  This ignores the case of MAP_SHARED with
-     * another process, because the fallback start_exclusive solution
-     * provides no protection across processes.
-     */
-    WITH_MMAP_LOCK_GUARD() {
-        if (!page_check_range(h2g(pv), 8, PAGE_WRITE_ORG)) {
-            uint64_t *p = __builtin_assume_aligned(pv, 8);
-            return *p;
-        }
-    }
-#endif
-
     /* Ultimate fallback: re-execute in serial context. */
     trace_load_atom8_or_exit_fallback(ra);
     cpu_loop_exit_atomic(cpu, ra);
@@ -189,27 +174,8 @@ static Int128 load_atomic16_or_exit(CPUState *cpu, uintptr_t ra, void *pv)
         return atomic16_read_ro(p);
     }
 
-    /*
-     * We can only use cmpxchg to emulate a load if the page is writable.
-     * If the page is not writable, then assume the value is immutable
-     * and requires no locking.  This ignores the case of MAP_SHARED with
-     * another process, because the fallback start_exclusive solution
-     * provides no protection across processes.
-     *
-     * In system mode all guest pages are writable.  For user mode,
-     * we must take mmap_lock so that the query remains valid until
-     * the write is complete -- tests/tcg/multiarch/munmap-pthread.c
-     * is an example that can race.
-     */
-    WITH_MMAP_LOCK_GUARD() {
-#ifdef CONFIG_USER_ONLY
-        if (!page_check_range(h2g(p), 16, PAGE_WRITE_ORG)) {
-            return *p;
-        }
-#endif
-        if (HAVE_ATOMIC128_RW) {
-            return atomic16_read_rw(p);
-        }
+    if (HAVE_ATOMIC128_RW) {
+        return atomic16_read_rw(p);
     }
 
     /* Ultimate fallback: re-execute in serial context. */

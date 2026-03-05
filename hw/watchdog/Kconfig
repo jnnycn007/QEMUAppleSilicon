@@ -12,9 +12,6 @@ config WDT_IB700
     default y
     depends on ISA_BUS
 
-config WDT_DIAG288
-    bool
-
 config WDT_IMX2
     bool
 

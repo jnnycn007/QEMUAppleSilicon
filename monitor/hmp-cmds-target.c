@@ -23,7 +23,6 @@
  */
 
 #include "qemu/osdep.h"
-#include "disas/disas.h"
 #include "system/address-spaces.h"
 #include "system/memory.h"
 #include "monitor/hmp-target.h"
@@ -135,8 +134,7 @@ static void memory_dump(Monitor *mon, int count, int format, int wsize,
     }
 
     if (format == 'i') {
-        monitor_disas(mon, cs, addr, count, is_physical);
-        return;
+        g_assert_not_reached();
     }
 
     len = wsize * count;

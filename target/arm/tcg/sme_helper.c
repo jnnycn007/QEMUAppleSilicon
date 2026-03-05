@@ -23,7 +23,6 @@
 #include "tcg/tcg-gvec-desc.h"
 #include "exec/helper-proto.h"
 #include "accel/tcg/cpu-ldst.h"
-#include "accel/tcg/helper-retaddr.h"
 #include "qemu/int128.h"
 #include "fpu/softfloat.h"
 #include "vec_internal.h"
@@ -458,7 +457,7 @@ static inline void sme_##NAME##_v_host(void *za, intptr_t off, void *host)  \
 static inline void sme_##NAME##_v_tlb(CPUARMState *env, void *za,           \
                         intptr_t off, target_ulong addr, uintptr_t ra)      \
 {                                                                           \
-    TYPE val = TLB(env, useronly_clean_ptr(addr), ra);                      \
+    TYPE val = TLB(env, addr, ra);                                          \
     *(TYPE *)(za + tile_vslice_offset(off)) = val;                          \
 }
 
@@ -472,7 +471,7 @@ static inline void sme_##NAME##_v_tlb(CPUARMState *env, void *za,           \
                         intptr_t off, target_ulong addr, uintptr_t ra)      \
 {                                                                           \
     TYPE val = *(TYPE *)(za + tile_vslice_offset(off));                     \
-    TLB(env, useronly_clean_ptr(addr), val, ra);                            \
+    TLB(env, addr, val, ra);                                                \
 }
 
 #define DO_LDQ(HNAME, VNAME) \
@@ -569,9 +568,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
 
     flags = info.page[0].flags | info.page[1].flags;
     if (unlikely(flags != 0)) {
-#ifdef CONFIG_USER_ONLY
-        g_assert_not_reached();
-#else
         /*
          * At least one page includes MMIO.
          * Any bus operation can fail with cpu_transaction_failed,
@@ -601,7 +597,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
 
         cpy_fn(za, &scratch, reg_max);
         return;
-#endif
     }
 
     /* The entire operation is in RAM, on valid pages. */
@@ -616,8 +611,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
         clr_fn(za, 0, reg_off);
     }
 
-    set_helper_retaddr(ra);
-
     while (reg_off <= reg_last) {
         uint64_t pg = vg[reg_off >> 6];
         do {
@@ -629,8 +622,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
             reg_off += esize;
         } while (reg_off <= reg_last && (reg_off & 63));
     }
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -646,8 +637,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
         reg_last = info.reg_off_last[1];
         host = info.page[1].host;
 
-        set_helper_retaddr(ra);
-
         do {
             uint64_t pg = vg[reg_off >> 6];
             do {
@@ -659,8 +648,6 @@ void sme_ld1(CPUARMState *env, void *za, uint64_t *vg,
                 reg_off += esize;
             } while (reg_off & 63);
         } while (reg_off <= reg_last);
-
-        clear_helper_retaddr();
     }
 }
 
@@ -770,9 +757,6 @@ void sme_st1(CPUARMState *env, void *za, uint64_t *vg,
 
     flags = info.page[0].flags | info.page[1].flags;
     if (unlikely(flags != 0)) {
-#ifdef CONFIG_USER_ONLY
-        g_assert_not_reached();
-#else
         /*
          * At least one page includes MMIO.
          * Any bus operation can fail with cpu_transaction_failed,
@@ -798,14 +782,11 @@ void sme_st1(CPUARMState *env, void *za, uint64_t *vg,
             } while (reg_off & 63);
         } while (reg_off <= reg_last);
         return;
-#endif
     }
 
     reg_off = info.reg_off_first[0];
     reg_last = info.reg_off_last[0];
     host = info.page[0].host;
-
-    set_helper_retaddr(ra);
 
     while (reg_off <= reg_last) {
         uint64_t pg = vg[reg_off >> 6];
@@ -816,8 +797,6 @@ void sme_st1(CPUARMState *env, void *za, uint64_t *vg,
             reg_off += 1 << esz;
         } while (reg_off <= reg_last && (reg_off & 63));
     }
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -833,8 +812,6 @@ void sme_st1(CPUARMState *env, void *za, uint64_t *vg,
         reg_last = info.reg_off_last[1];
         host = info.page[1].host;
 
-        set_helper_retaddr(ra);
-
         do {
             uint64_t pg = vg[reg_off >> 6];
             do {
@@ -844,8 +821,6 @@ void sme_st1(CPUARMState *env, void *za, uint64_t *vg,
                 reg_off += 1 << esz;
             } while (reg_off & 63);
         } while (reg_off <= reg_last);
-
-        clear_helper_retaddr();
     }
 }
 

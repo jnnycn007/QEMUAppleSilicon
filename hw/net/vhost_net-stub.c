@@ -66,11 +66,6 @@ void vhost_net_ack_features(struct vhost_net *net, uint64_t features)
 {
 }
 
-uint64_t vhost_net_get_acked_features(VHostNetState *net)
-{
-    return 0;
-}
-
 bool vhost_net_virtqueue_pending(VHostNetState *net, int idx)
 {
     return false;
@@ -120,9 +115,4 @@ int vhost_net_virtqueue_restart(VirtIODevice *vdev, NetClientState *nc,
                                 int vq_index)
 {
     return 0;
-}
-
-void vhost_net_save_acked_features(NetClientState *nc)
-{
-
 }

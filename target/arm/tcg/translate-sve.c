@@ -4912,10 +4912,6 @@ static void do_mem_zpa(DisasContext *s, int zt, int pg, TCGv_i64 addr,
     TCGv_ptr t_pg;
     uint64_t desc;
 
-    if (!s->mte_active[0]) {
-        addr = clean_data_tbi(s, addr);
-    }
-
     /*
      * For e.g. LD4, there are not enough arguments to pass all 4
      * registers as pointers, so encode the regno into the data field.
@@ -5381,9 +5377,6 @@ static void do_ldrq(DisasContext *s, int zt, int pg, TCGv_i64 addr, int dtype)
     uint64_t desc;
 
     /* Load the first quadword using the normal predicated load helpers.  */
-    if (!s->mte_active[0]) {
-        addr = clean_data_tbi(s, addr);
-    }
 
     poff = pred_full_reg_offset(s, pg);
     if (vsz > 16) {
@@ -5465,9 +5458,6 @@ static void do_ldro(DisasContext *s, int zt, int pg, TCGv_i64 addr, int dtype)
     }
 
     /* Load the first octaword using the normal predicated load helpers.  */
-    if (!s->mte_active[0]) {
-        addr = clean_data_tbi(s, addr);
-    }
 
     poff = pred_full_reg_offset(s, pg);
     if (vsz > 32) {
@@ -8160,10 +8150,6 @@ static bool gen_ldst_c(DisasContext *s, TCGv_i64 addr, int zd, int png,
         ? !sme_sm_enabled_check(s)
         : !sve_access_check(s)) {
         return true;
-    }
-
-    if (!s->mte_active[0]) {
-        addr = clean_data_tbi(s, addr);
     }
 
     desc = n == 2 ? 0 : 1;

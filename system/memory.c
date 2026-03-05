@@ -3553,11 +3553,9 @@ static void mtree_print_flatview(gpointer key, gpointer value,
         range++;
     }
 
-#if !defined(CONFIG_USER_ONLY)
     if (fvi->dispatch_tree && view->root) {
         mtree_print_dispatch(view->dispatch, view->root);
     }
-#endif
 
     qemu_printf("\n");
 }

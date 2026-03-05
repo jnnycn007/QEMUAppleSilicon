@@ -12,11 +12,6 @@
 #include "hw/core/cpu.h"
 #include "accel/tcg/cpu-ops.h"
 #include "tcg/debug-assert.h"
-#ifdef COMPILING_PER_TARGET
-# ifdef CONFIG_USER_ONLY
-#  include "cpu.h"
-# endif
-#endif
 
 /**
  * cpu_mmu_index:
@@ -28,12 +23,6 @@
  */
 static inline int cpu_mmu_index(CPUState *cs, bool ifetch)
 {
-#ifdef COMPILING_PER_TARGET
-# ifdef CONFIG_USER_ONLY
-    return MMU_USER_IDX;
-# endif
-#endif
-
     int ret = cs->cc->tcg_ops->mmu_index(cs, ifetch);
     tcg_debug_assert(ret >= 0 && ret < NB_MMU_MODES);
     return ret;

@@ -20,7 +20,6 @@
 #include "qemu/osdep.h"
 #include "exec/log.h"
 #include "system/tcg.h"
-#include "qemu/plugin.h"
 #include "internal-common.h"
 
 bool tcg_allowed;
@@ -68,8 +67,6 @@ void cpu_loop_exit(CPUState *cpu)
 {
     /* Undo the setting in cpu_tb_exec.  */
     cpu->neg.can_do_io = true;
-    /* Undo any setting in generated code.  */
-    qemu_plugin_disable_mem_helpers(cpu);
     siglongjmp(cpu->jmp_env, 1);
 }
 

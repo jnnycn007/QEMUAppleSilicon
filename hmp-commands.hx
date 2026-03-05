@@ -851,7 +851,7 @@ ERST
     },
 SRST
 ``nmi`` *cpu*
-  Inject an NMI on the default CPU (x86/s390) or all CPUs (ppc64).
+  Inject an NMI on the default CPU (x86).
 ERST
 
     {
@@ -1090,7 +1090,7 @@ ERST
 
 SRST
 ``dump-guest-memory [-p]`` *filename* *begin* *length*
-  \ 
+  \
 ``dump-guest-memory [-z|-l|-s|-w]`` *filename*
   Dump guest memory to *protocol*. The file can be processed with crash or
   gdb. Without ``-z|-l|-s|-w``, the dump format is ELF.
@@ -1119,31 +1119,6 @@ SRST
     together with *begin*.
 
 ERST
-
-#if defined(TARGET_S390X)
-    {
-        .name       = "dump-skeys",
-        .args_type  = "filename:F",
-        .params     = "",
-        .help       = "Save guest storage keys into file 'filename'.\n",
-        .cmd        = hmp_dump_skeys,
-    },
-#endif
-
-SRST
-``dump-skeys`` *filename*
-  Save guest storage keys to a file.
-ERST
-
-#if defined(TARGET_S390X)
-    {
-        .name       = "migration_mode",
-        .args_type  = "mode:i",
-        .params     = "mode",
-        .help       = "Enables or disables migration mode\n",
-        .cmd        = hmp_migrationmode,
-    },
-#endif
 
 SRST
 ``migration_mode`` *mode*
@@ -1286,7 +1261,7 @@ ERST
     {
         .name       = "netdev_add",
         .args_type  = "netdev:O",
-        .params     = "[user|tap|socket|stream|dgram|vde|bridge|hubport|netmap|vhost-user"
+        .params     = "[user|tap|socket|stream|dgram|vde|bridge|hubport|netmap"
 #ifdef CONFIG_PASST
                       "|passt"
 #endif

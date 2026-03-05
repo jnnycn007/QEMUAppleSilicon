@@ -12,9 +12,7 @@
 #include "gdbstub/syscalls.h"
 #include "semihosting/semihost.h"
 #include "semihosting/guestfd.h"
-#ifndef CONFIG_USER_ONLY
 #include CONFIG_DEVICES
-#endif
 
 static GArray *guestfd_array;
 
@@ -42,7 +40,6 @@ void qemu_semihosting_guestfd_init(void)
 #else
     /* Otherwise, the stdio file descriptors apply. */
     guestfd_array = g_array_set_size(guestfd_array, 3);
-#ifndef CONFIG_USER_ONLY
     if (!use_gdb_syscalls()) {
         GuestFD *gf = &g_array_index(guestfd_array, GuestFD, 0);
         gf[0].type = GuestFDConsole;
@@ -50,7 +47,7 @@ void qemu_semihosting_guestfd_init(void)
         gf[2].type = GuestFDConsole;
         return;
     }
-#endif
+
     associate_guestfd(0, 0);
     associate_guestfd(1, 1);
     associate_guestfd(2, 2);

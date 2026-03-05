@@ -30,13 +30,8 @@
 #include "vec_internal.h"
 #include "sve_ldst_internal.h"
 #include "accel/tcg/cpu-ldst.h"
-#include "accel/tcg/helper-retaddr.h"
 #include "accel/tcg/cpu-ops.h"
 #include "accel/tcg/probe.h"
-#ifdef CONFIG_USER_ONLY
-#include "user/page-protection.h"
-#endif
-
 
 /* Return a value for NZCV as per the ARM PredTest pseudofunction.
  *
@@ -5903,29 +5898,12 @@ bool sve_probe_page(SVEHostPage *info, bool nofault, CPUARMState *env,
                     int mmu_idx, uintptr_t retaddr)
 {
     int flags;
+    CPUTLBEntryFull *full;
 
     addr += mem_off;
 
-    /*
-     * User-only currently always issues with TBI.  See the comment
-     * above useronly_clean_ptr.  Usually we clean this top byte away
-     * during translation, but we can't do that for e.g. vector + imm
-     * addressing modes.
-     *
-     * We currently always enable TBI for user-only, and do not provide
-     * a way to turn it off.  So clean the pointer unconditionally here,
-     * rather than look it up here, or pass it down from above.
-     */
-    addr = useronly_clean_ptr(addr);
-
-#ifdef CONFIG_USER_ONLY
-    flags = probe_access_flags(env, addr, 0, access_type, mmu_idx, nofault,
-                               &info->host, retaddr);
-#else
-    CPUTLBEntryFull *full;
     flags = probe_access_full(env, addr, 0, access_type, mmu_idx, nofault,
                               &info->host, &full, retaddr);
-#endif
     info->flags = flags;
 
     if (flags & TLB_INVALID_MASK) {
@@ -5933,14 +5911,8 @@ bool sve_probe_page(SVEHostPage *info, bool nofault, CPUARMState *env,
         return false;
     }
 
-#ifdef CONFIG_USER_ONLY
-    memset(&info->attrs, 0, sizeof(info->attrs));
-    /* Require both ANON and MTE; see allocation_tag_mem(). */
-    info->tagged = (flags & PAGE_ANON) && (flags & PAGE_MTE);
-#else
     info->attrs = full->attrs;
     info->tagged = full->extra.arm.pte_attrs == 0xf0;
-#endif
 
     /* Ensure that info->host[] is relative to addr, not addr + mem_off. */
     info->host -= mem_off;
@@ -6101,7 +6073,6 @@ bool sve_cont_ldst_pages(SVEContLdSt *info, SVEContFault fault,
     return have_work;
 }
 
-#ifndef CONFIG_USER_ONLY
 void sve_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env,
                                uint64_t *vg, target_ulong addr,
                                int esize, int msize, int wp_access,
@@ -6163,7 +6134,6 @@ void sve_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env,
         } while (reg_off <= reg_last);
     }
 }
-#endif
 
 void sve_cont_ldst_mte_check(SVEContLdSt *info, CPUARMState *env,
                              uint64_t *vg, target_ulong addr, int esize,
@@ -6303,8 +6273,6 @@ void sve_ldN_r(CPUARMState *env, uint64_t *vg, const target_ulong addr,
     reg_last = info.reg_off_last[0];
     host = info.page[0].host;
 
-    set_helper_retaddr(retaddr);
-
     while (reg_off <= reg_last) {
         uint64_t pg = vg[reg_off >> 6];
         do {
@@ -6318,8 +6286,6 @@ void sve_ldN_r(CPUARMState *env, uint64_t *vg, const target_ulong addr,
             mem_off += N << msz;
         } while (reg_off <= reg_last && (reg_off & 63));
     }
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -6340,8 +6306,6 @@ void sve_ldN_r(CPUARMState *env, uint64_t *vg, const target_ulong addr,
         reg_last = info.reg_off_last[1];
         host = info.page[1].host;
 
-        set_helper_retaddr(retaddr);
-
         do {
             uint64_t pg = vg[reg_off >> 6];
             do {
@@ -6355,8 +6319,6 @@ void sve_ldN_r(CPUARMState *env, uint64_t *vg, const target_ulong addr,
                 mem_off += N << msz;
             } while (reg_off & 63);
         } while (reg_off <= reg_last);
-
-        clear_helper_retaddr();
     }
 }
 
@@ -6510,12 +6472,6 @@ DO_LDN_2(4, qq, MO_128)
 
 /*
  * Load contiguous data, first-fault and no-fault.
- *
- * For user-only, we control the race between page_check_range and
- * another thread's munmap by using set/clear_helper_retaddr.  Any
- * SEGV that occurs between those markers is assumed to be because
- * the guest page vanished.  Keep that block as small as possible
- * so that unrelated QEMU bugs are not blamed on the guest.
  */
 
 /* Fault on byte I.  All bits in FFR from I are cleared.  The vector
@@ -6666,8 +6622,6 @@ void sve_ldnfff1_r(CPUARMState *env, void *vg, const target_ulong addr,
     reg_last = info.reg_off_last[0];
     host = info.page[0].host;
 
-    set_helper_retaddr(retaddr);
-
     do {
         uint64_t pg = *(uint64_t *)(vg + (reg_off >> 3));
         do {
@@ -6676,11 +6630,9 @@ void sve_ldnfff1_r(CPUARMState *env, void *vg, const target_ulong addr,
                     (cpu_watchpoint_address_matches
                      (env_cpu(env), addr + mem_off, 1 << msz)
                      & BP_MEM_READ)) {
-                    clear_helper_retaddr();
                     goto do_fault;
                 }
                 if (mtedesc && !mte_probe(env, mtedesc, addr + mem_off)) {
-                    clear_helper_retaddr();
                     goto do_fault;
                 }
                 host_fn(vd, reg_off, host + mem_off);
@@ -6689,8 +6641,6 @@ void sve_ldnfff1_r(CPUARMState *env, void *vg, const target_ulong addr,
             mem_off += 1 << msz;
         } while (reg_off <= reg_last && (reg_off & 63));
     } while (reg_off <= reg_last);
-
-    clear_helper_retaddr();
 
     /*
      * MemSingleNF is allowed to fail for any reason.  We have special
@@ -6920,8 +6870,6 @@ void sve_stN_r(CPUARMState *env, uint64_t *vg, target_ulong addr,
     reg_last = info.reg_off_last[0];
     host = info.page[0].host;
 
-    set_helper_retaddr(retaddr);
-
     while (reg_off <= reg_last) {
         uint64_t pg = vg[reg_off >> 6];
         do {
@@ -6935,8 +6883,6 @@ void sve_stN_r(CPUARMState *env, uint64_t *vg, target_ulong addr,
             mem_off += N << msz;
         } while (reg_off <= reg_last && (reg_off & 63));
     }
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -6957,8 +6903,6 @@ void sve_stN_r(CPUARMState *env, uint64_t *vg, target_ulong addr,
         reg_last = info.reg_off_last[1];
         host = info.page[1].host;
 
-        set_helper_retaddr(retaddr);
-
         do {
             uint64_t pg = vg[reg_off >> 6];
             do {
@@ -6972,8 +6916,6 @@ void sve_stN_r(CPUARMState *env, uint64_t *vg, target_ulong addr,
                 mem_off += N << msz;
             } while (reg_off & 63);
         } while (reg_off <= reg_last);
-
-        clear_helper_retaddr();
     }
 }
 
@@ -7144,9 +7086,7 @@ void sve_ld1_z(CPUARMState *env, void *vd, uint64_t *vg, void *vm,
                     if (unlikely(info.flags & TLB_MMIO)) {
                         tlb_fn(env, &scratch, reg_off, addr, retaddr);
                     } else {
-                        set_helper_retaddr(retaddr);
                         host_fn(&scratch, reg_off, info.host);
-                        clear_helper_retaddr();
                     }
                 } else {
                     /* Element crosses the page boundary. */
@@ -7383,9 +7323,7 @@ void sve_ldff1_z(CPUARMState *env, void *vd, uint64_t *vg, void *vm,
                     goto fault;
                 }
 
-                set_helper_retaddr(retaddr);
                 host_fn(vd, reg_off, info.host);
-                clear_helper_retaddr();
             }
             reg_off += esize;
         } while (reg_off & 63);
@@ -7587,9 +7525,7 @@ void sve_st1_z(CPUARMState *env, void *vd, uint64_t *vg, void *vm,
     do {
         void *h = host[i];
         if (likely(h != NULL)) {
-            set_helper_retaddr(retaddr);
             host_fn(vd, reg_off, h);
-            clear_helper_retaddr();
         } else if ((vg[reg_off >> 6] >> (reg_off & 63)) & 1) {
             target_ulong addr = base + (off_fn(vm, reg_off) << scale);
             tlb_fn(env, vd, reg_off, addr, retaddr);
@@ -7785,7 +7721,6 @@ static void sve2p1_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env,
                                          target_ulong addr, unsigned estride,
                                          int esize, int wp_access, uintptr_t ra)
 {
-#ifndef CONFIG_USER_ONLY
     intptr_t count_off, count_last;
     int flags0 = info->page[0].flags;
     int flags1 = info->page[1].flags;
@@ -7821,7 +7756,6 @@ static void sve2p1_cont_ldst_watchpoints(SVEContLdSt *info, CPUARMState *env,
             count_off += estride;
         } while (count_off <= count_last);
     }
-#endif
 }
 
 static void sve2p1_cont_ldst_mte_check(SVEContLdSt *info, CPUARMState *env,
@@ -7958,8 +7892,6 @@ void sve2p1_ld1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
     reg_n = count_off / reg_max;
     host = info.page[0].host;
 
-    set_helper_retaddr(ra);
-
     do {
         reg_last = MIN(count_last - reg_n * reg_max, reg_max - esize);
         do {
@@ -7970,8 +7902,6 @@ void sve2p1_ld1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
         reg_off = 0;
         reg_n++;
     } while (count_off <= count_last);
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -7991,8 +7921,6 @@ void sve2p1_ld1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
         reg_n = count_off / reg_max;
         host = info.page[1].host;
 
-        set_helper_retaddr(ra);
-
         do {
             reg_last = MIN(count_last - reg_n * reg_max, reg_max - esize);
             do {
@@ -8003,8 +7931,6 @@ void sve2p1_ld1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
             reg_off = 0;
             reg_n++;
         } while (count_off <= count_last);
-
-        clear_helper_retaddr();
     }
 }
 
@@ -8118,8 +8044,6 @@ void sve2p1_st1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
     reg_n = count_off / reg_max;
     host = info.page[0].host;
 
-    set_helper_retaddr(ra);
-
     do {
         reg_last = MIN(count_last - reg_n * reg_max, reg_max - esize);
         do {
@@ -8130,8 +8054,6 @@ void sve2p1_st1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
         reg_off = 0;
         reg_n++;
     } while (count_off <= count_last);
-
-    clear_helper_retaddr();
 
     /*
      * Use the slow path to manage the cross-page misalignment.
@@ -8151,8 +8073,6 @@ void sve2p1_st1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
         reg_n = count_off / reg_max;
         host = info.page[1].host;
 
-        set_helper_retaddr(ra);
-
         do {
             reg_last = MIN(count_last - reg_n * reg_max, reg_max - esize);
             do {
@@ -8163,8 +8083,6 @@ void sve2p1_st1_c(CPUARMState *env, ARMVectorReg *zd, const vaddr addr,
             reg_off = 0;
             reg_n++;
         } while (count_off <= count_last);
-
-        clear_helper_retaddr();
     }
 }
 

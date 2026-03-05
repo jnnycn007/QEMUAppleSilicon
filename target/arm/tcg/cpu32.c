@@ -13,11 +13,8 @@
 #include "accel/tcg/cpu-ops.h"
 #include "internals.h"
 #include "target/arm/idau.h"
-#if !defined(CONFIG_USER_ONLY)
 #include "hw/boards.h"
-#endif
 #include "cpregs.h"
-
 
 /* Share AArch32 -cpu max features with AArch64. */
 void aa32_max_features(ARMCPU *cpu)
@@ -114,9 +111,6 @@ void aa32_max_features(ARMCPU *cpu)
 
     FIELD_DP32_IDREG(isar, ID_DFR1, HPMN0, 1);         /* FEAT_HPMN0 */
 }
-
-/* CPU models. These are not needed for the AArch64 linux-user build. */
-#if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
 
 static void arm926_initfn(Object *obj)
 {
@@ -454,7 +448,6 @@ static void cortex_a9_initfn(Object *obj)
     define_arm_cp_regs(cpu, cortexa9_cp_reginfo);
 }
 
-#ifndef CONFIG_USER_ONLY
 static uint64_t a15_l2ctlr_read(CPUARMState *env, const ARMCPRegInfo *ri)
 {
     MachineState *ms = MACHINE(qdev_get_machine());
@@ -465,14 +458,11 @@ static uint64_t a15_l2ctlr_read(CPUARMState *env, const ARMCPRegInfo *ri)
      */
     return ((ms->smp.cpus - 1) << 24) | (1 << 23);
 }
-#endif
 
 static const ARMCPRegInfo cortexa15_cp_reginfo[] = {
-#ifndef CONFIG_USER_ONLY
     { .name = "L2CTLR", .cp = 15, .crn = 9, .crm = 0, .opc1 = 1, .opc2 = 2,
       .access = PL1_RW, .resetvalue = 0, .readfn = a15_l2ctlr_read,
       .writefn = arm_cp_write_ignore, },
-#endif
     { .name = "L2ECTLR", .cp = 15, .crn = 9, .crm = 0, .opc1 = 1, .opc2 = 3,
       .access = PL1_RW, .type = ARM_CP_CONST, .resetvalue = 0 },
 };
@@ -720,7 +710,6 @@ static const ARMCPRegInfo cortex_r52_cp_reginfo[] = {
       .access = PL1_W, .type = ARM_CP_NOP, .resetvalue = 0 },
 };
 
-
 static void cortex_r52_initfn(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
@@ -859,15 +848,6 @@ static void arm_max_initfn(Object *obj)
     define_cortex_a72_a57_a53_cp_reginfo(cpu);
 
     aa32_max_features(cpu);
-
-#ifdef CONFIG_USER_ONLY
-    /*
-     * Break with true ARMv8 and add back old-style VFP short-vector support.
-     * Only do this for user-mode, where -cpu max is the default, so that
-     * older v6 and v7 programs are more likely to work without adjustment.
-     */
-    cpu->isar.mvfr0 = REG_FIELD_DP32(cpu->isar.mvfr0, MVFR0, FPSHVEC, 1);
-#endif
 }
 #endif /* !TARGET_AARCH64 */
 
@@ -916,5 +896,3 @@ static void arm_tcg_cpu_register_types(void)
 }
 
 type_init(arm_tcg_cpu_register_types)
-
-#endif /* !CONFIG_USER_ONLY || !TARGET_AARCH64 */

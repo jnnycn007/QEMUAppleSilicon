@@ -11,17 +11,6 @@
 ##
 
 ##
-# @S390CpuEntitlement:
-#
-# An enumeration of CPU entitlements that can be assumed by a virtual
-# S390 CPU
-#
-# Since: 8.2
-##
-{ 'enum': 'S390CpuEntitlement',
-  'data': [ 'auto', 'low', 'medium', 'high' ] }
-
-##
 # @CpuTopologyLevel:
 #
 # An enumeration of CPU topology levels.

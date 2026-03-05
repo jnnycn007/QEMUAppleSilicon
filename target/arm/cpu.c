@@ -35,17 +35,14 @@
 #include "cpu-features.h"
 #include "exec/target_page.h"
 #include "hw/qdev-properties.h"
-#if !defined(CONFIG_USER_ONLY)
 #include "hw/loader.h"
 #include "hw/boards.h"
 #ifdef CONFIG_TCG
 #include "hw/intc/armv7m_nvic.h"
 #endif /* CONFIG_TCG */
-#endif /* !CONFIG_USER_ONLY */
 #include "system/tcg.h"
 #include "system/hw_accel.h"
 #include "kvm_arm.h"
-#include "disas/capstone.h"
 #include "fpu/softfloat.h"
 #include "cpregs.h"
 #include "target/arm/cpu-qom.h"
@@ -128,7 +125,6 @@ int arm_cpu_mmu_index(CPUState *cs, bool ifetch)
 
 #endif /* CONFIG_TCG */
 
-#ifndef CONFIG_USER_ONLY
 /*
  * With SCTLR_ELx.NMI == 0, IRQ with Superpriority is masked identically with
  * IRQ without Superpriority. Moreover, if the GIC is configured so that
@@ -147,7 +143,6 @@ static bool arm_cpu_has_work(CPUState *cs)
                | CPU_INTERRUPT_VFIQ | CPU_INTERRUPT_VIRQ | CPU_INTERRUPT_VSERR
                | CPU_INTERRUPT_EXITTB);
 }
-#endif /* !CONFIG_USER_ONLY */
 
 void arm_register_pre_el_change_hook(ARMCPU *cpu, ARMELChangeHookFn *hook,
                                  void *opaque)
@@ -257,70 +252,7 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
     if (arm_feature(env, ARM_FEATURE_AARCH64)) {
         /* 64 bit CPUs always start in 64 bit mode */
         env->aarch64 = true;
-#if defined(CONFIG_USER_ONLY)
-        env->pstate = PSTATE_MODE_EL0t;
-        /* Userspace expects access to DC ZVA, CTL_EL0 and the cache ops */
-        env->cp15.sctlr_el[1] |= SCTLR_UCT | SCTLR_UCI | SCTLR_DZE;
-        /* Enable all PAC keys.  */
-        env->cp15.sctlr_el[1] |= (SCTLR_EnIA | SCTLR_EnIB |
-                                  SCTLR_EnDA | SCTLR_EnDB);
-        /* Trap on btype=3 for PACIxSP. */
-        env->cp15.sctlr_el[1] |= SCTLR_BT0;
-        /* Trap on implementation defined registers. */
-        if (cpu_isar_feature(aa64_tidcp1, cpu)) {
-            env->cp15.sctlr_el[1] |= SCTLR_TIDCP;
-        }
-        /* and to the FP/Neon instructions */
-        env->cp15.cpacr_el1 = REG_FIELD_DP64(env->cp15.cpacr_el1,
-                                         CPACR_EL1, FPEN, 3);
-        /* and to the SVE instructions, with default vector length */
-        if (cpu_isar_feature(aa64_sve, cpu)) {
-            env->cp15.cpacr_el1 = REG_FIELD_DP64(env->cp15.cpacr_el1,
-                                             CPACR_EL1, ZEN, 3);
-            env->vfp.zcr_el[1] = cpu->sve_default_vq - 1;
-        }
-        /* and for SME instructions, with default vector length, and TPIDR2 */
-        if (cpu_isar_feature(aa64_sme, cpu)) {
-            env->cp15.sctlr_el[1] |= SCTLR_EnTP2;
-            env->cp15.cpacr_el1 = REG_FIELD_DP64(env->cp15.cpacr_el1,
-                                             CPACR_EL1, SMEN, 3);
-            env->vfp.smcr_el[1] = cpu->sme_default_vq - 1;
-            if (cpu_isar_feature(aa64_sme_fa64, cpu)) {
-                env->vfp.smcr_el[1] = REG_FIELD_DP64(env->vfp.smcr_el[1],
-                                                 SMCR, FA64, 1);
-            }
-        }
-        /*
-         * Enable 48-bit address space (TODO: take reserved_va into account).
-         * Enable TBI0 but not TBI1.
-         * Note that this must match useronly_clean_ptr.
-         */
-        env->cp15.tcr_el[1] = 5 | (1ULL << 37);
 
-        /* Enable MTE */
-        if (cpu_isar_feature(aa64_mte, cpu)) {
-            /* Enable tag access, but leave TCF0 as No Effect (0). */
-            env->cp15.sctlr_el[1] |= SCTLR_ATA0;
-            /*
-             * Exclude all tags, so that tag 0 is always used.
-             * This corresponds to Linux current->thread.gcr_incl = 0.
-             *
-             * Set RRND, so that helper_irg() will generate a seed later.
-             * Here in cpu_reset(), the crypto subsystem has not yet been
-             * initialized.
-             */
-            env->cp15.gcr_el1 = 0x1ffff;
-        }
-        /*
-         * Disable access to SCXTNUM_EL0 from CSV2_1p2.
-         * This is not yet exposed from the Linux kernel in any way.
-         */
-        env->cp15.sctlr_el[1] |= SCTLR_TSCXT;
-        /* Disable access to Debug Communication Channel (DCC). */
-        env->cp15.mdscr_el1 |= 1 << 12;
-        /* Enable FEAT_MOPS */
-        env->cp15.sctlr_el[1] |= SCTLR_MSCEN;
-#else
         /* Reset into the highest available EL */
         if (arm_feature(env, ARM_FEATURE_EL3)) {
             env->pstate = PSTATE_MODE_EL3h;
@@ -338,26 +270,10 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
             env->keys.m.lo = cpu->m_key_lo;
             env->keys.m.hi = cpu->m_key_hi;
         }
-#endif
-    } else {
-#if defined(CONFIG_USER_ONLY)
-        /* Userspace expects access to cp10 and cp11 for FP/Neon */
-        env->cp15.cpacr_el1 = REG_FIELD_DP64(env->cp15.cpacr_el1,
-                                         CPACR, CP10, 3);
-        env->cp15.cpacr_el1 = REG_FIELD_DP64(env->cp15.cpacr_el1,
-                                         CPACR, CP11, 3);
-#endif
-        if (arm_feature(env, ARM_FEATURE_V8)) {
-            env->cp15.rvbar = cpu->rvbar_prop;
-            env->regs[15] = cpu->rvbar_prop;
-        }
+    } else if (arm_feature(env, ARM_FEATURE_V8)) {
+        env->cp15.rvbar = cpu->rvbar_prop;
+        env->regs[15] = cpu->rvbar_prop;
     }
-
-#if defined(CONFIG_USER_ONLY)
-    env->uncached_cpsr = ARM_CPU_MODE_USR;
-    /* For user mode we must enable access to coprocessors */
-    env->vfp.xregs[ARM_VFP_FPEXC] = 1 << 30;
-#else
 
     /*
      * If the highest available EL is EL2, AArch32 will start in Hyp
@@ -381,15 +297,12 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
     }
 
     env->vfp.xregs[ARM_VFP_FPEXC] = 0;
-#endif
 
     if (arm_feature(env, ARM_FEATURE_M)) {
-#ifndef CONFIG_USER_ONLY
         uint32_t initial_msp; /* Loaded from 0x0 */
         uint32_t initial_pc; /* Loaded from 0x4 */
         uint8_t *rom;
         uint32_t vecbase;
-#endif
 
         if (cpu_isar_feature(aa32_lob, cpu)) {
             /*
@@ -444,7 +357,6 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
                 R_V7M_FPCCR_LSPEN_MASK | R_V7M_FPCCR_S_MASK;
         }
 
-#ifndef CONFIG_USER_ONLY
         /* Unlike A/R profile, M profile defines the reset LR value */
         env->regs[14] = 0xffffffff;
 
@@ -477,19 +389,6 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
         env->regs[13] = initial_msp & 0xFFFFFFFC;
         env->regs[15] = initial_pc & ~1;
         env->thumb = initial_pc & 1;
-#else
-        /*
-         * For user mode we run non-secure and with access to the FPU.
-         * The FPU context is active (ie does not need further setup)
-         * and is owned by non-secure.
-         */
-        env->v7m.secure = false;
-        env->v7m.nsacr = 0xcff;
-        env->v7m.cpacr[M_REG_NS] = 0xf0ffff;
-        env->v7m.fpccr[M_REG_S] &=
-            ~(R_V7M_FPCCR_LSPEN_MASK | R_V7M_FPCCR_S_MASK);
-        env->v7m.control[M_REG_S] |= R_V7M_CONTROL_FPCA_MASK;
-#endif
     }
 
     /* M profile requires that reset clears the exclusive monitor;
@@ -571,11 +470,9 @@ static void arm_cpu_reset_hold(Object *obj, ResetType type)
     set_flush_inputs_to_zero(1, &env->vfp.fp_status[FPST_AH]);
     arm_set_ah_fp_behaviours(&env->vfp.fp_status[FPST_AH_F16]);
 
-#ifndef CONFIG_USER_ONLY
     if (kvm_enabled()) {
         kvm_arm_reset_vcpu(cpu);
     }
-#endif
 
     if (tcg_enabled()) {
         hw_breakpoint_update_all(cpu);
@@ -682,8 +579,6 @@ void arm_emulate_firmware_reset(CPUState *cpustate, int target_el)
     }
 }
 
-
-#ifndef CONFIG_USER_ONLY
 static void arm_cpu_set_irq(void *opaque, int irq, int level)
 {
     ARMCPU *cpu = opaque;
@@ -775,50 +670,6 @@ static void arm_wfxt_timer_cb(void *opaque)
      * function auto-clears the CPU_INTERRUPT_EXITTB flag for us.
      */
     cpu_interrupt(cs, CPU_INTERRUPT_EXITTB);
-}
-#endif
-
-static void arm_disas_set_info(CPUState *cpu, disassemble_info *info)
-{
-    ARMCPU *ac = container_of(cpu, ARMCPU, parent_obj);
-    CPUARMState *env = &ac->env;
-    bool sctlr_b = arm_sctlr_b(env);
-
-    if (is_a64(env)) {
-        info->cap_arch = CS_ARCH_ARM64;
-        info->cap_insn_unit = 4;
-        info->cap_insn_split = 4;
-    } else {
-        int cap_mode;
-        if (env->thumb) {
-            info->cap_insn_unit = 2;
-            info->cap_insn_split = 4;
-            cap_mode = CS_MODE_THUMB;
-        } else {
-            info->cap_insn_unit = 4;
-            info->cap_insn_split = 4;
-            cap_mode = CS_MODE_ARM;
-        }
-        if (arm_feature(env, ARM_FEATURE_V8)) {
-            cap_mode |= CS_MODE_V8;
-        }
-        if (arm_feature(env, ARM_FEATURE_M)) {
-            cap_mode |= CS_MODE_MCLASS;
-        }
-        info->cap_arch = CS_ARCH_ARM;
-        info->cap_mode = cap_mode;
-    }
-
-    info->endian = BFD_ENDIAN_LITTLE;
-    if (bswap_code(sctlr_b)) {
-        info->endian = target_big_endian() ? BFD_ENDIAN_LITTLE : BFD_ENDIAN_BIG;
-    }
-    info->flags &= ~INSN_ARM_BE32;
-#ifndef CONFIG_USER_ONLY
-    if (sctlr_b) {
-        info->flags |= INSN_ARM_BE32;
-    }
-#endif
 }
 
 static void aarch64_cpu_dump_state(CPUState *cs, FILE *f, int flags)
@@ -1089,18 +940,6 @@ static void arm_cpu_initfn(Object *obj)
     QLIST_INIT(&cpu->pre_el_change_hooks);
     QLIST_INIT(&cpu->el_change_hooks);
 
-#ifdef CONFIG_USER_ONLY
-# ifdef TARGET_AARCH64
-    /*
-     * The linux kernel defaults to 512-bit for SVE, and 256-bit for SME.
-     * These values were chosen to fit within the default signal frame.
-     * See documentation for /proc/sys/abi/{sve,sme}_default_vector_length,
-     * and our corresponding cpu property.
-     */
-    cpu->sve_default_vq = 4;
-    cpu->sme_default_vq = 2;
-# endif
-#else
     /* Our inbound IRQ and FIQ lines */
     if (kvm_enabled()) {
         /*
@@ -1119,7 +958,6 @@ static void arm_cpu_initfn(Object *obj)
                              "gicv3-maintenance-interrupt", 1);
     qdev_init_gpio_out_named(DEVICE(cpu), &cpu->pmu_interrupt,
                              "pmu-interrupt", 1);
-#endif
 
     /* DTB consumers generally don't in fact care what the 'compatible'
      * string is, so always provide some string and trust that a hypothetical
@@ -1139,7 +977,6 @@ static void arm_cpu_initfn(Object *obj)
  * 0 means "unset, use the default value". That default might vary depending
  * on the CPU type, and is set in the realize fn.
  */
-#ifndef CONFIG_USER_ONLY
 static const Property arm_cpu_gt_cntfrq_property =
             DEFINE_PROP_UINT64("cntfrq", ARMCPU, gt_cntfrq_hz, 0);
 
@@ -1154,7 +991,6 @@ static const Property arm_cpu_has_el2_property =
 
 static const Property arm_cpu_has_el3_property =
             DEFINE_PROP_BOOL("has_el3", ARMCPU, has_el3, true);
-#endif
 
 static const Property arm_cpu_cfgend_property =
             DEFINE_PROP_BOOL("cfgend", ARMCPU, cfgend, false);
@@ -1171,7 +1007,6 @@ static const Property arm_cpu_has_neon_property =
 static const Property arm_cpu_has_dsp_property =
             DEFINE_PROP_BOOL("dsp", ARMCPU, has_dsp, true);
 
-#ifndef CONFIG_USER_ONLY
 static const Property arm_cpu_has_mpu_property =
             DEFINE_PROP_BOOL("has-mpu", ARMCPU, has_mpu, true);
 
@@ -1184,7 +1019,6 @@ static const Property arm_cpu_pmsav7_dregion_property =
             DEFINE_PROP_UNSIGNED_NODEFAULT("pmsav7-dregion", ARMCPU,
                                            pmsav7_dregion,
                                            qdev_prop_uint32, uint32_t);
-#endif
 
 static bool arm_get_pmu(Object *obj, Error **errp)
 {
@@ -1372,7 +1206,7 @@ static void arm_cpu_post_init(Object *obj)
                                         "Set on/off to enable/disable aarch64 "
                                         "execution state ");
     }
-#ifndef CONFIG_USER_ONLY
+
     if (arm_feature(&cpu->env, ARM_FEATURE_CBAR) ||
         arm_feature(&cpu->env, ARM_FEATURE_CBAR_RO)) {
         qdev_property_add_static(DEVICE(obj), &arm_cpu_reset_cbar_property);
@@ -1404,7 +1238,6 @@ static void arm_cpu_post_init(Object *obj)
     if (arm_feature(&cpu->env, ARM_FEATURE_EL2)) {
         qdev_property_add_static(DEVICE(obj), &arm_cpu_has_el2_property);
     }
-#endif
 
     if (arm_feature(&cpu->env, ARM_FEATURE_PMU)) {
         cpu->has_pmu = true;
@@ -1459,7 +1292,6 @@ static void arm_cpu_post_init(Object *obj)
         qdev_property_add_static(DEVICE(obj), &arm_cpu_has_dsp_property);
     }
 
-#ifndef CONFIG_USER_ONLY
     if (arm_feature(&cpu->env, ARM_FEATURE_PMSA)) {
         qdev_property_add_static(DEVICE(obj), &arm_cpu_has_mpu_property);
         if (arm_feature(&cpu->env, ARM_FEATURE_V7)) {
@@ -1520,7 +1352,7 @@ static void arm_cpu_post_init(Object *obj)
                                      OBJ_PROP_LINK_STRONG);
         }
     }
-#endif
+
     qdev_property_add_static(DEVICE(obj), &arm_cpu_cfgend_property);
 }
 
@@ -1539,14 +1371,13 @@ static void arm_cpu_finalizefn(Object *obj)
         QLIST_REMOVE(hook, node);
         g_free(hook);
     }
-#ifndef CONFIG_USER_ONLY
+
     if (cpu->pmu_timer) {
         timer_free(cpu->pmu_timer);
     }
     if (cpu->wfxt_timer) {
         timer_free(cpu->wfxt_timer);
     }
-#endif
 }
 
 void arm_cpu_finalize_features(ARMCPU *cpu, Error **errp)
@@ -1607,7 +1438,7 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
     CPUARMState *env = &cpu->env;
     Error *local_err = NULL;
 
-#if defined(CONFIG_TCG) && !defined(CONFIG_USER_ONLY)
+#ifdef CONFIG_TCG
     /* Use pc-relative instructions in system-mode */
     tcg_cflags_set(cs, CF_PCREL);
 #endif
@@ -1625,7 +1456,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         return;
     }
 
-#ifndef CONFIG_USER_ONLY
     /* The NVIC and M-profile CPU are two halves of a single piece of
      * hardware; trying to use one without the other is a command line
      * error and will result in segfaults if not caught here.
@@ -1670,7 +1500,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
             return;
         }
     }
-#endif
 
     cpu_exec_realizefn(cs, &local_err);
     if (local_err != NULL) {
@@ -1686,8 +1515,7 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
 
     if (!cpu->gt_cntfrq_hz) {
         /*
-         * 0 means "the board didn't set a value, use the default". (We also
-         * get here for the CONFIG_USER_ONLY case.)
+         * 0 means "the board didn't set a value, use the default".
          * ARMv8.6 and later CPUs architecturally must use a 1GHz timer; before
          * that it was an IMPDEF choice, and QEMU initially picked 62.5MHz,
          * which gives a 16ns tick period.
@@ -1703,7 +1531,7 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
             cpu->gt_cntfrq_hz = GTIMER_DEFAULT_HZ;
         }
     }
-#ifndef CONFIG_USER_ONLY
+
     {
         uint64_t scale = gt_cntfrq_period_ns(cpu);
 
@@ -1722,18 +1550,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         cpu->gt_timer[GTIMER_S_EL2_VIRT] = timer_new(QEMU_CLOCK_VIRTUAL, scale,
                                                      arm_gt_sel2vtimer_cb, cpu);
     }
-#endif
-
-#ifdef CONFIG_USER_ONLY
-    /*
-     * User mode relies on IC IVAU instructions to catch modification of
-     * dual-mapped code.
-     *
-     * Clear CTR_EL0.DIC to ensure that software that honors these flags uses
-     * IC IVAU even if the emulated processor does not normally require it.
-     */
-    cpu->ctr = REG_FIELD_DP64(cpu->ctr, CTR_EL0, DIC, 0);
-#endif
 
     if (arm_feature(env, ARM_FEATURE_AARCH64) &&
         cpu->has_vfp != cpu->has_neon) {
@@ -1885,8 +1701,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         SET_IDREG(isar, ID_ISAR3, u);
     }
 
-
-#ifndef CONFIG_USER_ONLY
     if (!TARGET_PAGE_BITS) {
         int pagebits;
         if (arm_feature(env, ARM_FEATURE_V7) &&
@@ -1915,7 +1729,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
             return;
         }
     }
-#endif
 
     /* This cpu-id-to-MPIDR affinity is used only for TCG; KVM will override it.
      * We don't support setting cluster ID ([16..23]) (known as Aff2
@@ -1972,10 +1785,8 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
             arm_register_el_change_hook(cpu, &pmu_post_el_change, 0);
         }
 
-#ifndef CONFIG_USER_ONLY
         cpu->pmu_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL, arm_pmu_timer_cb,
                 cpu);
-#endif
     } else {
         FIELD_DP64_IDREG(isar, ID_AA64DFR0, PMUVER, 0);
         FIELD_DP32_IDREG(isar, ID_DFR0, PERFMON, 0);
@@ -2001,7 +1812,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
             assert(cpu->gm_blocksize >= 3 && cpu->gm_blocksize <= 6);
         }
 
-#ifndef CONFIG_USER_ONLY
         /*
          * If we run with TCG and do not have tag-memory provided by
          * the machine, then reduce MTE support to instructions enabled at EL0.
@@ -2018,15 +1828,12 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         if (kvm_enabled() && !cpu->kvm_mte) {
                 FIELD_DP64_IDREG(isar, ID_AA64PFR1, MTE, 0);
         }
-#endif
     }
 
-#ifndef CONFIG_USER_ONLY
     if (tcg_enabled() && cpu_isar_feature(aa64_wfxt, cpu)) {
         cpu->wfxt_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
                                        arm_wfxt_timer_cb, cpu);
     }
-#endif
 
     if (tcg_enabled()) {
         /*
@@ -2120,11 +1927,9 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         set_feature(env, ARM_FEATURE_VBAR);
     }
 
-#ifndef CONFIG_USER_ONLY
     if (tcg_enabled() && cpu_isar_feature(aa64_rme, cpu)) {
         arm_register_el_change_hook(cpu, &gt_rme_post_el_change, 0);
     }
-#endif
 
     register_cp_regs_for_features(cpu);
     arm_cpu_register_gdb_regs_for_features(cpu);
@@ -2132,7 +1937,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
 
     init_cpreg_list(cpu);
 
-#ifndef CONFIG_USER_ONLY
     MachineState *ms = MACHINE(qdev_get_machine());
     unsigned int smp_cpus = ms->smp.cpus;
     bool has_secure = cpu->has_el3 || arm_feature(env, ARM_FEATURE_M_SECURITY);
@@ -2170,7 +1974,6 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
     if (cpu->core_count == -1) {
         cpu->core_count = smp_cpus;
     }
-#endif
 
     if (tcg_enabled()) {
         int dcz_blocklen = 4 << cpu->dcz_blocksize;
@@ -2211,14 +2014,6 @@ static ObjectClass *arm_cpu_class_by_name(const char *cpu_model)
 
     cpuname = g_strsplit(cpu_model, ",", 1);
     cpunamestr = cpuname[0];
-#ifdef CONFIG_USER_ONLY
-    /* For backwards compatibility usermode emulation allows "-cpu any",
-     * which has the same semantics as "-cpu max".
-     */
-    if (!strcmp(cpunamestr, "any")) {
-        cpunamestr = "max";
-    }
-#endif
     typename = g_strdup_printf(ARM_CPU_TYPE_NAME("%s"), cpunamestr);
     oc = object_class_by_name(typename);
     g_strfreev(cpuname);
@@ -2267,31 +2062,6 @@ static const char *arm_gdb_get_core_xml_file(CPUState *cs)
     return "arm-core.xml";
 }
 
-#ifdef CONFIG_USER_ONLY
-/**
- * aarch64_untagged_addr:
- *
- * Remove any address tag from @x.  This is explicitly related to the
- * linux syscall TIF_TAGGED_ADDR setting, not TBI in general.
- *
- * There should be a better place to put this, but we need this in
- * include/accel/tcg/cpu-ldst.h, and not some place linux-user specific.
- *
- * Note that arm-*-user will never set tagged_addr_enable.
- */
-static vaddr aarch64_untagged_addr(CPUState *cs, vaddr x)
-{
-    CPUARMState *env = cpu_env(cs);
-    if (env->tagged_addr_enable) {
-        /*
-         * TBI is enabled for userspace but not kernelspace addresses.
-         * Only clear the tag if bit 55 is clear.
-         */
-        x &= sextract64(x, 0, 56);
-    }
-    return x;
-}
-#else
 #include "hw/core/sysemu-cpu-ops.h"
 
 static const struct SysemuCPUOps arm_sysemu_ops = {
@@ -2303,10 +2073,8 @@ static const struct SysemuCPUOps arm_sysemu_ops = {
     .virtio_is_big_endian = arm_cpu_virtio_is_big_endian,
     .legacy_vmsd = &vmstate_arm_cpu,
 };
-#endif
 
 #ifdef CONFIG_TCG
-#ifndef CONFIG_USER_ONLY
 static vaddr aprofile_pointer_wrap(CPUState *cs, int mmu_idx,
                                    vaddr result, vaddr base)
 {
@@ -2327,7 +2095,6 @@ static vaddr aprofile_pointer_wrap(CPUState *cs, int mmu_idx,
      */
     return result;
 }
-#endif /* !CONFIG_USER_ONLY */
 
 static const TCGCPUOps arm_tcg_ops = {
     .mttcg_supported = true,
@@ -2341,12 +2108,6 @@ static const TCGCPUOps arm_tcg_ops = {
     .debug_excp_handler = arm_debug_excp_handler,
     .restore_state_to_opc = arm_restore_state_to_opc,
     .mmu_index = arm_cpu_mmu_index,
-
-#ifdef CONFIG_USER_ONLY
-    .record_sigsegv = arm_cpu_record_sigsegv,
-    .record_sigbus = arm_cpu_record_sigbus,
-    .untagged_addr = aarch64_untagged_addr,
-#else
     .tlb_fill_align = arm_cpu_tlb_fill_align,
     .pointer_wrap = aprofile_pointer_wrap,
     .cpu_exec_interrupt = arm_cpu_exec_interrupt,
@@ -2358,7 +2119,6 @@ static const TCGCPUOps arm_tcg_ops = {
     .adjust_watchpoint_address = arm_adjust_watchpoint_address,
     .debug_check_watchpoint = arm_debug_check_watchpoint,
     .debug_check_breakpoint = arm_debug_check_breakpoint,
-#endif /* !CONFIG_USER_ONLY */
 };
 #endif /* CONFIG_TCG */
 
@@ -2383,13 +2143,10 @@ static void arm_cpu_class_init(ObjectClass *oc, const void *data)
     cc->get_pc = arm_cpu_get_pc;
     cc->gdb_read_register = arm_cpu_gdb_read_register;
     cc->gdb_write_register = arm_cpu_gdb_write_register;
-#ifndef CONFIG_USER_ONLY
     cc->sysemu_ops = &arm_sysemu_ops;
-#endif
     cc->gdb_arch_name = arm_gdb_arch_name;
     cc->gdb_get_core_xml_file = arm_gdb_get_core_xml_file;
     cc->gdb_stop_before_watchpoint = true;
-    cc->disas_set_info = arm_disas_set_info;
 
 #ifdef CONFIG_TCG
     cc->tcg_ops = &arm_tcg_ops;

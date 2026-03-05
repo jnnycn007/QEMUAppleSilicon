@@ -195,8 +195,7 @@ SRST
     Show PCI information.
 ERST
 
-#if defined(TARGET_I386) || defined(TARGET_SH4) || defined(TARGET_SPARC) || \
-    defined(TARGET_PPC) || defined(TARGET_XTENSA) || defined(TARGET_M68K)
+#if defined(TARGET_I386)
     {
         .name       = "tlb",
         .args_type  = "",
@@ -695,37 +694,6 @@ ERST
 SRST
   ``info rocker-of-dpa-groups`` *name* [*type*]
     Show rocker OF-DPA groups.
-ERST
-
-#if defined(TARGET_S390X)
-    {
-        .name       = "skeys",
-        .args_type  = "addr:l",
-        .params     = "address",
-        .help       = "Display the value of a storage key",
-        .cmd        = hmp_info_skeys,
-    },
-#endif
-
-SRST
-  ``info skeys`` *address*
-    Display the value of a storage key (s390 only)
-ERST
-
-#if defined(TARGET_S390X)
-    {
-        .name       = "cmma",
-        .args_type  = "addr:l,count:l?",
-        .params     = "address [count]",
-        .help       = "Display the values of the CMMA storage attributes for a range of pages",
-        .cmd        = hmp_info_cmma,
-    },
-#endif
-
-SRST
-  ``info cmma`` *address*
-    Display the values of the CMMA storage attributes for a range of
-    pages (s390 only)
 ERST
 
     {

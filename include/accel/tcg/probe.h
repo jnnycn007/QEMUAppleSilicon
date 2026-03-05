@@ -65,8 +65,6 @@ int probe_access_flags(CPUArchState *env, vaddr addr, int size,
                        MMUAccessType access_type, int mmu_idx,
                        bool nonfault, void **phost, uintptr_t retaddr);
 
-#ifndef CONFIG_USER_ONLY
-
 /**
  * probe_access_full:
  * Like probe_access_flags, except also return into @pfull.
@@ -78,9 +76,6 @@ int probe_access_flags(CPUArchState *env, vaddr addr, int size,
  * This function will not fault if @nonfault is set, but will
  * return TLB_INVALID_MASK if the page is not mapped, or is not
  * accessible with @access_type.
- *
- * This function will return TLB_MMIO in order to force the access
- * to be handled out-of-line if plugins wish to instrument the access.
  */
 int probe_access_full(CPUArchState *env, vaddr addr, int size,
                       MMUAccessType access_type, int mmu_idx,
@@ -95,13 +90,10 @@ int probe_access_full(CPUArchState *env, vaddr addr, int size,
  * the target mmu itself.  Since such page walking happens while
  * handling another potential mmu fault, this function never raises
  * exceptions (akin to @nonfault true for probe_access_full).
- * Likewise this function does not trigger plugin instrumentation.
  */
 int probe_access_full_mmu(CPUArchState *env, vaddr addr, int size,
                           MMUAccessType access_type, int mmu_idx,
                           void **phost, CPUTLBEntryFull **pfull);
-
-#endif /* !CONFIG_USER_ONLY */
 
 /**
  * tlb_vaddr_to_host:

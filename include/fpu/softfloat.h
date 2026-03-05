@@ -120,16 +120,11 @@ bfloat16 bfloat16_squash_input_denormal(bfloat16 a, float_status *status);
 | Using these differs from negating an input or output before calling
 | the muladd function in that this means that a NaN doesn't have its
 | sign bit inverted before it is propagated.
-|
-| With float_muladd_suppress_add_product_zero, if A or B is zero
-| such that the product is a true zero, then return C without addition.
-| This preserves the sign of C when C is +/- 0.  Used for Hexagon.
 *----------------------------------------------------------------------------*/
 enum {
     float_muladd_negate_c = 1,
     float_muladd_negate_product = 2,
     float_muladd_negate_result = 4,
-    float_muladd_suppress_add_product_zero = 8,
 };
 
 /*----------------------------------------------------------------------------
@@ -1385,16 +1380,6 @@ static inline bool float128_unordered_quiet(float128 a, float128 b,
 | The pattern for a default generated quadruple-precision NaN.
 *----------------------------------------------------------------------------*/
 float128 float128_default_nan(float_status *status);
-
-#define DECLARE_S390_DIVIDE_TO_INTEGER(floatN)                                 \
-void floatN ## _s390_divide_to_integer(floatN a, floatN b,                     \
-                                       int final_quotient_rounding_mode,       \
-                                       bool mask_underflow, bool mask_inexact, \
-                                       floatN *r, floatN *n,                   \
-                                       uint32_t *cc, int *dxc,                 \
-                                       float_status *status)
-DECLARE_S390_DIVIDE_TO_INTEGER(float32);
-DECLARE_S390_DIVIDE_TO_INTEGER(float64);
 
 
 #endif /* SOFTFLOAT_H */

@@ -439,15 +439,15 @@ DEF("numa", HAS_ARG, QEMU_OPTION_numa,
     QEMU_ARCH_ALL)
 SRST
 ``-numa node[,mem=size][,cpus=firstcpu[-lastcpu]][,nodeid=node][,initiator=initiator]``
-  \ 
+  \
 ``-numa node[,memdev=id][,cpus=firstcpu[-lastcpu]][,nodeid=node][,initiator=initiator]``
   \
 ``-numa dist,src=source,dst=destination,val=distance``
-  \ 
+  \
 ``-numa cpu,node-id=node[,socket-id=x][,core-id=y][,thread-id=z]``
-  \ 
+  \
 ``-numa hmat-lb,initiator=node,target=node,hierarchy=hierarchy,data-type=type[,latency=lat][,bandwidth=bw]``
-  \ 
+  \
 ``-numa hmat-cache,node-id=node,size=size,level=level[,associativity=str][,policy=str][,line=size]``
     Define a NUMA node and assign RAM and VCPUs to it. Set the NUMA
     distance from a source node to a destination node. Set the ACPI
@@ -649,7 +649,7 @@ DEF("global", HAS_ARG, QEMU_OPTION_global,
     QEMU_ARCH_ALL)
 SRST
 ``-global driver.prop=value``
-  \ 
+  \
 ``-global driver=driver,property=property,value=value``
     Set default value of driver's property prop to value, e.g.:
 
@@ -1313,9 +1313,9 @@ SRST
 ``-hda file``
   \
 ``-hdb file``
-  \ 
+  \
 ``-hdc file``
-  \ 
+  \
 ``-hdd file``
     Use file as hard disk 0, 1, 2 or 3 image on the default bus of the
     emulated machine (this is for example the IDE bus on most x86 machines,
@@ -1919,7 +1919,7 @@ DEF("virtfs", HAS_ARG, QEMU_OPTION_virtfs,
 
 SRST
 ``-virtfs local,path=path,mount_tag=mount_tag ,security_model=security_model[,writeout=writeout][,readonly=on] [,fmode=fmode][,dmode=dmode][,multidevs=multidevs]``
-  \ 
+  \
 ``-virtfs synth,mount_tag=mount_tag``
     Define a new virtual filesystem device and expose it to the guest using
     a virtio-9p-device (a.k.a. 9pfs), which essentially means that a certain
@@ -2450,21 +2450,6 @@ SRST
     Start in full screen.
 ERST
 
-DEF("g", HAS_ARG, QEMU_OPTION_g ,
-    "-g WxH[xDEPTH]  Set the initial graphical resolution and depth\n",
-    QEMU_ARCH_PPC | QEMU_ARCH_SPARC | QEMU_ARCH_M68K)
-SRST
-``-g`` *width*\ ``x``\ *height*\ ``[x``\ *depth*\ ``]``
-    Set the initial graphical resolution and depth (PPC, SPARC only).
-
-    For PPC the default is 800x600x32.
-
-    For SPARC with the TCX graphics device, the default is 1024x768x8
-    with the option of 1024x768x24. For cgthree, the default is
-    1024x768x8 with the option of 1152x900x8 for people who wish to use
-    OBP.
-ERST
-
 #ifdef CONFIG_VNC
 DEF("vnc", HAS_ARG, QEMU_OPTION_vnc ,
     "-vnc <display>  shorthand for -display vnc=<display>\n", QEMU_ARCH_ALL)
@@ -2716,7 +2701,7 @@ DEF("smbios", HAS_ARG, QEMU_OPTION_smbios,
     "                specify SMBIOS type 17 fields\n"
     "-smbios type=41[,designation=str][,kind=str][,instance=%d][,pcidev=str]\n"
     "                specify SMBIOS type 41 fields\n",
-    QEMU_ARCH_I386 | QEMU_ARCH_ARM | QEMU_ARCH_LOONGARCH | QEMU_ARCH_RISCV)
+    QEMU_ARCH_I386 | QEMU_ARCH_ARM)
 SRST
 ``-smbios file=binary``
     Load SMBIOS entry from binary file.
@@ -2814,7 +2799,7 @@ DEFHEADING(Network options:)
 
 DEF("netdev", HAS_ARG, QEMU_OPTION_netdev,
 #ifdef CONFIG_PASST
-    "-netdev passt,id=str[,path=file][,quiet=on|off][,vhost-user=on|off]\n"
+    "-netdev passt,id=str[,path=file][,quiet=on|off]\n"
     "[,mtu=mtu][,address=addr][,netmask=mask][,mac=addr][,gateway=addr]\n"
     "          [,interface=name][,outbound=address][,outbound-if4=name]\n"
     "          [,outbound-if6=name][,dns=addr][,search=list][,fqdn=name]\n"
@@ -2828,8 +2813,7 @@ DEF("netdev", HAS_ARG, QEMU_OPTION_netdev,
     "                if 'path' is not provided 'passt' will be started according to PATH\n"
     "                by default, informational message of passt are not displayed (quiet=on)\n"
     "                to display this message, use 'quiet=off'\n"
-    "                by default, passt will be started in socket-based mode, to enable vhost-mode,\n"
-    "                use 'vhost-user=on'\n"
+    "                passt will be started in socket-based mode'\n"
     "                for details on other options, refer to passt(1)\n"
     "                'param' allows to pass any option defined by passt(1)\n"
 #endif
@@ -2959,10 +2943,6 @@ DEF("netdev", HAS_ARG, QEMU_OPTION_netdev,
     "                use 'queues=n' to specify how many queues of a multiqueue interface should be used\n"
     "                use 'start-queue=m' to specify the first queue that should be used\n"
 #endif
-#ifdef CONFIG_POSIX
-    "-netdev vhost-user,id=str,chardev=dev[,vhostforce=on|off]\n"
-    "                configure a vhost-user network, backed by a chardev 'dev'\n"
-#endif
 #ifdef __linux__
     "-netdev vhost-vdpa,id=str[,vhostdev=/path/to/dev][,vhostfd=h]\n"
     "                configure a vhost-vdpa network,Establish a vhost-vdpa netdev\n"
@@ -3010,9 +2990,6 @@ DEF("nic", HAS_ARG, QEMU_OPTION_nic,
 #ifdef CONFIG_AF_XDP
     "af-xdp|"
 #endif
-#ifdef CONFIG_POSIX
-    "vhost-user|"
-#endif
 #ifdef CONFIG_VMNET
     "vmnet-host|vmnet-shared|vmnet-bridged|"
 #endif
@@ -3051,7 +3028,7 @@ DEF("net", HAS_ARG, QEMU_OPTION_net,
     "                old way to initialize a host network interface\n"
     "                (use the -netdev option if possible instead)\n", QEMU_ARCH_ALL)
 SRST
-``-nic [tap|passt|bridge|user|l2tpv3|vde|netmap|af-xdp|vhost-user|socket][,...][,mac=macaddr][,model=mn]``
+``-nic [tap|passt|bridge|user|l2tpv3|vde|netmap|af-xdp|socket][,...][,mac=macaddr][,model=mn]``
     This option is a shortcut for configuring both the on-board
     (default) guest NIC hardware and the host network backend in one go.
     The host backend options are the same as with the corresponding
@@ -3088,12 +3065,6 @@ SRST
     ``quiet=on|off``
         By default, ``quiet=on`` to disable informational message from
         passt. ``quiet=on`` is passed as ``--quiet`` to passt.
-
-    ``vhost-user=on|off``
-        By default, ``vhost-user=off`` and QEMU uses the stream network
-        backend to communicate with passt. If ``vhost-user=on``, passt is
-        started with ``--vhost-user`` and QEMU uses the vhost-user network
-        backend to communicate with passt.
 
     ``@mtu``
         Assign MTU via DHCP/NDP
@@ -3843,25 +3814,6 @@ SRST
     Additionally, 'map-start-index' can be used to specify the start offset
     for insertion into the socket map.  The combination of 'map-path' and
     'sock-fds' together is not supported.
-
-``-netdev vhost-user,chardev=id[,vhostforce=on|off][,queues=n]``
-    Establish a vhost-user netdev, backed by a chardev id. The chardev
-    should be a unix domain socket backed one. The vhost-user uses a
-    specifically defined protocol to pass vhost ioctl replacement
-    messages to an application on the other end of the socket. On
-    non-MSIX guests, the feature can be forced with vhostforce. Use
-    'queues=n' to specify the number of queues to be created for
-    multiqueue vhost-user.
-
-    Example:
-
-    ::
-
-        qemu -m 512 -object memory-backend-file,id=mem,size=512M,mem-path=/hugetlbfs,share=on \
-             -numa node,memdev=mem \
-             -chardev socket,id=chr0,path=/path/to/socket \
-             -netdev type=vhost-user,id=net0,chardev=chr0 \
-             -device virtio-net-pci,netdev=net0
 
 ``-netdev vhost-vdpa[,vhostdev=/path/to/dev][,vhostfd=h]``
     Establish a vhost-vdpa netdev.
@@ -4852,7 +4804,7 @@ DEF("overcommit", HAS_ARG, QEMU_OPTION_overcommit,
     QEMU_ARCH_ALL)
 SRST
 ``-overcommit mem-lock=on|off|on-fault``
-  \ 
+  \
 ``-overcommit cpu-pm=on|off``
     Run qemu with hints about host resource overcommit. The default is
     to assume that host overcommits all resources.
@@ -4967,8 +4919,7 @@ ERST
 
 DEF("enable-kvm", 0, QEMU_OPTION_enable_kvm, \
     "-enable-kvm     enable KVM full virtualization support\n",
-    QEMU_ARCH_ARM | QEMU_ARCH_I386 | QEMU_ARCH_MIPS | QEMU_ARCH_PPC |
-    QEMU_ARCH_RISCV | QEMU_ARCH_S390X)
+    QEMU_ARCH_ARM | QEMU_ARCH_I386)
 SRST
 ``-enable-kvm``
     Enable KVM full virtualization support. This option is only
@@ -5218,7 +5169,7 @@ or is 'main' for all other forms of -incoming.  If multiple -incoming
 options are specified for a channel type, the last one takes precedence.
 
 ``-incoming tcp:[host]:port[,to=maxport][,ipv4=on|off][,ipv6=on|off]``
-  \ 
+  \
 ``-incoming rdma:host:port[,ipv4=on|off][,ipv6=on|off]``
     Prepare for incoming migration, listen on a given tcp port.
 
@@ -5273,32 +5224,13 @@ SRST
     ``-nodefaults`` option will disable all those default devices.
 ERST
 
-DEF("prom-env", HAS_ARG, QEMU_OPTION_prom_env,
-    "-prom-env variable=value\n"
-    "                set OpenBIOS nvram variables\n",
-    QEMU_ARCH_PPC | QEMU_ARCH_SPARC)
-SRST
-``-prom-env variable=value``
-    Set OpenBIOS nvram variable to given value (PPC, SPARC only).
 
-    ::
-
-        qemu-system-sparc -prom-env 'auto-boot?=false' \
-         -prom-env 'boot-device=sd(0,2,0):d' -prom-env 'boot-args=linux single'
-
-    ::
-
-        qemu-system-ppc -prom-env 'auto-boot?=false' \
-         -prom-env 'boot-device=hd:2,\yaboot' \
-         -prom-env 'boot-args=conf=hd:2,\yaboot.conf'
-ERST
 DEF("semihosting", 0, QEMU_OPTION_semihosting,
     "-semihosting    semihosting mode\n",
-    QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA |
-    QEMU_ARCH_MIPS | QEMU_ARCH_RISCV)
+    QEMU_ARCH_ARM)
 SRST
 ``-semihosting``
-    Enable :ref:`Semihosting` mode (ARM, M68K, Xtensa, MIPS, RISC-V only).
+    Enable :ref:`Semihosting` mode (ARM only).
 
     .. warning::
       Note that this allows guest direct access to the host filesystem, so
@@ -5310,12 +5242,10 @@ ERST
 DEF("semihosting-config", HAS_ARG, QEMU_OPTION_semihosting_config,
     "-semihosting-config [enable=on|off][,target=native|gdb|auto][,chardev=id][,userspace=on|off][,arg=str[,...]]\n" \
     "                semihosting configuration\n",
-QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA |
-QEMU_ARCH_MIPS | QEMU_ARCH_RISCV)
+QEMU_ARCH_ARM)
 SRST
 ``-semihosting-config [enable=on|off][,target=native|gdb|auto][,chardev=id][,userspace=on|off][,arg=str[,...]]``
-    Enable and configure :ref:`Semihosting` (ARM, M68K, Xtensa, MIPS, RISC-V
-    only).
+    Enable and configure :ref:`Semihosting` (ARM only).
 
     .. warning::
       Note that this allows guest direct access to the host filesystem, so
@@ -5407,20 +5337,6 @@ SRST
 ``-trace [[enable=]pattern][,events=file][,file=file]``
   .. include:: ../qemu-option-trace.rst.inc
 
-ERST
-DEF("plugin", HAS_ARG, QEMU_OPTION_plugin,
-    "-plugin [file=]<file>[,<argname>=<argvalue>]\n"
-    "                load a plugin\n",
-    QEMU_ARCH_ALL)
-SRST
-``-plugin file=file[,argname=argvalue]``
-    Load a plugin.
-
-    ``file=file``
-        Load the given plugin from a shared library file.
-
-    ``argname=argvalue``
-        Argument passed to the plugin. (Can be given multiple times.)
 ERST
 
 #if defined(CONFIG_POSIX) && !defined(EMSCRIPTEN)
@@ -5648,9 +5564,8 @@ SRST
 
     ``-object memory-backend-memfd,id=id,merge=on|off,dump=on|off,share=on|off,prealloc=on|off,size=size,host-nodes=host-nodes,policy=default|preferred|bind|interleave,seal=on|off,hugetlb=on|off,hugetlbsize=size``
         Creates an anonymous memory file backend object, which allows
-        QEMU to share the memory with an external process (e.g. when
-        using vhost-user). The memory is allocated with memfd and
-        optional sealing. (Linux only)
+        QEMU to share the memory with an external process.
+        The memory is allocated with memfd and optional sealing. (Linux only)
 
         The ``seal`` option creates a sealed-file, that will block
         further resizing the memory ('on' by default).
@@ -5673,8 +5588,7 @@ SRST
 
     ``-object memory-backend-shm,id=id,merge=on|off,dump=on|off,share=on|off,prealloc=on|off,size=size,host-nodes=host-nodes,policy=default|preferred|bind|interleave``
         Creates a POSIX shared memory backend object, which allows
-        QEMU to share the memory with an external process (e.g. when
-        using vhost-user).
+        QEMU to share the memory with an external process.
 
         ``memory-backend-shm`` is a more portable and less featureful version
         of ``memory-backend-memfd``. It can then be used in any POSIX system,
@@ -6012,28 +5926,8 @@ SRST
                    -device virtio-crypto-pci,id=crypto0,cryptodev=cryptodev0 \\
                [...]
 
-    ``-object cryptodev-vhost-user,id=id,chardev=chardevid[,queues=queues]``
-        Creates a vhost-user cryptodev backend, backed by a chardev
-        chardevid. The id parameter is a unique ID that will be used to
-        reference this cryptodev backend from the ``virtio-crypto``
-        device. The chardev should be a unix domain socket backed one.
-        The vhost-user uses a specifically defined protocol to pass
-        vhost ioctl replacement messages to an application on the other
-        end of the socket. The queues parameter is optional, which
-        specify the queue number of cryptodev backend for multiqueue
-        vhost-user, the default of queues is 1.
-
-        .. parsed-literal::
-
-             # |qemu_system| \\
-               [...] \\
-                   -chardev socket,id=chardev0,path=/path/to/socket \\
-                   -object cryptodev-vhost-user,id=cryptodev0,chardev=chardev0 \\
-                   -device virtio-crypto-pci,id=crypto0,cryptodev=cryptodev0 \\
-               [...]
-
     ``-object secret,id=id,data=string,format=raw|base64[,keyid=secretid,iv=string]``
-      \ 
+      \
     ``-object secret,id=id,file=filename,format=raw|base64[,keyid=secretid,iv=string]``
         Defines a secret to store a password, encryption key, or some
         other sensitive data. The sensitive data can either be passed

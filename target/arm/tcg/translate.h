@@ -59,9 +59,7 @@ typedef struct DisasContext {
     bool eci_handled;
     int sctlr_b;
     MemOp be_data;
-#if !defined(CONFIG_USER_ONLY)
     int user;
-#endif
     ARMMMUIdx mmu_idx; /* MMU index to use for normal loads/stores */
     uint8_t tbii;      /* TBI1|TBI0 for insns */
     uint8_t tbid;      /* TBI1|TBI0 for data */

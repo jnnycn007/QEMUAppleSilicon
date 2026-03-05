@@ -33,13 +33,8 @@
 #include "exec/gdbstub.h"
 #include "gdbstub/commands.h"
 #include "gdbstub/syscalls.h"
-#ifdef CONFIG_USER_ONLY
-#include "accel/tcg/vcpu-state.h"
-#include "gdbstub/user.h"
-#else
 #include "hw/cpu/cluster.h"
 #include "hw/boards.h"
-#endif
 #include "hw/core/cpu.h"
 
 #include "system/hw_accel.h"
@@ -202,16 +197,12 @@ void gdb_memtox(GString *buf, const char *mem, int len)
 
 static uint32_t gdb_get_cpu_pid(CPUState *cpu)
 {
-#ifdef CONFIG_USER_ONLY
-    return getpid();
-#else
     if (cpu->cluster_index == UNASSIGNED_CLUSTER_INDEX) {
         /* Return the default process' PID */
         int index = gdbserver_state.process_num - 1;
         return gdbserver_state.processes[index].pid;
     }
     return cpu->cluster_index + 1;
-#endif
 }
 
 GDBProcess *gdb_get_process(uint32_t pid)
@@ -1021,12 +1012,6 @@ static void handle_detach(GArray *params, void *user_ctx)
         pid = gdb_get_cmd_param(params, 0)->val_ul;
     }
 
-#ifdef CONFIG_USER_ONLY
-    if (gdb_handle_detach_user(pid)) {
-        return;
-    }
-#endif
-
     process = gdb_get_process(pid);
     gdb_process_breakpoint_remove_all(process);
     process->attached = false;
@@ -1122,11 +1107,6 @@ static void handle_set_thread(GArray *params, void *user_ctx)
 
     pid = gdb_get_cmd_param(params, 1)->thread_id.pid;
     tid = gdb_get_cmd_param(params, 1)->thread_id.tid;
-#ifdef CONFIG_USER_ONLY
-    if (gdb_handle_set_thread_user(pid, tid)) {
-        return;
-    }
-#endif
     cpu = gdb_get_cpu(pid, tid);
     if (!cpu) {
         gdb_put_packet("E22");
@@ -1480,36 +1460,6 @@ static const GdbCmdParseEntry gdb_v_commands_table[] = {
         .cmd = "Kill;",
         .cmd_startswith = true
     },
-#ifdef CONFIG_USER_ONLY
-    /*
-     * Host I/O Packets. See [1] for details.
-     * [1] https://sourceware.org/gdb/onlinedocs/gdb/Host-I_002fO-Packets.html
-     */
-    {
-        .handler = gdb_handle_v_file_open,
-        .cmd = "File:open:",
-        .cmd_startswith = true,
-        .schema = "s,L,L0"
-    },
-    {
-        .handler = gdb_handle_v_file_close,
-        .cmd = "File:close:",
-        .cmd_startswith = true,
-        .schema = "l0"
-    },
-    {
-        .handler = gdb_handle_v_file_pread,
-        .cmd = "File:pread:",
-        .cmd_startswith = true,
-        .schema = "l,L,L0"
-    },
-    {
-        .handler = gdb_handle_v_file_readlink,
-        .cmd = "File:readlink:",
-        .cmd_startswith = true,
-        .schema = "s0"
-    },
-#endif
 };
 
 static void handle_v_commands(GArray *params, void *user_ctx)
@@ -1600,13 +1550,8 @@ static void handle_query_threads(GArray *params, void *user_ctx)
 
 static void handle_query_gdb_server_version(GArray *params, void *user_ctx)
 {
-#if defined(CONFIG_USER_ONLY)
-    g_string_printf(gdbserver_state.str_buf, "name:qemu-%s;version:%s;",
-                    target_name(), QEMU_VERSION);
-#else
     g_string_printf(gdbserver_state.str_buf, "name:qemu-system-%s;version:%s;",
                     target_name(), QEMU_VERSION);
-#endif
     gdb_put_strbuf();
 }
 
@@ -1681,27 +1626,12 @@ static void handle_query_supported(GArray *params, void *user_ctx)
             ";ReverseStep+;ReverseContinue+");
     }
 
-#if defined(CONFIG_USER_ONLY)
-#if defined(CONFIG_LINUX)
-    if (get_task_state(gdbserver_state.c_cpu)) {
-        g_string_append(gdbserver_state.str_buf, ";qXfer:auxv:read+");
-    }
-    g_string_append(gdbserver_state.str_buf, ";QCatchSyscalls+");
-
-    g_string_append(gdbserver_state.str_buf, ";qXfer:siginfo:read+");
-#endif
-    g_string_append(gdbserver_state.str_buf, ";qXfer:exec-file:read+");
-#endif
-
     if (params->len) {
         const char *gdb_supported = gdb_get_cmd_param(params, 0)->data;
 
         if (strstr(gdb_supported, "multiprocess+")) {
             gdbserver_state.multiprocess = true;
         }
-#if defined(CONFIG_USER_ONLY)
-        gdb_handle_query_supported_user(gdb_supported);
-#endif
     }
 
     g_string_append(gdbserver_state.str_buf, ";vContSupported+;multiprocess+");
@@ -1767,10 +1697,7 @@ static void handle_query_xfer_features(GArray *params, void *user_ctx)
 
 static void handle_query_qemu_supported(GArray *params, void *user_ctx)
 {
-    g_string_printf(gdbserver_state.str_buf, "sstepbits;sstep");
-#ifndef CONFIG_USER_ONLY
-    g_string_append(gdbserver_state.str_buf, ";PhyMemMode");
-#endif
+    g_string_printf(gdbserver_state.str_buf, "sstepbits;sstep;PhyMemMode");
     gdb_put_strbuf();
 }
 
@@ -1869,19 +1796,12 @@ static const GdbCmdParseEntry gdb_gen_query_table[] = {
         .cmd_startswith = true,
         .schema = "t0"
     },
-#ifdef CONFIG_USER_ONLY
-    {
-        .handler = gdb_handle_query_offsets,
-        .cmd = "Offsets",
-    },
-#else
     {
         .handler = gdb_handle_query_rcmd,
         .cmd = "Rcmd,",
         .cmd_startswith = true,
         .schema = "s0"
     },
-#endif
     {
         .handler = handle_query_supported,
         .cmd = "Supported:",
@@ -1899,28 +1819,6 @@ static const GdbCmdParseEntry gdb_gen_query_table[] = {
         .cmd_startswith = true,
         .schema = "s:l,l0"
     },
-#if defined(CONFIG_USER_ONLY)
-#if defined(CONFIG_LINUX)
-    {
-        .handler = gdb_handle_query_xfer_auxv,
-        .cmd = "Xfer:auxv:read::",
-        .cmd_startswith = true,
-        .schema = "l,l0"
-    },
-    {
-        .handler = gdb_handle_query_xfer_siginfo,
-        .cmd = "Xfer:siginfo:read::",
-        .cmd_startswith = true,
-        .schema = "l,l0"
-     },
-#endif
-    {
-        .handler = gdb_handle_query_xfer_exec_file,
-        .cmd = "Xfer:exec-file:read:",
-        .cmd_startswith = true,
-        .schema = "l:l,l0"
-    },
-#endif
     {
         .handler = gdb_handle_query_attached,
         .cmd = "Attached:",
@@ -1934,12 +1832,10 @@ static const GdbCmdParseEntry gdb_gen_query_table[] = {
         .handler = handle_query_qemu_supported,
         .cmd = "qemu.Supported",
     },
-#ifndef CONFIG_USER_ONLY
     {
         .handler = gdb_handle_query_qemu_phy_mem_mode,
         .cmd = "qemu.PhyMemMode",
     },
-#endif
 };
 
 /* Ptr to GdbCmdParseEntry */
@@ -1958,22 +1854,12 @@ static const GdbCmdParseEntry gdb_gen_set_table[] = {
         .cmd_startswith = true,
         .schema = "l0"
     },
-#ifndef CONFIG_USER_ONLY
     {
         .handler = gdb_handle_set_qemu_phy_mem_mode,
         .cmd = "qemu.PhyMemMode:",
         .cmd_startswith = true,
         .schema = "l0"
     },
-#endif
-#if defined(CONFIG_USER_ONLY)
-    {
-        .handler = gdb_handle_set_catch_syscalls,
-        .cmd = "CatchSyscalls:",
-        .cmd_startswith = true,
-        .schema = "s0",
-    },
-#endif
 };
 
 static void handle_gen_query(GArray *params, void *user_ctx)
@@ -2328,7 +2214,7 @@ void gdb_read_byte(uint8_t ch)
     uint8_t reply;
 
     gdbserver_state.allow_stop_reply = false;
-#ifndef CONFIG_USER_ONLY
+
     if (gdbserver_state.last_packet->len) {
         /* Waiting for a response to the last packet.  If we see the start
            of a new command then abandon the previous response.  */
@@ -2362,9 +2248,7 @@ void gdb_read_byte(uint8_t ch)
             gdbserver_state.allow_stop_reply = true;
         }
         vm_stop(RUN_STATE_PAUSED);
-    } else
-#endif
-    {
+    } else {
         switch(gdbserver_state.state) {
         case RS_IDLE:
             if (ch == '$') {
@@ -2496,10 +2380,6 @@ void gdb_create_default_process(GDBState *s)
     GDBProcess *process;
     int pid;
 
-#ifdef CONFIG_USER_ONLY
-    assert(gdbserver_state.process_num == 0);
-    pid = getpid();
-#else
     if (gdbserver_state.process_num) {
         pid = s->processes[s->process_num - 1].pid;
     } else {
@@ -2508,7 +2388,6 @@ void gdb_create_default_process(GDBState *s)
     /* We need an available PID slot for this process */
     assert(pid < UINT32_MAX);
     pid++;
-#endif
 
     s->processes = g_renew(GDBProcess, s->processes, ++s->process_num);
     process = &s->processes[s->process_num - 1];

@@ -13,4 +13,3 @@ i386_ss.add(when: 'CONFIG_TCG', if_true: files(
   'translate.c'), if_false: files('tcg-stub.c'))
 
 subdir('system')
-subdir('user')

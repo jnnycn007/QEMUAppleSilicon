@@ -32,9 +32,6 @@ config TPM
 config FDT
     bool
 
-config VHOST_USER
-    bool
-
 config VHOST_VDPA
     bool
 
@@ -43,14 +40,6 @@ config VHOST_KERNEL
 
 config VIRTFS
     bool
-
-config MULTIPROCESS_ALLOWED
-    bool
-    imply MULTIPROCESS
-
-config VFIO_USER_SERVER_ALLOWED
-    bool
-    imply VFIO_USER_SERVER
 
 config HV_BALLOON_POSSIBLE
     bool

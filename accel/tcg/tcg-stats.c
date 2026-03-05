@@ -118,11 +118,11 @@ static gboolean tb_tree_stats_iter(gpointer key, gpointer value, gpointer data)
     if (tb->size > tst->max_target_size) {
         tst->max_target_size = tb->size;
     }
-#ifndef CONFIG_USER_ONLY
+
     if (tb->page_addr[1] != -1) {
         tst->cross_page++;
     }
-#endif
+
     if (tb->jmp_reset_offset[0] != TB_JMP_OFFSET_INVALID) {
         tst->direct_jmp_count++;
         if (tb->jmp_reset_offset[1] != TB_JMP_OFFSET_INVALID) {

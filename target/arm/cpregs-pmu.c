@@ -77,15 +77,10 @@ static int64_t swinc_ns_per(uint64_t ignored)
  */
 static uint64_t cycles_get_count(CPUARMState *env)
 {
-#ifndef CONFIG_USER_ONLY
     return muldiv64(qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL),
                    ARM_CPU_FREQ, NANOSECONDS_PER_SECOND);
-#else
-    return cpu_get_host_ticks();
-#endif
 }
 
-#ifndef CONFIG_USER_ONLY
 static int64_t cycles_ns_per(uint64_t cycles)
 {
     return (ARM_CPU_FREQ / NANOSECONDS_PER_SECOND) * cycles;
@@ -108,7 +103,6 @@ static int64_t instructions_ns_per(uint64_t icount)
     assert(icount_enabled() == ICOUNT_PRECISE);
     return icount_to_ns((int64_t)icount);
 }
-#endif
 
 static bool pmuv3p1_events_supported(CPUARMState *env)
 {
@@ -140,7 +134,6 @@ static const pm_event pm_events[] = {
       .get_count = swinc_get_count,
       .ns_per_count = swinc_ns_per,
     },
-#ifndef CONFIG_USER_ONLY
     { .number = 0x008, /* INST_RETIRED, Instruction architecturally executed */
       .supported = instructions_supported,
       .get_count = instructions_get_count,
@@ -151,7 +144,6 @@ static const pm_event pm_events[] = {
       .get_count = cycles_get_count,
       .ns_per_count = cycles_ns_per,
     },
-#endif
     { .number = 0x023, /* STALL_FRONTEND */
       .supported = pmuv3p1_events_supported,
       .get_count = zero_event_get_count,
@@ -508,7 +500,6 @@ static void pmccntr_op_start(CPUARMState *env)
 static void pmccntr_op_finish(CPUARMState *env)
 {
     if (pmu_counter_enabled(env, 31)) {
-#ifndef CONFIG_USER_ONLY
         /* Calculate when the counter will next overflow */
         uint64_t remaining_cycles = -env->cp15.c15_ccnt;
         if (!(env->cp15.c9_pmcr & PMCRLC)) {
@@ -525,7 +516,6 @@ static void pmccntr_op_finish(CPUARMState *env)
                 timer_mod_anticipate_ns(cpu->pmu_timer, overflow_at);
             }
         }
-#endif
 
         uint64_t prev_cycles = env->cp15.c15_ccnt_delta;
         if (pmccntr_clockdiv_enabled(env)) {
@@ -562,7 +552,6 @@ static void pmevcntr_op_start(CPUARMState *env, uint8_t counter)
 static void pmevcntr_op_finish(CPUARMState *env, uint8_t counter)
 {
     if (pmu_counter_enabled(env, counter)) {
-#ifndef CONFIG_USER_ONLY
         uint16_t event = env->cp15.c14_pmevtyper[counter] & PMXEVTYPER_EVTCOUNT;
         uint16_t event_idx = supported_event_map[event];
         uint64_t delta = -(env->cp15.c14_pmevcntr[counter] + 1);
@@ -582,7 +571,6 @@ static void pmevcntr_op_finish(CPUARMState *env, uint8_t counter)
                 timer_mod_anticipate_ns(cpu->pmu_timer, overflow_at);
             }
         }
-#endif
 
         env->cp15.c14_pmevcntr_delta[counter] -=
             env->cp15.c14_pmevcntr[counter];

@@ -77,8 +77,6 @@ option('xen_pci_passthrough', type: 'feature', value: 'auto',
        description: 'Xen PCI passthrough support')
 option('tcg', type: 'feature', value: 'enabled',
        description: 'TCG support')
-option('plugins', type: 'boolean', value: false,
-       description: 'TCG plugins via shared library loading')
 option('debug_tcg', type: 'boolean', value: false,
        description: 'TCG debugging')
 option('debug_remap', type: 'boolean', value: false,
@@ -103,8 +101,6 @@ option('multiprocess', type: 'feature', value: 'auto',
        description: 'Out of process device emulation support')
 option('relocatable', type : 'boolean', value : true,
        description: 'toggle relocatable install')
-option('vfio_user_server', type: 'feature', value: 'disabled',
-       description: 'vfio-user server support')
 option('dbus_display', type: 'feature', value: 'auto',
        description: '-display dbus support')
 option('tpm', type : 'feature', value : 'auto',
@@ -297,14 +293,8 @@ option('vhost_kernel', type: 'feature', value: 'auto',
        description: 'vhost kernel backend support')
 option('vhost_net', type: 'feature', value: 'auto',
        description: 'vhost-net kernel acceleration support')
-option('vhost_user', type: 'feature', value: 'auto',
-       description: 'vhost-user backend support')
-option('vhost_crypto', type: 'feature', value: 'auto',
-       description: 'vhost-user crypto backend support')
 option('vhost_vdpa', type: 'feature', value: 'auto',
        description: 'vhost-vdpa kernel backend support')
-option('vhost_user_blk_server', type: 'feature', value: 'auto',
-       description: 'build vhost-user-blk server')
 option('virtfs', type: 'feature', value: 'auto',
        description: 'virtio-9p support')
 option('libvduse', type: 'feature', value: 'auto',
@@ -312,8 +302,6 @@ option('libvduse', type: 'feature', value: 'auto',
 option('vduse_blk_export', type: 'feature', value: 'auto',
        description: 'VDUSE block export support')
 
-option('capstone', type: 'feature', value: 'auto',
-       description: 'Whether and how to find the capstone library')
 option('fdt', type: 'combo', value: 'auto',
        choices: ['disabled', 'enabled', 'auto', 'system', 'internal'],
        description: 'Whether and how to find the libfdt library')
@@ -369,9 +357,6 @@ option('qemu_ga_distro', type: 'string', value: 'Linux',
        description: 'second path element in qemu-ga registry entries')
 option('qemu_ga_version', type: 'string', value: '',
        description: 'version number for qemu-ga installer')
-
-option('hexagon_idef_parser', type : 'boolean', value : true,
-       description: 'use idef-parser to automatically generate TCG code for the Hexagon frontend')
 
 option('x86_version', type : 'combo', choices : ['0', '1', '2', '3', '4'], value: '1',
        description: 'tweak required x86_64 architecture version beyond compiler default')

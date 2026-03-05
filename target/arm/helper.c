@@ -13,7 +13,6 @@
 #include "internals.h"
 #include "cpu-features.h"
 #include "exec/page-protection.h"
-#include "exec/mmap-lock.h"
 #include "qemu/main-loop.h"
 #include "qemu/timer.h"
 #include "qemu/bitops.h"
@@ -221,7 +220,7 @@ static inline int cpreg_key_cmp(uint32_t pa, uint32_t pb)
 
 ARRAY_DEF(cpreg_key_array, uint32_t)
 ALGO_DEF(cpreg_key_array_algo, ARRAY_OPLIST(cpreg_key_array, CPREG_KEY_OPLIST))
- 
+
 void init_cpreg_list(ARMCPU *cpu)
 {
     /*
@@ -1057,8 +1056,6 @@ static void arm_gt_cntfrq_reset(CPUARMState *env, const ARMCPRegInfo *opaque)
 
     cpu->env.cp15.c14_cntfrq = cpu->gt_cntfrq_hz;
 }
-
-#ifndef CONFIG_USER_ONLY
 
 static CPAccessResult gt_cntfrq_access(CPUARMState *env, const ARMCPRegInfo *ri,
                                        bool isread)
@@ -2229,52 +2226,6 @@ static const ARMCPRegInfo gen_timer_cntpoff_reginfo = {
     .nv2_redirect_offset = 0x1a8,
     .fieldoffset = offsetof(CPUARMState, cp15.cntpoff_el2),
 };
-#else
-
-/*
- * In user-mode most of the generic timer registers are inaccessible
- * however modern kernels (4.12+) allow access to cntvct_el0
- */
-
-static uint64_t gt_virt_cnt_read(CPUARMState *env, const ARMCPRegInfo *ri)
-{
-    ARMCPU *cpu = env_archcpu(env);
-
-    /*
-     * Currently we have no support for QEMUTimer in linux-user so we
-     * can't call gt_get_countervalue(env), instead we directly
-     * call the lower level functions.
-     */
-    return cpu_get_clock() / gt_cntfrq_period_ns(cpu);
-}
-
-static const ARMCPRegInfo generic_timer_cp_reginfo[] = {
-    { .name = "CNTFRQ_EL0", .state = ARM_CP_STATE_AA64,
-      .opc0 = 3, .opc1 = 3, .crn = 14, .crm = 0, .opc2 = 0,
-      .access = PL0_R /* no PL1_RW in linux-user */,
-      .fieldoffset = offsetof(CPUARMState, cp15.c14_cntfrq),
-      .resetfn = arm_gt_cntfrq_reset,
-    },
-    { .name = "CNTVCT_EL0", .state = ARM_CP_STATE_AA64,
-      .opc0 = 3, .opc1 = 3, .crn = 14, .crm = 0, .opc2 = 2,
-      .access = PL0_R, .type = ARM_CP_NO_RAW | ARM_CP_IO,
-      .readfn = gt_virt_cnt_read,
-    },
-};
-
-/*
- * CNTVCTSS_EL0 has the same trap conditions as CNTVCT_EL0, so it also
- * is exposed to userspace by Linux.
- */
-static const ARMCPRegInfo gen_timer_ecv_cp_reginfo[] = {
-    { .name = "CNTVCTSS_EL0", .state = ARM_CP_STATE_AA64,
-      .opc0 = 3, .opc1 = 3, .crn = 14, .crm = 0, .opc2 = 6,
-      .access = PL0_R, .type = ARM_CP_NO_RAW | ARM_CP_IO,
-      .readfn = gt_virt_cnt_read,
-    },
-};
-
-#endif
 
 static void par_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
 {
@@ -2864,12 +2815,8 @@ static void omap_threadid_write(CPUARMState *env, const ARMCPRegInfo *ri,
 static void omap_wfi_write(CPUARMState *env, const ARMCPRegInfo *ri,
                            uint64_t value)
 {
-#ifdef CONFIG_USER_ONLY
-    g_assert_not_reached();
-#else
     /* Wait-for-interrupt (deprecated) */
     cpu_interrupt(env_cpu(env), CPU_INTERRUPT_HALT);
-#endif
 }
 
 static void omap_cachemaint_write(CPUARMState *env, const ARMCPRegInfo *ri,
@@ -3391,36 +3338,6 @@ static CPAccessResult access_nv1(CPUARMState *env, const ARMCPRegInfo *ri,
     return CP_ACCESS_OK;
 }
 
-#ifdef CONFIG_USER_ONLY
-/*
- * `IC IVAU` is handled to improve compatibility with JITs that dual-map their
- * code to get around W^X restrictions, where one region is writable and the
- * other is executable.
- *
- * Since the executable region is never written to we cannot detect code
- * changes when running in user mode, and rely on the emulated JIT telling us
- * that the code has changed by executing this instruction.
- */
-static void ic_ivau_write(CPUARMState *env, const ARMCPRegInfo *ri,
-                          uint64_t value)
-{
-    uint64_t icache_line_mask, start_address, end_address;
-    const ARMCPU *cpu;
-
-    cpu = env_archcpu(env);
-
-    icache_line_mask = (4 << extract32(cpu->ctr, 0, 4)) - 1;
-    start_address = value & ~icache_line_mask;
-    end_address = value | icache_line_mask;
-
-    mmap_lock();
-
-    tb_invalidate_phys_range(env_cpu(env), start_address, end_address);
-
-    mmap_unlock();
-}
-#endif
-
 static const ARMCPRegInfo v8_cp_reginfo[] = {
     /*
      * Minimal set of EL0-visible registers. This will need to be expanded
@@ -3451,11 +3368,8 @@ static const ARMCPRegInfo v8_cp_reginfo[] = {
     { .name = "DC_ZVA", .state = ARM_CP_STATE_AA64,
       .opc0 = 1, .opc1 = 3, .crn = 7, .crm = 4, .opc2 = 1,
       .access = PL0_W, .type = ARM_CP_DC_ZVA,
-#ifndef CONFIG_USER_ONLY
-      /* Avoid overhead of an access check that always passes in user-mode */
       .accessfn = aa64_zva_access,
       .fgt = FGT_DCZVA,
-#endif
     },
     { .name = "CURRENTEL", .state = ARM_CP_STATE_AA64,
       .opc0 = 3, .opc1 = 0, .opc2 = 2, .crn = 4, .crm = 2,
@@ -3479,12 +3393,7 @@ static const ARMCPRegInfo v8_cp_reginfo[] = {
       .access = PL0_W,
       .fgt = FGT_ICIVAU,
       .accessfn = access_tocu,
-#ifdef CONFIG_USER_ONLY
-      .type = ARM_CP_NO_RAW,
-      .writefn = ic_ivau_write
-#else
-      .type = ARM_CP_NOP
-#endif
+      .type = ARM_CP_NOP,
     },
     /* Cache ops: all NOPs since we don't emulate caches */
     { .name = "DC_IVAC", .state = ARM_CP_STATE_AA64,
@@ -4129,7 +4038,6 @@ static const ARMCPRegInfo el2_cp_reginfo[] = {
     { .name = "HTTBR", .cp = 15, .opc1 = 4, .crm = 2,
       .access = PL2_RW, .type = ARM_CP_64BIT | ARM_CP_ALIAS,
       .fieldoffset = offsetof(CPUARMState, cp15.ttbr0_el[2]) },
-#ifndef CONFIG_USER_ONLY
     { .name = "CNTHCTL_EL2", .state = ARM_CP_STATE_BOTH,
       .opc0 = 3, .opc1 = 4, .crn = 14, .crm = 1, .opc2 = 0,
       /*
@@ -4171,7 +4079,6 @@ static const ARMCPRegInfo el2_cp_reginfo[] = {
       .fieldoffset = offsetof(CPUARMState, cp15.c14_timer[GTIMER_HYP].ctl),
       .resetvalue = 0,
       .writefn = gt_hyp_ctl_write, .raw_writefn = raw_write },
-#endif
     { .name = "HPFAR", .state = ARM_CP_STATE_AA32,
       .cp = 15, .opc1 = 4, .crn = 6, .crm = 0, .opc2 = 4,
       .access = PL2_RW, .accessfn = access_el3_aa32ns,
@@ -4216,7 +4123,6 @@ static const ARMCPRegInfo el2_sec_cp_reginfo[] = {
       .access = PL2_RW, .accessfn = sel2_access,
       .nv2_redirect_offset = 0x48,
       .fieldoffset = offsetof(CPUARMState, cp15.vstcr_el2) },
-#ifndef CONFIG_USER_ONLY
     /* Secure EL2 Physical Timer */
     { .name = "CNTHPS_TVAL_EL2", .state = ARM_CP_STATE_AA64,
       .opc0 = 3, .opc1 = 4, .crn = 14, .crm = 5, .opc2 = 0,
@@ -4265,7 +4171,6 @@ static const ARMCPRegInfo el2_sec_cp_reginfo[] = {
       .fieldoffset = offsetof(CPUARMState, cp15.c14_timer[GTIMER_S_EL2_VIRT].cval),
       .writefn = gt_sec_vel2_cval_write, .raw_writefn = raw_write,
     },
-#endif
 };
 
 static CPAccessResult nsacr_access(CPUARMState *env, const ARMCPRegInfo *ri,
@@ -4365,8 +4270,6 @@ static const ARMCPRegInfo el3_cp_reginfo[] = {
       .access = PL3_RW, .type = ARM_CP_CONST,
       .resetvalue = 0 },
 };
-
-#ifndef CONFIG_USER_ONLY
 
 static CPAccessResult e2h_access(CPUARMState *env, const ARMCPRegInfo *ri,
                                  bool isread)
@@ -4625,7 +4528,6 @@ static void define_arm_vh_e2h_redirects_aliases(ARMCPU *cpu)
         src_reg->writefn = el2_e2h_write;
     }
 }
-#endif
 
 static CPAccessResult ctr_el0_access(CPUARMState *env, const ARMCPRegInfo *ri,
                                      bool isread)
@@ -4760,7 +4662,6 @@ static const ARMCPRegInfo minimal_ras_reginfo[] = {
  */
 int sve_exception_el(CPUARMState *env, int el)
 {
-#ifndef CONFIG_USER_ONLY
     if (el <= 1 && !el_is_in_host(env, el)) {
         switch (REG_FIELD_EX64(env->cp15.cpacr_el1, CPACR_EL1, ZEN)) {
         case 1:
@@ -4799,7 +4700,7 @@ int sve_exception_el(CPUARMState *env, int el)
         && !REG_FIELD_EX64(env->cp15.cptr_el[3], CPTR_EL3, EZ)) {
         return 3;
     }
-#endif
+
     return 0;
 }
 
@@ -4809,7 +4710,6 @@ int sve_exception_el(CPUARMState *env, int el)
  */
 int sme_exception_el(CPUARMState *env, int el)
 {
-#ifndef CONFIG_USER_ONLY
     if (el <= 1 && !el_is_in_host(env, el)) {
         switch (REG_FIELD_EX64(env->cp15.cpacr_el1, CPACR_EL1, SMEN)) {
         case 1:
@@ -4848,7 +4748,7 @@ int sme_exception_el(CPUARMState *env, int el)
         && !REG_FIELD_EX64(env->cp15.cptr_el[3], CPTR_EL3, ESM)) {
         return 3;
     }
-#endif
+
     return 0;
 }
 
@@ -5170,7 +5070,6 @@ static const ARMCPRegInfo nmi_reginfo[] = {
       .resetfn = arm_cp_reset_ignore },
 };
 
-#ifndef CONFIG_USER_ONLY
 /*
  * We don't know until after realize whether there's a GICv3
  * attached, and that is what registers the gicv3 sysregs.
@@ -5198,7 +5097,6 @@ static uint64_t id_aa64pfr0_read(CPUARMState *env, const ARMCPRegInfo *ri)
     }
     return pfr0;
 }
-#endif
 
 /*
  * Shared logic between LORID and the rest of the LOR* registers.
@@ -5443,8 +5341,6 @@ static void dccvap_writefn(CPUARMState *env, const ARMCPRegInfo *opaque,
     /* This won't be crossing page boundaries */
     haddr = probe_read(env, vaddr, dline_size, mem_idx, GETPC());
     if (haddr) {
-#ifndef CONFIG_USER_ONLY
-
         ram_addr_t offset;
         MemoryRegion *mr;
 
@@ -5454,7 +5350,6 @@ static void dccvap_writefn(CPUARMState *env, const ARMCPRegInfo *opaque,
         if (mr) {
             memory_region_writeback(mr, offset, dline_size);
         }
-#endif /*CONFIG_USER_ONLY*/
     }
 #else
     /* Handled by hardware accelerator. */
@@ -5673,20 +5568,14 @@ static const ARMCPRegInfo mte_el0_cacheop_reginfo[] = {
     { .name = "DC_GVA", .state = ARM_CP_STATE_AA64,
       .opc0 = 1, .opc1 = 3, .crn = 7, .crm = 4, .opc2 = 3,
       .access = PL0_W, .type = ARM_CP_DC_GVA,
-#ifndef CONFIG_USER_ONLY
-      /* Avoid overhead of an access check that always passes in user-mode */
       .accessfn = aa64_zva_access,
       .fgt = FGT_DCZVA,
-#endif
     },
     { .name = "DC_GZVA", .state = ARM_CP_STATE_AA64,
       .opc0 = 1, .opc1 = 3, .crn = 7, .crm = 4, .opc2 = 4,
       .access = PL0_W, .type = ARM_CP_DC_GZVA,
-#ifndef CONFIG_USER_ONLY
-      /* Avoid overhead of an access check that always passes in user-mode */
       .accessfn = aa64_zva_access,
       .fgt = FGT_DCZVA,
-#endif
     },
 };
 
@@ -5963,7 +5852,6 @@ static const ARMCPRegInfo vhe_reginfo[] = {
       .access = PL2_RW, .writefn = vmsa_tcr_ttbr_el2_write,
       .raw_writefn = raw_write,
       .fieldoffset = offsetof(CPUARMState, cp15.ttbr1_el[2]) },
-#ifndef CONFIG_USER_ONLY
     { .name = "CNTHV_CVAL_EL2", .state = ARM_CP_STATE_AA64,
       .opc0 = 3, .opc1 = 4, .crn = 14, .crm = 3, .opc2 = 2,
       .fieldoffset =
@@ -6019,7 +5907,6 @@ static const ARMCPRegInfo vhe_reginfo[] = {
       .fieldoffset = offsetof(CPUARMState, cp15.c14_timer[GTIMER_VIRT].cval),
       .access = PL2_RW, .accessfn = access_el1nvvct,
       .writefn = gt_virt_cval_write, .raw_writefn = raw_write },
-#endif
 };
 
 /*
@@ -6062,12 +5949,10 @@ void register_cp_regs_for_features(ARMCPU *cpu)
         define_arm_cp_regs(cpu, not_v8_cp_reginfo);
     }
 
-#ifndef CONFIG_USER_ONLY
     if (tcg_enabled()) {
         define_tlb_insn_regs(cpu);
         define_at_insn_regs(cpu);
     }
-#endif
 
     if (arm_feature(env, ARM_FEATURE_V6)) {
         /* The ID registers all have impdef reset values */
@@ -6084,15 +5969,10 @@ void register_cp_regs_for_features(ARMCPU *cpu)
             { .name = "ID_PFR1", .state = ARM_CP_STATE_BOTH,
               .opc0 = 3, .opc1 = 0, .crn = 0, .crm = 1, .opc2 = 1,
               .access = PL1_R, .type = ARM_CP_NO_RAW,
-#ifdef CONFIG_USER_ONLY
-              .type = ARM_CP_CONST,
-              .resetvalue = GET_IDREG(isar, ID_PFR1),
-#else
               .type = ARM_CP_NO_RAW,
               .accessfn = access_v7a_tid3,
               .readfn = id_pfr1_read,
-              .writefn = arm_cp_write_ignore
-#endif
+              .writefn = arm_cp_write_ignore,
             },
             { .name = "ID_DFR0", .state = ARM_CP_STATE_BOTH,
               .opc0 = 3, .opc1 = 0, .crn = 0, .crm = 1, .opc2 = 2,
@@ -6208,15 +6088,10 @@ void register_cp_regs_for_features(ARMCPU *cpu)
             { .name = "ID_AA64PFR0_EL1", .state = ARM_CP_STATE_AA64,
               .opc0 = 3, .opc1 = 0, .crn = 0, .crm = 4, .opc2 = 0,
               .access = PL1_R,
-#ifdef CONFIG_USER_ONLY
-              .type = ARM_CP_CONST,
-              .resetvalue = GET_IDREG(isar, ID_AA64PFR0)
-#else
               .type = ARM_CP_NO_RAW,
               .accessfn = access_tid3,
               .readfn = id_aa64pfr0_read,
-              .writefn = arm_cp_write_ignore
-#endif
+              .writefn = arm_cp_write_ignore,
             },
             { .name = "ID_AA64PFR1_EL1", .state = ARM_CP_STATE_AA64,
               .opc0 = 3, .opc1 = 0, .crn = 0, .crm = 4, .opc2 = 1,
@@ -6441,107 +6316,6 @@ void register_cp_regs_for_features(ARMCPU *cpu)
               .accessfn = access_tid3,
               .resetvalue = 0 },
         };
-#ifdef CONFIG_USER_ONLY
-        static const ARMCPRegUserSpaceInfo v8_user_idregs[] = {
-            { .name = "ID_AA64PFR0_EL1",
-              .exported_bits = R_ID_AA64PFR0_FP_MASK |
-                               R_ID_AA64PFR0_ADVSIMD_MASK |
-                               R_ID_AA64PFR0_SVE_MASK |
-                               R_ID_AA64PFR0_DIT_MASK,
-              .fixed_bits = (0x1u << R_ID_AA64PFR0_EL0_SHIFT) |
-                            (0x1u << R_ID_AA64PFR0_EL1_SHIFT) },
-            { .name = "ID_AA64PFR1_EL1",
-              .exported_bits = R_ID_AA64PFR1_BT_MASK |
-                               R_ID_AA64PFR1_SSBS_MASK |
-                               R_ID_AA64PFR1_MTE_MASK |
-                               R_ID_AA64PFR1_SME_MASK },
-            { .name = "ID_AA64PFR*_EL1_RESERVED",
-              .is_glob = true },
-            { .name = "ID_AA64ZFR0_EL1",
-              .exported_bits = R_ID_AA64ZFR0_SVEVER_MASK |
-                               R_ID_AA64ZFR0_AES_MASK |
-                               R_ID_AA64ZFR0_BITPERM_MASK |
-                               R_ID_AA64ZFR0_BFLOAT16_MASK |
-                               R_ID_AA64ZFR0_B16B16_MASK |
-                               R_ID_AA64ZFR0_SHA3_MASK |
-                               R_ID_AA64ZFR0_SM4_MASK |
-                               R_ID_AA64ZFR0_I8MM_MASK |
-                               R_ID_AA64ZFR0_F32MM_MASK |
-                               R_ID_AA64ZFR0_F64MM_MASK },
-            { .name = "ID_AA64SMFR0_EL1",
-              .exported_bits = R_ID_AA64SMFR0_F32F32_MASK |
-                               R_ID_AA64SMFR0_BI32I32_MASK |
-                               R_ID_AA64SMFR0_B16F32_MASK |
-                               R_ID_AA64SMFR0_F16F32_MASK |
-                               R_ID_AA64SMFR0_I8I32_MASK |
-                               R_ID_AA64SMFR0_F16F16_MASK |
-                               R_ID_AA64SMFR0_B16B16_MASK |
-                               R_ID_AA64SMFR0_I16I32_MASK |
-                               R_ID_AA64SMFR0_F64F64_MASK |
-                               R_ID_AA64SMFR0_I16I64_MASK |
-                               R_ID_AA64SMFR0_SMEVER_MASK |
-                               R_ID_AA64SMFR0_FA64_MASK },
-            { .name = "ID_AA64MMFR0_EL1",
-              .exported_bits = R_ID_AA64MMFR0_ECV_MASK,
-              .fixed_bits = (0xfu << R_ID_AA64MMFR0_TGRAN64_SHIFT) |
-                            (0xfu << R_ID_AA64MMFR0_TGRAN4_SHIFT) },
-            { .name = "ID_AA64MMFR1_EL1",
-              .exported_bits = R_ID_AA64MMFR1_AFP_MASK },
-            { .name = "ID_AA64MMFR2_EL1",
-              .exported_bits = R_ID_AA64MMFR2_AT_MASK },
-            { .name = "ID_AA64MMFR3_EL1",
-              .exported_bits = 0 },
-            { .name = "ID_AA64MMFR*_EL1_RESERVED",
-              .is_glob = true },
-            { .name = "ID_AA64DFR0_EL1",
-              .fixed_bits = (0x6u << R_ID_AA64DFR0_DEBUGVER_SHIFT) },
-            { .name = "ID_AA64DFR1_EL1" },
-            { .name = "ID_AA64DFR*_EL1_RESERVED",
-              .is_glob = true },
-            { .name = "ID_AA64AFR*",
-              .is_glob = true },
-            { .name = "ID_AA64ISAR0_EL1",
-              .exported_bits = R_ID_AA64ISAR0_AES_MASK |
-                               R_ID_AA64ISAR0_SHA1_MASK |
-                               R_ID_AA64ISAR0_SHA2_MASK |
-                               R_ID_AA64ISAR0_CRC32_MASK |
-                               R_ID_AA64ISAR0_ATOMIC_MASK |
-                               R_ID_AA64ISAR0_RDM_MASK |
-                               R_ID_AA64ISAR0_SHA3_MASK |
-                               R_ID_AA64ISAR0_SM3_MASK |
-                               R_ID_AA64ISAR0_SM4_MASK |
-                               R_ID_AA64ISAR0_DP_MASK |
-                               R_ID_AA64ISAR0_FHM_MASK |
-                               R_ID_AA64ISAR0_TS_MASK |
-                               R_ID_AA64ISAR0_RNDR_MASK },
-            { .name = "ID_AA64ISAR1_EL1",
-              .exported_bits = R_ID_AA64ISAR1_DPB_MASK |
-                               R_ID_AA64ISAR1_APA_MASK |
-                               R_ID_AA64ISAR1_API_MASK |
-                               R_ID_AA64ISAR1_JSCVT_MASK |
-                               R_ID_AA64ISAR1_FCMA_MASK |
-                               R_ID_AA64ISAR1_LRCPC_MASK |
-                               R_ID_AA64ISAR1_GPA_MASK |
-                               R_ID_AA64ISAR1_GPI_MASK |
-                               R_ID_AA64ISAR1_FRINTTS_MASK |
-                               R_ID_AA64ISAR1_SB_MASK |
-                               R_ID_AA64ISAR1_BF16_MASK |
-                               R_ID_AA64ISAR1_DGH_MASK |
-                               R_ID_AA64ISAR1_I8MM_MASK },
-            { .name = "ID_AA64ISAR2_EL1",
-              .exported_bits = R_ID_AA64ISAR2_WFXT_MASK |
-                               R_ID_AA64ISAR2_RPRES_MASK |
-                               R_ID_AA64ISAR2_GPA3_MASK |
-                               R_ID_AA64ISAR2_APA3_MASK |
-                               R_ID_AA64ISAR2_MOPS_MASK |
-                               R_ID_AA64ISAR2_BC_MASK |
-                               R_ID_AA64ISAR2_RPRFM_MASK |
-                               R_ID_AA64ISAR2_CSSC_MASK },
-            { .name = "ID_AA64ISAR*_EL1_RESERVED",
-              .is_glob = true },
-        };
-        modify_arm_cp_regs(v8_idregs, v8_user_idregs);
-#endif
         /*
          * RVBAR_EL1 and RMR_EL1 only implemented if EL1 is the highest EL.
          * TODO: For RMR, a write with bit 1 set should do something with
@@ -6762,11 +6536,9 @@ void register_cp_regs_for_features(ARMCPU *cpu)
     if (cpu_isar_feature(aa64_ecv_traps, cpu)) {
         define_arm_cp_regs(cpu, gen_timer_ecv_cp_reginfo);
     }
-#ifndef CONFIG_USER_ONLY
     if (cpu_isar_feature(aa64_ecv, cpu)) {
         define_one_arm_cp_reg(cpu, &gen_timer_cntpoff_reginfo);
     }
-#endif
     if (arm_feature(env, ARM_FEATURE_VAPA)) {
         ARMCPRegInfo vapa_cp_reginfo[] = {
             { .name = "PAR", .cp = 15, .crn = 7, .crm = 4, .opc1 = 0, .opc2 = 0,
@@ -6918,18 +6690,7 @@ void register_cp_regs_for_features(ARMCPU *cpu)
             .opc1 = CP_ANY, .opc2 = CP_ANY, .access = PL1_W,
             .type = ARM_CP_NOP | ARM_CP_OVERRIDE
         };
-#ifdef CONFIG_USER_ONLY
-        static const ARMCPRegUserSpaceInfo id_v8_user_midr_cp_reginfo[] = {
-            { .name = "MIDR_EL1",
-              .exported_bits = R_MIDR_EL1_REVISION_MASK |
-                               R_MIDR_EL1_PARTNUM_MASK |
-                               R_MIDR_EL1_ARCHITECTURE_MASK |
-                               R_MIDR_EL1_VARIANT_MASK |
-                               R_MIDR_EL1_IMPLEMENTER_MASK },
-            { .name = "REVIDR_EL1" },
-        };
-        modify_arm_cp_regs(id_v8_midr_cp_reginfo, id_v8_user_midr_cp_reginfo);
-#endif
+
         if (arm_feature(env, ARM_FEATURE_OMAPCP) ||
             arm_feature(env, ARM_FEATURE_STRONGARM)) {
             size_t i;
@@ -7040,13 +6801,6 @@ void register_cp_regs_for_features(ARMCPU *cpu)
               .fgt = FGT_MPIDR_EL1,
               .access = PL1_R, .readfn = mpidr_read, .type = ARM_CP_NO_RAW },
         };
-#ifdef CONFIG_USER_ONLY
-        static const ARMCPRegUserSpaceInfo mpidr_user_cp_reginfo[] = {
-            { .name = "MPIDR_EL1",
-              .fixed_bits = 0x0000000080000000 },
-        };
-        modify_arm_cp_regs(mpidr_cp_reginfo, mpidr_user_cp_reginfo);
-#endif
         define_arm_cp_regs(cpu, mpidr_cp_reginfo);
     }
 
@@ -7279,7 +7033,6 @@ void register_cp_regs_for_features(ARMCPU *cpu)
 
     define_pm_cpregs(cpu);
 
-#ifndef CONFIG_USER_ONLY
     /*
      * Register redirections and aliases must be done last,
      * after the registers from the other extensions have been defined.
@@ -7287,7 +7040,6 @@ void register_cp_regs_for_features(ARMCPU *cpu)
     if (arm_feature(env, ARM_FEATURE_EL2) && cpu_isar_feature(aa64_vh, cpu)) {
         define_arm_vh_e2h_redirects_aliases(cpu);
     }
-#endif
 }
 
 /*
@@ -7956,30 +7708,6 @@ void cpsr_write(CPUARMState *env, uint32_t val, uint32_t mask,
         arm_rebuild_hflags(env);
     }
 }
-
-#ifdef CONFIG_USER_ONLY
-
-static void switch_mode(CPUARMState *env, int mode)
-{
-    ARMCPU *cpu = env_archcpu(env);
-
-    if (mode != ARM_CPU_MODE_USR) {
-        cpu_abort(CPU(cpu), "Tried to switch out of user mode\n");
-    }
-}
-
-uint32_t arm_phys_excp_target_el(CPUState *cs, uint32_t excp_idx,
-                                 uint32_t cur_el, bool secure)
-{
-    return 1;
-}
-
-void aarch64_sync_64_to_32(CPUARMState *env)
-{
-    g_assert_not_reached();
-}
-
-#else
 
 static void switch_mode(CPUARMState *env, int mode)
 {
@@ -9235,7 +8963,6 @@ void arm_cpu_do_interrupt(CPUState *cs)
         cpu_set_interrupt(cs, CPU_INTERRUPT_EXITTB);
     }
 }
-#endif /* !CONFIG_USER_ONLY */
 
 uint64_t arm_sctlr(CPUARMState *env, int el)
 {
@@ -9523,7 +9250,6 @@ ARMVAParameters aa64_va_parameters(CPUARMState *env, uint64_t va,
  */
 int fp_exception_el(CPUARMState *env, int cur_el)
 {
-#ifndef CONFIG_USER_ONLY
     uint64_t hcr_el2;
 
     /*
@@ -9623,7 +9349,7 @@ int fp_exception_el(CPUARMState *env, int cur_el)
         /* Trap all FP ops to EL3 */
         return 3;
     }
-#endif
+
     return 0;
 }
 
@@ -9811,7 +9537,6 @@ void aarch64_sve_change_el(CPUARMState *env, int old_el,
     }
 }
 
-#ifndef CONFIG_USER_ONLY
 ARMSecuritySpace arm_security_space(CPUARMState *env)
 {
     if (arm_feature(env, ARM_FEATURE_M)) {
@@ -9869,4 +9594,3 @@ ARMSecuritySpace arm_security_space_below_el3(CPUARMState *env)
         return ARMSS_NonSecure;
     }
 }
-#endif /* !CONFIG_USER_ONLY */

@@ -13,11 +13,7 @@
 #include "semihosting/guestfd.h"
 #include "semihosting/syscalls.h"
 #include "semihosting/console.h"
-#ifdef CONFIG_USER_ONLY
-#include "qemu.h"
-#else
 #include "semihosting/uaccess.h"
-#endif
 
 
 /*
@@ -527,7 +523,6 @@ static void host_gettimeofday(CPUState *cs, gdb_syscall_complete_cb complete,
     unlock_user(p, tv_addr, sizeof(struct gdb_timeval));
 }
 
-#ifndef CONFIG_USER_ONLY
 static void host_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
                           GuestFD *gf, GIOCondition cond, int timeout)
 {
@@ -540,7 +535,6 @@ static void host_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
      */
     complete(cs, cond & (G_IO_IN | G_IO_OUT), 0);
 }
-#endif
 
 /*
  * Static file semihosting syscall implementations.
@@ -650,7 +644,6 @@ static void console_fstat(CPUState *cs, gdb_syscall_complete_cb complete,
     complete(cs, ret ? -1 : 0, ret ? -ret : 0);
 }
 
-#ifndef CONFIG_USER_ONLY
 static void console_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
                              GuestFD *gf, GIOCondition cond, int timeout)
 {
@@ -676,7 +669,6 @@ static void console_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
 
     complete(cs, cond, 0);
 }
-#endif
 
 /*
  * Syscall entry points.
@@ -957,7 +949,6 @@ void semihost_sys_gettimeofday(CPUState *cs, gdb_syscall_complete_cb complete,
     }
 }
 
-#ifndef CONFIG_USER_ONLY
 void semihost_sys_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
                            int fd, GIOCondition cond, int timeout)
 {
@@ -982,4 +973,3 @@ void semihost_sys_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
         g_assert_not_reached();
     }
 }
-#endif

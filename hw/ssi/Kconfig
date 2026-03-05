@@ -2,10 +2,6 @@ config PL022
     bool
     select SSI
 
-config SIFIVE_SPI
-    bool
-    select SSI
-
 config SSI
     bool
 
@@ -22,10 +18,6 @@ config STM32F2XX_SPI
     select SSI
 
 config BCM2835_SPI
-    bool
-    select SSI
-
-config PNV_SPI
     bool
     select SSI
 

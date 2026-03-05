@@ -1,4 +1,4 @@
-# core qdev-related obj files, also used by *-user and unit tests
+# core qdev-related obj files
 hwcore_ss.add(files(
   'bus.c',
   'qdev-properties.c',
@@ -45,8 +45,4 @@ system_ss.add(files(
   'sysbus.c',
   'vm-change-state-handler.c',
   'clock-vmstate.c',
-))
-user_ss.add(files(
-  'cpu-user.c',
-  'qdev-user.c',
 ))

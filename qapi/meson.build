@@ -39,7 +39,6 @@ qapi_all_modules = [
   'job',
   'machine-common',
   'machine',
-  'machine-s390x',
   'migration',
   'misc',
   'net',

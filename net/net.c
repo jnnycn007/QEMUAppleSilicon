@@ -1290,9 +1290,6 @@ static int (* const net_client_init_fun[NET_CLIENT_DRIVER__MAX])(
         [NET_CLIENT_DRIVER_BRIDGE]    = net_init_bridge,
 #endif
         [NET_CLIENT_DRIVER_HUBPORT]   = net_init_hubport,
-#ifdef CONFIG_VHOST_NET_USER
-        [NET_CLIENT_DRIVER_VHOST_USER] = net_init_vhost_user,
-#endif
 #ifdef CONFIG_VHOST_NET_VDPA
         [NET_CLIENT_DRIVER_VHOST_VDPA] = net_init_vhost_vdpa,
 #endif
@@ -1393,9 +1390,6 @@ void show_netdevs(void)
 #endif
 #ifdef CONFIG_AF_XDP
         "af-xdp",
-#endif
-#ifdef CONFIG_POSIX
-        "vhost-user",
 #endif
 #ifdef CONFIG_VHOST_VDPA
         "vhost-vdpa",

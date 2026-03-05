@@ -23,10 +23,6 @@
 #include "gdbstub/helpers.h"
 #include "gdbstub/commands.h"
 #include "tcg/mte_helper.h"
-#if defined(CONFIG_USER_ONLY) && defined(CONFIG_LINUX)
-#include <sys/prctl.h>
-#include "mte_user_helper.h"
-#endif
 #ifdef CONFIG_TCG
 #include "accel/tcg/cpu-mmu-index.h"
 #include "exec/target_page.h"
@@ -531,50 +527,6 @@ GDBFeature *arm_gen_dynamic_smereg_feature(CPUState *cs, int base_reg)
 
     return &cpu->dyn_smereg_feature.desc;
 }
-
-#ifdef CONFIG_USER_ONLY
-int aarch64_gdb_get_tag_ctl_reg(CPUState *cs, GByteArray *buf, int reg)
-{
-    ARMCPU *cpu = ARM_CPU(cs);
-    CPUARMState *env = &cpu->env;
-    uint64_t tcf0;
-
-    assert(reg == 0);
-
-    tcf0 = extract64(env->cp15.sctlr_el[1], 38, 2);
-
-    return gdb_get_reg64(buf, tcf0);
-}
-
-int aarch64_gdb_set_tag_ctl_reg(CPUState *cs, uint8_t *buf, int reg)
-{
-#if defined(CONFIG_LINUX)
-    ARMCPU *cpu = ARM_CPU(cs);
-    CPUARMState *env = &cpu->env;
-
-    uint8_t tcf;
-
-    assert(reg == 0);
-
-    tcf = *buf << PR_MTE_TCF_SHIFT;
-
-    if (!tcf) {
-        return 0;
-    }
-
-    /*
-     * 'tag_ctl' register is actually a "pseudo-register" provided by GDB to
-     * expose options regarding the type of MTE fault that can be controlled at
-     * runtime.
-     */
-    arm_set_mte_tcf0(env, tcf);
-
-    return 1;
-#else
-    return 0;
-#endif
-}
-#endif /* CONFIG_USER_ONLY */
 
 #ifdef CONFIG_TCG
 static void handle_q_memtag(GArray *params, void *user_ctx)

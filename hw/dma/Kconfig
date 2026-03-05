@@ -24,9 +24,6 @@ config XLNX_ZDMA
 config STP2000
     bool
 
-config SIFIVE_PDMA
-    bool
-
 config XLNX_CSU_DMA
     bool
     select REGISTER

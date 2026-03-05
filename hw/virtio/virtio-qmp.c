@@ -17,7 +17,6 @@
 #include "qapi/qapi-commands-qom.h"
 #include "qobject/qobject.h"
 #include "qobject/qjson.h"
-#include "hw/virtio/vhost-user.h"
 
 #include "standard-headers/linux/virtio_ids.h"
 #include "standard-headers/linux/vhost_types.h"
@@ -68,65 +67,6 @@ static const qmp_virtio_feature_map_t virtio_transport_map[] = {
             "VIRTIO_RING_F_INDIRECT_DESC: Indirect descriptors supported"),
     FEATURE_ENTRY(VIRTIO_RING_F_EVENT_IDX, \
             "VIRTIO_RING_F_EVENT_IDX: Used & avail. event fields enabled"),
-    { -1, "" }
-};
-
-/* Vhost-user protocol features mapping */
-static const qmp_virtio_feature_map_t vhost_user_protocol_map[] = {
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_MQ, \
-            "VHOST_USER_PROTOCOL_F_MQ: Multiqueue protocol supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_LOG_SHMFD, \
-            "VHOST_USER_PROTOCOL_F_LOG_SHMFD: Shared log memory fd supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_RARP, \
-            "VHOST_USER_PROTOCOL_F_RARP: Vhost-user back-end RARP broadcasting "
-            "supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_REPLY_ACK, \
-            "VHOST_USER_PROTOCOL_F_REPLY_ACK: Requested operation status ack. "
-            "supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_NET_MTU, \
-            "VHOST_USER_PROTOCOL_F_NET_MTU: Expose host MTU to guest supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_BACKEND_REQ, \
-            "VHOST_USER_PROTOCOL_F_BACKEND_REQ: Socket fd for back-end initiated "
-            "requests supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_CROSS_ENDIAN, \
-            "VHOST_USER_PROTOCOL_F_CROSS_ENDIAN: Endianness of VQs for legacy "
-            "devices supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_CRYPTO_SESSION, \
-            "VHOST_USER_PROTOCOL_F_CRYPTO_SESSION: Session creation for crypto "
-            "operations supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_PAGEFAULT, \
-            "VHOST_USER_PROTOCOL_F_PAGEFAULT: Request servicing on userfaultfd "
-            "for accessed pages supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_CONFIG, \
-            "VHOST_USER_PROTOCOL_F_CONFIG: Vhost-user messaging for virtio "
-            "device configuration space supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_BACKEND_SEND_FD, \
-            "VHOST_USER_PROTOCOL_F_BACKEND_SEND_FD: Backend fd communication "
-            "channel supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_HOST_NOTIFIER, \
-            "VHOST_USER_PROTOCOL_F_HOST_NOTIFIER: Host notifiers for specified "
-            "VQs supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_INFLIGHT_SHMFD, \
-            "VHOST_USER_PROTOCOL_F_INFLIGHT_SHMFD: Shared inflight I/O buffers "
-            "supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_RESET_DEVICE, \
-            "VHOST_USER_PROTOCOL_F_RESET_DEVICE: Disabling all rings and "
-            "resetting internal device state supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_INBAND_NOTIFICATIONS, \
-            "VHOST_USER_PROTOCOL_F_INBAND_NOTIFICATIONS: In-band messaging "
-            "supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_CONFIGURE_MEM_SLOTS, \
-            "VHOST_USER_PROTOCOL_F_CONFIGURE_MEM_SLOTS: Configuration for "
-            "memory slots supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_STATUS, \
-            "VHOST_USER_PROTOCOL_F_STATUS: Querying and notifying back-end "
-            "device status supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_SHARED_OBJECT, \
-            "VHOST_USER_PROTOCOL_F_SHARED_OBJECT: Backend shared object "
-            "supported"),
-    FEATURE_ENTRY(VHOST_USER_PROTOCOL_F_DEVICE_STATE, \
-            "VHOST_USER_PROTOCOL_F_DEVICE_STATE: Backend device state transfer "
-            "supported"),
     { -1, "" }
 };
 
@@ -186,9 +126,6 @@ static const qmp_virtio_feature_map_t virtio_blk_feature_map[] = {
 #endif /* !VIRTIO_BLK_NO_LEGACY */
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -222,9 +159,6 @@ static const qmp_virtio_feature_map_t virtio_gpu_feature_map[] = {
             "timelines supported"),
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -234,9 +168,6 @@ static const qmp_virtio_feature_map_t virtio_gpu_feature_map[] = {
 static const qmp_virtio_feature_map_t virtio_input_feature_map[] = {
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -322,9 +253,6 @@ static const qmp_virtio_feature_map_t virtio_net_feature_map[] = {
             "packets supported"),
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -345,35 +273,17 @@ static const qmp_virtio_feature_map_t virtio_scsi_feature_map[] = {
             "VIRTIO_SCSI_F_T10_PI: T10 info included in request header"),
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
 
-/* virtio/vhost-user-fs features mapping */
-#ifdef CONFIG_VHOST_USER_FS
-static const qmp_virtio_feature_map_t virtio_fs_feature_map[] = {
-    FEATURE_ENTRY(VHOST_F_LOG_ALL, \
-            "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
-    { -1, "" }
-};
-#endif
-
-/* virtio/vhost-user-i2c features mapping */
+/* virtio/vhost-i2c features mapping */
 #ifdef CONFIG_VIRTIO_I2C_ADAPTER
 static const qmp_virtio_feature_map_t virtio_i2c_feature_map[] = {
     FEATURE_ENTRY(VIRTIO_I2C_F_ZERO_LENGTH_REQUEST, \
-            "VIRTIO_I2C_F_ZERO_LEGNTH_REQUEST: Zero length requests supported"),
+            "VIRTIO_I2C_F_ZERO_LENGTH_REQUEST: Zero length requests supported"),
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -385,9 +295,6 @@ static const qmp_virtio_feature_map_t virtio_vsock_feature_map[] = {
             "VIRTIO_VSOCK_F_SEQPACKET: SOCK_SEQPACKET supported"),
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -468,21 +375,6 @@ static const qmp_virtio_feature_map_t virtio_mem_feature_map[] = {
 static const qmp_virtio_feature_map_t virtio_rng_feature_map[] = {
     FEATURE_ENTRY(VHOST_F_LOG_ALL, \
             "VHOST_F_LOG_ALL: Logging write descriptors supported"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
-    { -1, "" }
-};
-#endif
-
-/* virtio/vhost-gpio features mapping */
-#ifdef CONFIG_VHOST_USER_GPIO
-static const qmp_virtio_feature_map_t virtio_gpio_feature_map[] = {
-    FEATURE_ENTRY(VIRTIO_GPIO_F_IRQ, \
-            "VIRTIO_GPIO_F_IRQ: Device supports interrupts on GPIO lines"),
-    FEATURE_ENTRY(VHOST_USER_F_PROTOCOL_FEATURES, \
-            "VHOST_USER_F_PROTOCOL_FEATURES: Vhost-user protocol features "
-            "negotiation supported"),
     { -1, "" }
 };
 #endif
@@ -525,24 +417,6 @@ VirtioDeviceStatus *qmp_decode_status(uint8_t bitmap)
     }
 
     return status;
-}
-
-VhostDeviceProtocols *qmp_decode_protocols(uint64_t bitmap)
-{
-    VhostDeviceProtocols *vhu_protocols;
-    uint64_t bit;
-    int i;
-
-    vhu_protocols = g_new0(VhostDeviceProtocols, 1);
-    vhu_protocols->protocols =
-                    CONVERT_FEATURES(strList,
-                                     vhost_user_protocol_map, 0, bitmap);
-    vhu_protocols->has_unknown_protocols = bitmap != 0;
-    if (vhu_protocols->has_unknown_protocols) {
-        vhu_protocols->unknown_protocols = bitmap;
-    }
-
-    return vhu_protocols;
 }
 
 VirtioDeviceFeatures *qmp_decode_features(uint16_t device_id, uint64_t bitmap)
@@ -608,12 +482,6 @@ VirtioDeviceFeatures *qmp_decode_features(uint16_t device_id, uint64_t bitmap)
             CONVERT_FEATURES(strList, virtio_input_feature_map, 0, bitmap);
         break;
 #endif
-#ifdef CONFIG_VHOST_USER_FS
-    case VIRTIO_ID_FS:
-        features->dev_features =
-            CONVERT_FEATURES(strList, virtio_fs_feature_map, 0, bitmap);
-        break;
-#endif
 #ifdef CONFIG_VHOST_VSOCK
     case VIRTIO_ID_VSOCK:
         features->dev_features =
@@ -642,12 +510,6 @@ VirtioDeviceFeatures *qmp_decode_features(uint16_t device_id, uint64_t bitmap)
     case VIRTIO_ID_RNG:
         features->dev_features =
             CONVERT_FEATURES(strList, virtio_rng_feature_map, 0, bitmap);
-        break;
-#endif
-#ifdef CONFIG_VHOST_USER_GPIO
-    case VIRTIO_ID_GPIO:
-        features->dev_features =
-            CONVERT_FEATURES(strList, virtio_gpio_feature_map, 0, bitmap);
         break;
 #endif
     /* No features */
@@ -790,8 +652,6 @@ VirtioStatus *qmp_x_query_virtio_status(const char *path, Error **errp)
             qmp_decode_features(vdev->device_id, hdev->acked_features);
         status->vhost_dev->backend_features =
             qmp_decode_features(vdev->device_id, hdev->backend_features);
-        status->vhost_dev->protocol_features =
-            qmp_decode_protocols(hdev->protocol_features);
         status->vhost_dev->max_queues = hdev->max_queues;
         status->vhost_dev->backend_cap = hdev->backend_cap;
         status->vhost_dev->log_enabled = hdev->log_enabled;

@@ -12,9 +12,6 @@
 #include "cpu.h"
 #include "accel/tcg/cpu-ops.h"
 #include "internals.h"
-
-#if !defined(CONFIG_USER_ONLY)
-
 #include "hw/intc/armv7m_nvic.h"
 
 static bool arm_v7m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
@@ -39,8 +36,6 @@ static bool arm_v7m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
     }
     return ret;
 }
-
-#endif /* !CONFIG_USER_ONLY */
 
 static void cortex_m0_initfn(Object *obj)
 {
@@ -249,11 +244,6 @@ static const TCGCPUOps arm_v7m_tcg_ops = {
     .debug_excp_handler = arm_debug_excp_handler,
     .restore_state_to_opc = arm_restore_state_to_opc,
     .mmu_index = arm_cpu_mmu_index,
-
-#ifdef CONFIG_USER_ONLY
-    .record_sigsegv = arm_cpu_record_sigsegv,
-    .record_sigbus = arm_cpu_record_sigbus,
-#else
     .tlb_fill_align = arm_cpu_tlb_fill_align,
     .pointer_wrap = cpu_pointer_wrap_uint32,
     .cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt,
@@ -265,7 +255,6 @@ static const TCGCPUOps arm_v7m_tcg_ops = {
     .adjust_watchpoint_address = arm_adjust_watchpoint_address,
     .debug_check_watchpoint = arm_debug_check_watchpoint,
     .debug_check_breakpoint = arm_debug_check_breakpoint,
-#endif /* !CONFIG_USER_ONLY */
 };
 
 static void arm_v7m_class_init(ObjectClass *oc, const void *data)

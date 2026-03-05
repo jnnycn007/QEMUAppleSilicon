@@ -73,9 +73,6 @@ int net_init_af_xdp(const Netdev *netdev, const char *name,
                     NetClientState *peer, Error **errp);
 #endif
 
-int net_init_vhost_user(const Netdev *netdev, const char *name,
-                        NetClientState *peer, Error **errp);
-
 int net_init_vhost_vdpa(const Netdev *netdev, const char *name,
                         NetClientState *peer, Error **errp);
 #ifdef CONFIG_VMNET

@@ -1286,14 +1286,6 @@ void aarch64_max_tcg_initfn(Object *obj)
     /* Replicate the same data to the 32-bit id registers.  */
     aa32_max_features(cpu);
 
-#ifdef CONFIG_USER_ONLY
-    /*
-     * For usermode -cpu max we can use a larger and more efficient DCZ
-     * blocksize since we don't have to follow what the hardware does.
-     */
-    cpu->ctr = 0x80038003; /* 32 byte I and D cacheline size, VIPT icache */
-    cpu->dcz_blocksize = 7; /*  512 bytes */
-#endif
     cpu->gm_blocksize = 6;  /*  256 bytes */
 
     cpu->sve_vq.supported = MAKE_64BIT_MASK(0, ARM_MAX_VQ);

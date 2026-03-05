@@ -16,7 +16,7 @@
 typedef enum VhostBackendType {
     VHOST_BACKEND_TYPE_NONE = 0,
     VHOST_BACKEND_TYPE_KERNEL = 1,
-    VHOST_BACKEND_TYPE_USER = 2,
+    // VHOST_BACKEND_TYPE_USER = 2,
     VHOST_BACKEND_TYPE_VDPA = 3,
     VHOST_BACKEND_TYPE_MAX = 4,
 } VhostBackendType;
@@ -121,12 +121,6 @@ typedef int (*vhost_set_config_op)(struct vhost_dev *dev, const uint8_t *data,
 typedef int (*vhost_get_config_op)(struct vhost_dev *dev, uint8_t *config,
                                    uint32_t config_len, Error **errp);
 
-typedef int (*vhost_crypto_create_session_op)(struct vhost_dev *dev,
-                                              void *session_info,
-                                              uint64_t *session_id);
-typedef int (*vhost_crypto_close_session_op)(struct vhost_dev *dev,
-                                             uint64_t session_id);
-
 typedef bool (*vhost_backend_no_private_memslots_op)(struct vhost_dev *dev);
 
 typedef int (*vhost_get_inflight_fd_op)(struct vhost_dev *dev,
@@ -201,8 +195,6 @@ typedef struct VhostOps {
     vhost_send_device_iotlb_msg_op vhost_send_device_iotlb_msg;
     vhost_get_config_op vhost_get_config;
     vhost_set_config_op vhost_set_config;
-    vhost_crypto_create_session_op vhost_crypto_create_session;
-    vhost_crypto_close_session_op vhost_crypto_close_session;
     vhost_get_inflight_fd_op vhost_get_inflight_fd;
     vhost_set_inflight_fd_op vhost_set_inflight_fd;
     vhost_dev_start_op vhost_dev_start;
@@ -226,10 +218,5 @@ int vhost_backend_invalidate_device_iotlb(struct vhost_dev *dev,
 
 int vhost_backend_handle_iotlb_msg(struct vhost_dev *dev,
                                           struct vhost_iotlb_msg *imsg);
-
-int vhost_user_gpu_set_socket(struct vhost_dev *dev, int fd);
-
-int vhost_user_get_shared_object(struct vhost_dev *dev, unsigned char *uuid,
-                                        int *dmabuf_fd);
 
 #endif /* VHOST_BACKEND_H */
