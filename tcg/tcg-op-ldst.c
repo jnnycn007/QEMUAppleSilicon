@@ -364,50 +364,6 @@ void tcg_gen_qemu_st_i64_chk(TCGv_i64 val, TCGTemp *addr, TCGArg idx,
     tcg_gen_qemu_st_i64_int(val, addr, idx, memop);
 }
 
-static void canonicalize_memop_i128_as_i64(MemOp ret[2], MemOp orig)
-{
-    MemOp mop_1 = orig, mop_2;
-
-    /* Reduce the size to 64-bit. */
-    mop_1 = (mop_1 & ~MO_SIZE) | MO_64;
-
-    /* Retain the alignment constraints of the original. */
-    switch (orig & MO_AMASK) {
-    case MO_UNALN:
-    case MO_ALIGN_2:
-    case MO_ALIGN_4:
-        mop_2 = mop_1;
-        break;
-    case MO_ALIGN_8:
-        /* Prefer MO_ALIGN+MO_64 to MO_ALIGN_8+MO_64. */
-        mop_1 = (mop_1 & ~MO_AMASK) | MO_ALIGN;
-        mop_2 = mop_1;
-        break;
-    case MO_ALIGN:
-        /* Second has 8-byte alignment; first has 16-byte alignment. */
-        mop_2 = mop_1;
-        mop_1 = (mop_1 & ~MO_AMASK) | MO_ALIGN_16;
-        break;
-    case MO_ALIGN_16:
-    case MO_ALIGN_32:
-    case MO_ALIGN_64:
-        /* Second has 8-byte alignment; first retains original. */
-        mop_2 = (mop_1 & ~MO_AMASK) | MO_ALIGN;
-        break;
-    default:
-        g_assert_not_reached();
-    }
-
-    /* Use a memory ordering implemented by the host. */
-    if ((orig & MO_BSWAP) && !tcg_target_has_memory_bswap(mop_1)) {
-        mop_1 &= ~MO_BSWAP;
-        mop_2 &= ~MO_BSWAP;
-    }
-
-    ret[0] = mop_1;
-    ret[1] = mop_2;
-}
-
 static TCGv_i64 maybe_extend_addr64(TCGTemp *addr)
 {
     if (tcg_ctx->addr_type == TCG_TYPE_I32) {
