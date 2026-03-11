@@ -292,7 +292,8 @@ struct AppleSSCState {
 #define MISC2_REG_SIZE (0x4000) // ?
 #define PROGRESS_REG_SIZE (0x4000) // ?
 #define BOOT_MONITOR_REG_SIZE (0x4000) // ?
-// apple-aes.security.mmio is also called PKA_SECU, but with size 0x8000 instead of 0x4000
+// apple-aes.security.mmio is also called PKA_SECU, but with size 0x8000 instead
+// of 0x4000
 
 struct AppleSEPClass {
     /*< private >*/

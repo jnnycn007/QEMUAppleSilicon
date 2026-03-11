@@ -1220,7 +1220,7 @@ static void s8000_create_aes(AppleS8000MachineState *s8000)
     sysbus_connect_irq(aes, 0, qdev_get_gpio_in(DEVICE(s8000->aic), *ints));
 
     object_property_add_const_link(OBJECT(aes), "dma-mr",
-                                                    OBJECT(s8000->sys_mem));
+                                   OBJECT(s8000->sys_mem));
 
     sysbus_realize_and_unref(aes, &error_fatal);
 }

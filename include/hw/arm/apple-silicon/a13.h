@@ -25,8 +25,8 @@
 #include "hw/arm/apple-silicon/dt.h"
 #include "hw/cpu/cluster.h"
 #include "qemu/queue.h"
-#include "cpu.h"
 #include "system/memory.h"
+#include "cpu.h"
 
 #define A13_MAX_CPU 6
 #define A13_MAX_CLUSTER 2

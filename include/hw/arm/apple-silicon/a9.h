@@ -23,8 +23,8 @@
 
 #include "qemu/osdep.h"
 #include "hw/arm/apple-silicon/dt.h"
-#include "cpu.h"
 #include "system/memory.h"
+#include "cpu.h"
 
 #define A9_MAX_CPU 2
 

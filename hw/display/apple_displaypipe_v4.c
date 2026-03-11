@@ -898,8 +898,8 @@ static void adp_v4_gp_draw(ADPV4GenPipe *genpipe, AddressSpace *dma_as,
 
     if (REG_FIELD_EX32(genpipe->state.config_control, GP_CONFIG_CONTROL, RUN) ==
             0 ||
-        REG_FIELD_EX32(genpipe->state.config_control, GP_CONFIG_CONTROL, ENABLED) ==
-            0) {
+        REG_FIELD_EX32(genpipe->state.config_control, GP_CONFIG_CONTROL,
+                       ENABLED) == 0) {
         return;
     }
 

@@ -27,8 +27,8 @@
 #include "qapi/error.h"
 #include "qemu/error-report.h"
 #include "system/address-spaces.h"
-#include "arm-powerctl.h"
 #include "target/arm/cpregs.h"
+#include "arm-powerctl.h"
 
 #define VMSTATE_A9_CPREG(name) \
     VMSTATE_UINT64(A9_CPREG_VAR_NAME(name), AppleA9State)
@@ -180,9 +180,9 @@ AppleA9State *apple_a9_create(const char *name, uint32_t cpu_id,
     cpu->midr = REG_FIELD_DP64(cpu->midr, MIDR_EL1, VARIANT, 0x1); // B1
     cpu->midr = REG_FIELD_DP64(cpu->midr, MIDR_EL1, REVISION, 0x1);
 
-    SET_IDREG(
-        &cpu->isar, ID_AA64MMFR1,
-        REG_FIELD_DP64(GET_IDREG(&cpu->isar, ID_AA64MMFR1), ID_AA64MMFR1, PAN, 0));
+    SET_IDREG(&cpu->isar, ID_AA64MMFR1,
+              REG_FIELD_DP64(GET_IDREG(&cpu->isar, ID_AA64MMFR1), ID_AA64MMFR1,
+                             PAN, 0));
 
     object_property_set_uint(obj, "mp-affinity", mpidr, &error_fatal);
     object_property_set_bool(obj, "start-powered-off", true, NULL);

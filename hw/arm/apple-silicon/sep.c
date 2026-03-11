@@ -3706,7 +3706,7 @@ static void progress_reg_write(void *opaque, hwaddr addr, uint64_t data,
     switch (addr) {
     case 0x4:
         if ((data == 0xFC4A2CAC || data == 0xEEE6BA79) &&
-                   (s->chip_id >= 0x8020)) // Enable Trace Buffer
+            (s->chip_id >= 0x8020)) // Enable Trace Buffer
         {
 #ifdef SEP_ENABLE_TRACE_BUFFER
             // Only works for >= T8020 here, because the T8015 SEPOS is

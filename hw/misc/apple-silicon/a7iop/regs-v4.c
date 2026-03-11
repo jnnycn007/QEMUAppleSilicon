@@ -192,7 +192,7 @@ static uint64_t apple_a7iop_v4_reg_read(void *opaque, hwaddr addr,
     case REG_SEP_AKF_DISABLE_INTERRUPT_BASE + 0x0C: // group 3
         // shows disabled as 0b1, not enabled!
         ret = ~(s->iop_mailbox->interrupts_enabled
-                  [(addr - REG_SEP_AKF_DISABLE_INTERRUPT_BASE) >> 2]);
+                    [(addr - REG_SEP_AKF_DISABLE_INTERRUPT_BASE) >> 2]);
         break;
     case REG_SEP_AKF_ENABLE_INTERRUPT_BASE + 0x00: // group 0
     case REG_SEP_AKF_ENABLE_INTERRUPT_BASE + 0x04: // group 1
@@ -200,7 +200,7 @@ static uint64_t apple_a7iop_v4_reg_read(void *opaque, hwaddr addr,
     case REG_SEP_AKF_ENABLE_INTERRUPT_BASE + 0x0C: // group 3
         // shows disabled as 0b1, not enabled!
         ret = ~(s->iop_mailbox->interrupts_enabled
-                  [(addr - REG_SEP_AKF_ENABLE_INTERRUPT_BASE) >> 2]);
+                    [(addr - REG_SEP_AKF_ENABLE_INTERRUPT_BASE) >> 2]);
         break;
     case REG_KIC_GLB_CFG:
         ret = s->iop_mailbox->glb_cfg;

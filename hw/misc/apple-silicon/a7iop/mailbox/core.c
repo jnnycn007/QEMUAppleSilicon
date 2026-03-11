@@ -49,10 +49,13 @@
 static bool is_interrupt_enabled(AppleA7IOPMailbox *s, uint32_t status)
 {
     if (!s->sepd_enabled) {
-        // this workaround, just like the others, also seems to have the side-effect of reducing the amount of timer0 interrupts, at least under 18.5.
+        // this workaround, just like the others, also seems to have the
+        // side-effect of reducing the amount of timer0 interrupts, at least
+        // under 18.5.
         return false;
     }
-    if ((status & 0xF0000) == 0x10000 && (s->glb_cfg & KIC_GLB_CFG_EXT_INT_EN) != 0) {
+    if ((status & 0xF0000) == 0x10000 &&
+        (s->glb_cfg & KIC_GLB_CFG_EXT_INT_EN) != 0) {
         uint32_t interrupt = status & 0x7F;
         int interrupt_group = interrupt / 32;
         // g_assert_cmpuint(interrupt_group, <, 4);

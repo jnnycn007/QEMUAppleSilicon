@@ -34,8 +34,8 @@
 #include "qemu/timer.h"
 #include "system/address-spaces.h"
 #include "system/reset.h"
-#include "arm-powerctl.h"
 #include "target/arm/cpregs.h"
+#include "arm-powerctl.h"
 
 #define VMSTATE_A13_CPREG(name) \
     VMSTATE_UINT64(A13_CPREG_VAR_NAME(name), AppleA13State)

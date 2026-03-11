@@ -162,10 +162,10 @@ I2CSlave *apple_mic_temp_sensor_create(uint8_t addr, I2CBus *bus,
     AppleMicTempSensorState *sensor =
         container_of(dev, AppleMicTempSensorState, i2c);
 
-    sensor->id0 = REG_FIELD_DP8(REG_FIELD_DP8(0, ID0, PRODUCT_ID, product_id), ID0,
-                            VENDOR_ID, vendor_id);
-    sensor->id1 =
-        REG_FIELD_DP8(REG_FIELD_DP8(0, ID1, REVISION, revision), ID1, FAB_ID, fab_id);
+    sensor->id0 = REG_FIELD_DP8(REG_FIELD_DP8(0, ID0, PRODUCT_ID, product_id),
+                                ID0, VENDOR_ID, vendor_id);
+    sensor->id1 = REG_FIELD_DP8(REG_FIELD_DP8(0, ID1, REVISION, revision), ID1,
+                                FAB_ID, fab_id);
 
     i2c_slave_realize_and_unref(dev, bus, errp);
 
