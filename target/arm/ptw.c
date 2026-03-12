@@ -3860,15 +3860,14 @@ hwaddr arm_cpu_get_phys_page_attrs_debug(CPUState *cs, vaddr addr,
     switch (mmu_idx) {
     case ARMMMUIdx_E10_1:
     case ARMMMUIdx_E10_1_PAN:
+    case ARMMMUIdx_GE10_1:
+    case ARMMMUIdx_GE10_1_PAN:
         return arm_cpu_get_phys_page(env, addr, attrs, ARMMMUIdx_E10_0);
     case ARMMMUIdx_E20_2:
     case ARMMMUIdx_E20_2_PAN:
-        return arm_cpu_get_phys_page(env, addr, attrs, ARMMMUIdx_E20_0);
-    case ARMMMUIdx_GE10_1:
-    case ARMMMUIdx_GE10_1_PAN:
     case ARMMMUIdx_GE20_2:
     case ARMMMUIdx_GE20_2_PAN:
-        g_assert_not_reached();
+        return arm_cpu_get_phys_page(env, addr, attrs, ARMMMUIdx_E20_0);
     default:
         return -1;
     }
