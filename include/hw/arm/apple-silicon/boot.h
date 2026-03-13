@@ -258,7 +258,6 @@ typedef struct {
     char cmdline[0x400];
     uint64_t boot_flags;
     uint64_t mem_size_actual;
-    uint64_t reserved;
 } AppleKernelBootArgsRev3;
 
 #define EMBEDDED_PANIC_HEADER_FLAG_COREDUMP_COMPLETE (0x01)
