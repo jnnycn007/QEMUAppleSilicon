@@ -52,7 +52,7 @@ static uint16_t mve_eci_mask(CPUARMState *env)
     case ECI_A0A1A2B0:
         return 0xf000;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -3015,7 +3015,7 @@ DO_VFMA(vfmss, 4, float32, true)
                 e4 = n[H##ESIZE(e + 1)];                                \
                 break;                                                  \
             default:                                                    \
-                g_assert_not_reached();                                 \
+                assert_not_reached();                                 \
             }                                                           \
             r0 = FN(e2, e1, d[H##ESIZE(e)], fpst0);                     \
             r1 = FN(e4, e3, d[H##ESIZE(e + 1)], fpst1);                 \

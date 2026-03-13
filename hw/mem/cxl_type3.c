@@ -516,7 +516,7 @@ static void ct3d_reg_write(void *opaque, hwaddr offset, uint64_t value,
     int which_hdm = -1;
 
     assert(size == 4);
-    g_assert(offset < CXL2_COMPONENT_CM_REGION_SIZE);
+    assert(offset < CXL2_COMPONENT_CM_REGION_SIZE);
 
     switch (offset) {
     case A_CXL_HDM_DECODER0_CTRL:

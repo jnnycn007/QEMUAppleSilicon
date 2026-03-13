@@ -328,7 +328,7 @@ static void softfloat_to_vfp_compare(CPUARMState *env, FloatRelation cmp)
         flags = 0x3;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     env->vfp.fpsr = deposit64(env->vfp.fpsr, 28, 4, flags); /* NZCV */
 }
@@ -675,7 +675,7 @@ static bool round_to_inf(float_status *fpst, bool sign_bit)
     case float_round_to_zero: /* Round to Zero */
         return false;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1358,7 +1358,7 @@ void HELPER(check_hcr_el2_trap)(CPUARMState *env, uint32_t rt, uint32_t reg)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     syndrome = ((EC_FPIDTRAP << ARM_EL_EC_SHIFT)

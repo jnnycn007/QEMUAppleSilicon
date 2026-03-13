@@ -402,9 +402,9 @@ bool iommufd_backend_get_device_info(IOMMUFDBackend *be, uint32_t devid,
         return false;
     }
 
-    g_assert(type);
+    assert(type);
     *type = info.out_data_type;
-    g_assert(caps);
+    assert(caps);
     *caps = info.out_capabilities;
 
     return true;
@@ -452,7 +452,7 @@ bool host_iommu_device_iommufd_attach_hwpt(HostIOMMUDeviceIOMMUFD *idev,
     HostIOMMUDeviceIOMMUFDClass *idevc =
         HOST_IOMMU_DEVICE_IOMMUFD_GET_CLASS(idev);
 
-    g_assert(idevc->attach_hwpt);
+    assert(idevc->attach_hwpt);
     return idevc->attach_hwpt(idev, hwpt_id, errp);
 }
 
@@ -462,7 +462,7 @@ bool host_iommu_device_iommufd_detach_hwpt(HostIOMMUDeviceIOMMUFD *idev,
     HostIOMMUDeviceIOMMUFDClass *idevc =
         HOST_IOMMU_DEVICE_IOMMUFD_GET_CLASS(idev);
 
-    g_assert(idevc->detach_hwpt);
+    assert(idevc->detach_hwpt);
     return idevc->detach_hwpt(idev, errp);
 }
 

@@ -212,7 +212,7 @@ static void ats_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
             }
             break;
         case 2:
-            g_assert(ss != ARMSS_Secure);  /* ARMv8.4-SecEL2 is 64-bit only */
+            assert(ss != ARMSS_Secure);  /* ARMv8.4-SecEL2 is 64-bit only */
             /* fall through */
         case 1:
             if (ri->crm == 9 && arm_pan_enabled(env)) {
@@ -222,7 +222,7 @@ static void ats_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case 2:
@@ -232,14 +232,14 @@ static void ats_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
             mmu_idx = ARMMMUIdx_E30_0;
             break;
         case 2:
-            g_assert(ss != ARMSS_Secure);  /* ARMv8.4-SecEL2 is 64-bit only */
+            assert(ss != ARMSS_Secure);  /* ARMv8.4-SecEL2 is 64-bit only */
             mmu_idx = ARMMMUIdx_Stage1_E0;
             break;
         case 1:
             mmu_idx = ARMMMUIdx_Stage1_E0;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case 4:
@@ -253,7 +253,7 @@ static void ats_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
         ss = ARMSS_NonSecure;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     par64 = do_ats_write(env, value, access_perm, mmu_idx, ss);
@@ -339,7 +339,7 @@ static void ats_write64(CPUARMState *env, const ARMCPRegInfo *ri,
             for_el3 = true;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case 2: /* AT S1E0R, AT S1E0W */
@@ -352,7 +352,7 @@ static void ats_write64(CPUARMState *env, const ARMCPRegInfo *ri,
         mmu_idx = regime_e20 ? ARMMMUIdx_E20_0 : ARMMMUIdx_E10_0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     ss = for_el3 ? arm_security_space(env) : arm_security_space_below_el3(env);

@@ -2904,7 +2904,7 @@ void bdrv_default_perms(BlockDriverState *bs, BdrvChild *c,
         bdrv_default_perms_for_storage(bs, c, role, reopen_queue,
                                        perm, shared, nperm, nshared);
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -4768,7 +4768,7 @@ bdrv_reopen_parse_file_or_backing(BDRVReopenState *reopen_state,
          * The options QDict has been flattened, so 'backing' and 'file'
          * do not allow any other data type here.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     old_child_bs = is_backing ? child_bs(bs->backing) : child_bs(bs->file);

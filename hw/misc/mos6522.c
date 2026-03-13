@@ -381,7 +381,7 @@ uint64_t mos6522_read(void *opaque, hwaddr addr, unsigned size)
         val = s->ier | 0x80;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (addr != VIA_REG_IFR || val != 0) {
@@ -493,7 +493,7 @@ void mos6522_write(void *opaque, hwaddr addr, uint64_t val, unsigned size)
                               qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

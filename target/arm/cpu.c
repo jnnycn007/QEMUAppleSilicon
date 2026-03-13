@@ -510,7 +510,7 @@ void arm_emulate_firmware_reset(CPUState *cpustate, int target_el)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (have_el3) {
@@ -629,7 +629,7 @@ static void arm_cpu_set_irq(void *opaque, int irq, int level)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

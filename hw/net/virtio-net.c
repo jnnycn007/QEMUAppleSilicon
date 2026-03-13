@@ -2129,7 +2129,7 @@ static void virtio_net_rsc_cache_buf(VirtioNetRscChain *chain,
         virtio_net_rsc_extract_unit6(chain, seg->buf, &seg->unit);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

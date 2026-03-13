@@ -173,7 +173,7 @@ static void apple_nvme_mmu_start(AppleNVMeMMUState *s)
     config |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
     pci_default_write_config(pci_dev, PCI_COMMAND, config, 4);
 
-    g_assert_true(pci_dev->bus_master_enable_region.enabled);
+    assert_true(pci_dev->bus_master_enable_region.enabled);
 }
 
 SysBusDevice *apple_nvme_mmu_from_node(AppleDTNode *node, PCIBus *pci_bus)
@@ -204,7 +204,7 @@ SysBusDevice *apple_nvme_mmu_from_node(AppleDTNode *node, PCIBus *pci_bus)
     object_property_add_child(OBJECT(dev), "nvme", OBJECT(s->nvme));
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 
@@ -226,7 +226,7 @@ static void apple_nvme_mmu_realize(DeviceState *dev, Error **errp)
 
     PCIDevice *pci_dev = PCI_DEVICE(s->nvme);
     qdev_realize(DEVICE(s->nvme), BUS(s->pci_bus), &error_fatal);
-    g_assert_true(pci_is_express(pci_dev));
+    assert_true(pci_is_express(pci_dev));
     pcie_endpoint_cap_init(pci_dev, 0);
     pcie_cap_deverr_init(pci_dev);
 

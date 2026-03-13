@@ -257,7 +257,7 @@ static void check_tag_aligned(CPUARMState *env, uint64_t ptr, uintptr_t ra)
     if (unlikely(!QEMU_IS_ALIGNED(ptr, TAG_GRANULE))) {
         arm_cpu_do_unaligned_access(env_cpu(env), ptr, MMU_DATA_STORE,
                                     arm_env_mmu_index(env), ra);
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -442,7 +442,7 @@ uint64_t HELPER(ldgm)(CPUARMState *env, uint64_t ptr)
          * CPU configured with unsupported/invalid gm blocksize.
          * This is detected early in arm_cpu_realizefn.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     shift = extract64(ptr, LOG2_TAG_GRANULE, 4) * 4;
     return ret << shift;
@@ -493,7 +493,7 @@ void HELPER(stgm)(CPUARMState *env, uint64_t ptr, uint64_t val)
         break;
     default:
         /* cpu configured with unsupported gm blocksize. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -535,7 +535,7 @@ static void mte_sync_check_fail(CPUARMState *env, uint32_t desc,
     syn = syn_data_abort_no_iss(arm_current_el(env) != 0, 0, 0, 0, 0, is_write,
                                 0x11);
     raise_exception_ra(env, EXCP_DATA_ABORT, syn, exception_target_el(env), ra);
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void mte_async_check_fail(CPUARMState *env, uint64_t dirty_ptr,
@@ -586,7 +586,7 @@ void mte_check_fail(CPUARMState *env, uint32_t desc,
          * We eliminate this case by not setting MTE_ACTIVE
          * in tb_flags, so that we never make this runtime call.
          */
-        g_assert_not_reached();
+        assert_not_reached();
 
     case 2:
         /* Tag check fail causes asynchronous flag set.  */

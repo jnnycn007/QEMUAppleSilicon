@@ -797,7 +797,7 @@ uint64_t qemu_file_transferred(QEMUFile *f)
     uint64_t ret = stat64_get(&mig_stats.qemu_file_transferred);
     int i;
 
-    g_assert(qemu_file_is_writable(f));
+    assert(qemu_file_is_writable(f));
 
     for (i = 0; i < f->iovcnt; i++) {
         ret += f->iov[i].iov_len;

@@ -136,7 +136,7 @@ void build_ged_aml(Aml *table, const char *name, HotplugHandler *hotplug_dev,
                  * Please make sure all the events in ged_supported_events[]
                  * are handled above.
                  */
-                g_assert_not_reached();
+                assert_not_reached();
             }
 
             aml_append(evt, if_ctx);

@@ -179,7 +179,7 @@ static void cedt_build_cfmws(CXLFixedWindow *fw, Aml *cedt)
 
     /* Host Bridge List (list of UIDs - currently bus_nr) */
     for (i = 0; i < fw->num_targets; i++) {
-        g_assert(fw->target_hbs[i]);
+        assert(fw->target_hbs[i]);
         build_append_int_noprefix(table_data,
                                   PXB_DEV(fw->target_hbs[i])->bus_nr, 4);
     }

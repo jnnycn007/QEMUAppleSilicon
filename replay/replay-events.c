@@ -82,7 +82,7 @@ void replay_flush_events(void)
         return;
     }
 
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
 
     while (!QTAILQ_EMPTY(&events_list)) {
         Event *event = QTAILQ_FIRST(&events_list);
@@ -116,7 +116,7 @@ void replay_add_event(ReplayAsyncEventKind event_kind,
     event->opaque2 = opaque2;
     event->id = id;
 
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
     QTAILQ_INSERT_TAIL(&events_list, event, events);
     /* Kick the TCG thread out of tcg_cpu_exec().  */
     cpu_exit(first_cpu);
@@ -166,7 +166,7 @@ static void replay_save_event(Event *event)
 {
     if (replay_mode != REPLAY_MODE_PLAY) {
         /* put the event into the file */
-        g_assert(event->event_kind < REPLAY_ASYNC_COUNT);
+        assert(event->event_kind < REPLAY_ASYNC_COUNT);
         replay_put_event(EVENT_ASYNC + event->event_kind);
 
         /* save event-specific data */
@@ -199,7 +199,7 @@ static void replay_save_event(Event *event)
 /* Called with replay mutex locked */
 void replay_save_events(void)
 {
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
     while (!QTAILQ_EMPTY(&events_list)) {
         Event *event = QTAILQ_FIRST(&events_list);
         replay_save_event(event);
@@ -271,7 +271,7 @@ static Event *replay_read_event(void)
 /* Called with replay mutex locked */
 void replay_read_events(void)
 {
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
     while (replay_state.data_kind >= EVENT_ASYNC
         && replay_state.data_kind <= EVENT_ASYNC_LAST) {
         Event *event = replay_read_event();

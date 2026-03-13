@@ -235,7 +235,7 @@ static void apple_baseband_add_pcie_cap_hmap(AppleBasebandDeviceState *s,
                                              PCIDevice *dev)
 {
     DPRINTF("%s: pci_is_express: %d\n", __func__, pci_is_express(dev));
-    g_assert_cmpuint(sizeof(s->hmap), ==, 0x70);
+    assert_cmpuint(sizeof(s->hmap), ==, 0x70);
     s->hmap = (custom_hmap_t){ 0 };
     s->hmap.vsec_id = 0x24;
     pcie_add_capability(dev, PCI_EXT_CAP_ID_VNDR, 0x0, s->hmap_hardcoded_offset,
@@ -299,7 +299,7 @@ static void apple_baseband_dma_write(AppleBasebandDeviceState *s,
 static void
 apple_baseband_device_print_context_info(AppleBasebandDeviceState *s)
 {
-    // g_assert_cmpuint(sizeof(s->baseband_context0), ==, 0x68); // this is also
+    // assert_cmpuint(sizeof(s->baseband_context0), ==, 0x68); // this is also
     // inside the reset function
 
     if (s->context_addr != 0) {
@@ -310,8 +310,8 @@ apple_baseband_device_print_context_info(AppleBasebandDeviceState *s)
             return;
         }
 
-        g_assert_cmpuint(s->baseband_context0.version, ==, 0x1);
-        g_assert_cmpuint(s->baseband_context0.size, ==, 0x68);
+        assert_cmpuint(s->baseband_context0.version, ==, 0x1);
+        assert_cmpuint(s->baseband_context0.size, ==, 0x68);
 
         if (!apple_baseband_dma_read_ptr(s, s->context_addr,
                                          s->baseband_context0.size,
@@ -568,7 +568,7 @@ static uint64_t apple_baseband_device_bar1_read(void *opaque, hwaddr addr,
     uint32_t val = 0x0;
     uint32_t vals[0x3c / 4] = { 0 };
     custom_baseband0_t custom_baseband0 = { 0 };
-    // g_assert_cmpuint(sizeof(custom_baseband0), ==, 60);
+    // assert_cmpuint(sizeof(custom_baseband0), ==, 60);
 
     switch (addr) {
     case 0x0: // boot stage
@@ -875,7 +875,7 @@ static SMCResult smc_key_gP09_write(SMCKey *key, SMCKeyData *data,
         }
 #if 0
         AppleSPMIBasebandState *baseband_spmi = APPLE_SPMI_BASEBAND(object_property_get_link(OBJECT(qdev_get_machine()), "baseband-spmi", &error_fatal));
-        g_assert_nonnull(baseband_spmi);
+        assert_nonnull(baseband_spmi);
 #endif
 #if 0
         // having this at this position influences AppleBasebandPlatform::resetDetectInterrupt
@@ -990,7 +990,7 @@ SysBusDevice *apple_baseband_create(AppleDTNode *node, PCIBus *pci_bus,
 
 #if 0
     prop = apple_dt_find_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 #endif
@@ -1046,7 +1046,7 @@ static void apple_baseband_device_pci_realize(PCIDevice *dev, Error **errp)
                           APPLE_BASEBAND_DEVICE_BAR2_SIZE);
 #endif
 
-    g_assert_true(pci_is_express(dev));
+    assert_true(pci_is_express(dev));
     pcie_endpoint_cap_init(dev, 0x70);
 
     pcie_cap_deverr_init(dev);
@@ -1174,8 +1174,8 @@ static void apple_baseband_device_qdev_reset_hold(Object *obj, ResetType type)
         s->image_ptr = NULL;
     }
     s->baseband_context0 = (baseband_context0_t){ 0 };
-    g_assert_cmpuint(sizeof(s->baseband_context0), ==, 0x68);
-    g_assert_cmpuint(sizeof(custom_baseband0_t), ==, 60);
+    assert_cmpuint(sizeof(s->baseband_context0), ==, 0x68);
+    assert_cmpuint(sizeof(custom_baseband0_t), ==, 60);
 
     // TODO: pcie_cap_slot_reset can and will silently revert
     // set_power/set_enable when it's being done here

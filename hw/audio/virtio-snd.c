@@ -330,7 +330,7 @@ static AudioFormat virtio_snd_get_qemu_format(uint32_t format)
     case VIRTIO_SND_PCM_FMT_FLOAT:
         return AUDIO_FORMAT_F32;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     #undef CASE
@@ -362,7 +362,7 @@ static uint32_t virtio_snd_get_qemu_freq(uint32_t rate)
     CASE(192000)
     CASE(384000)
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     #undef CASE
@@ -813,12 +813,12 @@ static inline void empty_invalid_queue(VirtIODevice *vdev, VirtQueue *vq)
     virtio_snd_pcm_status resp = { 0 };
     VirtIOSound *vsnd = VIRTIO_SND(vdev);
 
-    g_assert(!QSIMPLEQ_EMPTY(&vsnd->invalid));
+    assert(!QSIMPLEQ_EMPTY(&vsnd->invalid));
 
     while (!QSIMPLEQ_EMPTY(&vsnd->invalid)) {
         buffer = QSIMPLEQ_FIRST(&vsnd->invalid);
         /* If buffer->vq != vq, our logic is fundamentally wrong, so bail out */
-        g_assert(buffer->vq == vq);
+        assert(buffer->vq == vq);
 
         resp.status = cpu_to_le32(VIRTIO_SND_S_BAD_MSG);
         iov_from_buf(buffer->elem->in_sg,
@@ -1350,7 +1350,7 @@ static void virtio_snd_reset(VirtIODevice *vdev)
      * of every virtio_snd_handle_tx_xfer/virtio_snd_handle_rx_xfer call, and
      * must be empty otherwise.
      */
-    g_assert(QSIMPLEQ_EMPTY(&vsnd->invalid));
+    assert(QSIMPLEQ_EMPTY(&vsnd->invalid));
 
     WITH_QEMU_LOCK_GUARD(&vsnd->cmdq_mutex) {
         while (!QTAILQ_EMPTY(&vsnd->cmdq)) {

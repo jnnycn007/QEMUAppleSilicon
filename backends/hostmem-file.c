@@ -77,7 +77,7 @@ file_backend_memory_alloc(HostMemoryBackend *backend, Error **errp)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     backend->aligned = true;

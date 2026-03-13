@@ -1238,7 +1238,7 @@ static CPAccessResult gt_stimer_access(CPUARMState *env,
     case 3:
         return CP_ACCESS_OK;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1277,7 +1277,7 @@ static CPAccessResult gt_sel2timer_access(CPUARMState *env,
             return CP_ACCESS_UNDEFINED;
         }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1356,7 +1356,7 @@ static uint64_t gt_indirect_access_timer_offset(CPUARMState *env, int timeridx)
     case GTIMER_S_EL2_VIRT:
         return 0;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1404,7 +1404,7 @@ uint64_t gt_direct_access_timer_offset(CPUARMState *env, int timeridx)
     case GTIMER_S_EL2_VIRT:
         return 0;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -3649,7 +3649,7 @@ static void do_hcr_write(CPUARMState *env, uint64_t value, uint64_t valid_mask)
      * because VIRQ, VFIQ, VINMI and VFNMI are masked unless running
      * at EL0 or EL1, and HCR can only be written at EL2.
      */
-    g_assert(bql_locked());
+    assert(bql_locked());
     arm_cpu_update_virq(cpu);
     arm_cpu_update_vfiq(cpu);
     arm_cpu_update_vserr(cpu);
@@ -3832,7 +3832,7 @@ static void hcrx_write(CPUARMState *env, const ARMCPRegInfo *ri,
      * can only be written at EL2.
      */
     if (cpu_isar_feature(aa64_nmi, cpu)) {
-        g_assert(bql_locked());
+        assert(bql_locked());
         arm_cpu_update_vinmi(cpu);
         arm_cpu_update_vfnmi(cpu);
     }
@@ -4459,15 +4459,15 @@ static void define_arm_vh_e2h_redirects_aliases(ARMCPU *cpu)
 
         src_reg = ARMCPRegTable_get(cpu->cp_regs, a->src_key);
         dst_reg = ARMCPRegTable_get(cpu->cp_regs, a->dst_key);
-        g_assert(src_reg != NULL);
-        g_assert(dst_reg != NULL);
+        assert(src_reg != NULL);
+        assert(dst_reg != NULL);
 
         /* Cross-compare names to detect typos in the keys.  */
-        g_assert(strcmp(src_reg->name, a->src_name) == 0);
-        g_assert(strcmp(dst_reg->name, a->dst_name) == 0);
+        assert(strcmp(src_reg->name, a->src_name) == 0);
+        assert(strcmp(dst_reg->name, a->dst_name) == 0);
 
         /* None of the core system registers use opaque; we will.  */
-        g_assert(src_reg->opaque == NULL);
+        assert(src_reg->opaque == NULL);
 
         /* Create alias before redirection so we dup the right data. */
         new_reg = *src_reg;
@@ -4512,7 +4512,7 @@ static void define_arm_vh_e2h_redirects_aliases(ARMCPU *cpu)
             new_reg.nv2_redirect_offset |= NV2_REDIR_NO_NV1;
         }
 
-        g_assert_null(ARMCPRegTable_cget(cpu->cp_regs, a->new_key));
+        assert_null(ARMCPRegTable_cget(cpu->cp_regs, a->new_key));
         ARMCPRegTable_set_at(cpu->cp_regs, a->new_key, new_reg);
 
         src_reg->opaque = dst_reg;
@@ -5353,7 +5353,7 @@ static void dccvap_writefn(CPUARMState *env, const ARMCPRegInfo *opaque,
     }
 #else
     /* Handled by hardware accelerator. */
-    g_assert_not_reached();
+    assert_not_reached();
 #endif /* CONFIG_TCG */
 }
 
@@ -7082,7 +7082,7 @@ static void add_cpreg_to_hashtable(ARMCPU *cpu, const ARMCPRegInfo *r,
         key = ENCODE_AA64_CP_REG(cp, r->crn, crm, r->opc0, opc1, opc2);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Overriding of an existing definition must be explicitly requested. */
@@ -7308,7 +7308,7 @@ void define_one_arm_cp_reg_with_opaque(ARMCPU *cpu,
         assert(r->cp == 0 || r->cp == CP_REG_ARM64_SYSREG_CP);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     /*
      * The AArch64 pseudocode CheckSystemAccess() specifies that op1
@@ -7347,7 +7347,7 @@ void define_one_arm_cp_reg_with_opaque(ARMCPU *cpu,
             break;
         default:
             /* broken reginfo with out-of-range opc1 */
-            g_assert_not_reached();
+            assert_not_reached();
         }
         /* assert our permissions are not too lax (stricter is fine) */
         assert((r->access & ~mask) == 0);
@@ -7428,7 +7428,7 @@ void define_one_arm_cp_reg_with_opaque(ARMCPU *cpu,
                                                    crm, opc1, opc2, r->name);
                             break;
                         default:
-                            g_assert_not_reached();
+                            assert_not_reached();
                         }
                     } else {
                         /*
@@ -8525,7 +8525,7 @@ static int aarch64_regnum(CPUARMState *env, int aarch32_reg)
         case ARM_CPU_MODE_FIQ:
             return 29;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     case 14:
         switch (mode) {
@@ -8544,12 +8544,12 @@ static int aarch64_regnum(CPUARMState *env, int aarch32_reg)
         case ARM_CPU_MODE_FIQ:
             return 30;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     case 15:
         return 31;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -8641,7 +8641,7 @@ static void arm_cpu_do_interrupt_aarch64(CPUState *cs)
             is_aa64 = is_a64(env);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (is_aa64) {
@@ -8946,7 +8946,7 @@ void arm_cpu_do_interrupt(CPUState *cs)
      * BQL needs to be held for any modification of
      * cs->interrupt_request.
      */
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     arm_call_pre_el_change_hook(cpu);
 
@@ -9356,7 +9356,7 @@ int fp_exception_el(CPUARMState *env, int cur_el)
 #ifndef CONFIG_TCG
 ARMMMUIdx arm_v7m_mmu_idx_for_secstate(CPUARMState *env, bool secstate)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 #endif
 
@@ -9407,7 +9407,7 @@ ARMMMUIdx arm_mmu_idx_el(CPUARMState *env, int el)
         }
         return ARMMMUIdx_E3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (arm_is_guarded(env) && (el > 0)) {

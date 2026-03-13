@@ -65,7 +65,7 @@ static void accel_init_cpu_interfaces(AccelClass *ac)
     const char *cpu_resolving_type = target_cpu_type();
 
     ac_name = object_class_get_name(OBJECT_CLASS(ac));
-    g_assert(ac_name != NULL);
+    assert(ac_name != NULL);
 
     acc_name = g_strdup_printf("%s-%s", ac_name, cpu_resolving_type);
     acc = object_class_by_name(acc_name);

@@ -121,7 +121,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->scsecctrl;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_FCLK_DIV:
@@ -133,7 +133,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->fclk_div;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_SYSCLK_DIV:
@@ -145,7 +145,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->sysclk_div;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_CLOCK_FORCE:
@@ -157,7 +157,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->clock_force;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_RESET_SYNDROME:
@@ -182,7 +182,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_CPUWAIT:
@@ -195,7 +195,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             /* In SSE300 this is reserved (for INITSVTOR2) */
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_NMI_ENABLE:
@@ -211,7 +211,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             /* In SSE300 this is reserved (for INITSVTOR3) */
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_WICCTRL:
@@ -225,7 +225,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->cpuwait;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_EWCTRL:
@@ -240,7 +240,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->nmi_enable;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PWRCTRL:
@@ -252,7 +252,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->pwrctrl;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SYS_SENSE:
@@ -264,7 +264,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->pdcm_pd_sys_sense;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_CPU0_SENSE:
@@ -276,7 +276,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->pdcm_pd_cpu0_sense;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM0_SENSE:
@@ -289,7 +289,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM1_SENSE:
@@ -302,7 +302,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM2_SENSE:
@@ -316,7 +316,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->pdcm_pd_vmr0_sense;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM3_SENSE:
@@ -330,7 +330,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = s->pdcm_pd_vmr1_sense;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PID4 ... A_CID3:
@@ -343,7 +343,7 @@ static uint64_t iotkit_sysctl_read(void *opaque, hwaddr offset,
             r = sse200_sysctl_id[(offset - A_PID4) / 4];
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_SECDBGSET:
@@ -433,7 +433,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             set_init_vtor(0, s->initsvtor0);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_CPUWAIT:
@@ -446,7 +446,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             /* In SSE300 this is reserved (for INITSVTOR2) */
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_WICCTRL:
@@ -461,7 +461,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             cpuwait_write(s, value);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_SECDBGSET:
@@ -489,7 +489,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->scsecctrl = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_FCLK_DIV:
@@ -502,7 +502,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->fclk_div = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_SYSCLK_DIV:
@@ -515,7 +515,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->sysclk_div = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_CLOCK_FORCE:
@@ -528,7 +528,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->clock_force = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_INITSVTOR1:
@@ -542,7 +542,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_EWCTRL:
@@ -559,7 +559,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->nmi_enable = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PWRCTRL:
@@ -576,7 +576,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->pwrctrl = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SYS_SENSE:
@@ -590,7 +590,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->pdcm_pd_sys_sense = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_CPU0_SENSE:
@@ -604,7 +604,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->pdcm_pd_cpu0_sense = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM0_SENSE:
@@ -619,7 +619,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM1_SENSE:
@@ -634,7 +634,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
         case ARMSSE_SSE300:
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM2_SENSE:
@@ -652,7 +652,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->pdcm_pd_vmr0_sense = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_PDCM_PD_SRAM3_SENSE:
@@ -670,7 +670,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             s->pdcm_pd_vmr1_sense = value;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_NMI_ENABLE:
@@ -686,7 +686,7 @@ static void iotkit_sysctl_write(void *opaque, hwaddr offset,
             /* In SSE300 this is reserved (for INITSVTOR3) */
             goto bad_offset;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     case A_SECDBGSTAT:

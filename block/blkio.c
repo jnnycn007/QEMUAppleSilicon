@@ -825,7 +825,7 @@ static int blkio_open(BlockDriverState *bs, QDict *options, int flags,
     } else if (strcmp(blkio_driver, "virtio-blk-vhost-vdpa") == 0) {
         ret = blkio_virtio_blk_connect(bs, options, flags, errp);
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (ret < 0) {
         blkio_destroy(&s->blkio);

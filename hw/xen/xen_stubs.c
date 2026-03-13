@@ -15,28 +15,28 @@
 
 void xen_hvm_modified_memory(ram_addr_t start, ram_addr_t length)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void xen_ram_alloc(ram_addr_t ram_addr, ram_addr_t size,
                    const MemoryRegion *mr, Error **errp)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 bool xen_mr_is_memory(const MemoryRegion *mr)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void xen_invalidate_map_cache_entry(uint8_t *buffer)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 ram_addr_t xen_ram_addr_from_mapcache(void *ptr)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 uint8_t *xen_map_cache(const MemoryRegion *mr,
@@ -47,5 +47,5 @@ uint8_t *xen_map_cache(const MemoryRegion *mr,
                        bool dma,
                        bool is_write)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

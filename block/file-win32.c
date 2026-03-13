@@ -369,7 +369,7 @@ static int raw_open(BlockDriverState *bs, QDict *options, int flags,
     case ON_OFF_AUTO_AUTO:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     filename = qemu_opt_get(opts, "filename");

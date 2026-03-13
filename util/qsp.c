@@ -234,7 +234,7 @@ static bool qsp_entry_cmp(const void *ap, const void *bp)
 static void qsp_do_init(void)
 {
     /* make sure this file's path in the tree is up to date with QSP_REL_PATH */
-    g_assert(strstr(__FILE__, QSP_REL_PATH));
+    assert(strstr(__FILE__, QSP_REL_PATH));
     qsp_qemu_path_len = strlen(__FILE__) - strlen(QSP_REL_PATH);
 
     qht_init(&qsp_ht, qsp_entry_cmp, QSP_INITIAL_SIZE,
@@ -486,7 +486,7 @@ static gint qsp_tree_cmp(gconstpointer ap, gconstpointer bp, gpointer up)
         break;
     }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     ca = a->callsite;
@@ -505,7 +505,7 @@ static gint qsp_tree_cmp(gconstpointer ap, gconstpointer bp, gpointer up)
             return cmp;
         }
         /* same callsite file. Break the tie with the callsite's line */
-        g_assert(ca->line != cb->line);
+        assert(ca->line != cb->line);
         if (ca->line < cb->line) {
             return -1;
         } else if (ca->line > cb->line) {
@@ -550,10 +550,10 @@ static void qsp_iter_diff(void *p, uint32_t hash, void *htp)
 
     new = qht_lookup(ht, old, hash);
     /* entries are never deleted, so we must have this one */
-    g_assert(new != NULL);
+    assert(new != NULL);
     /* our reading of the stats happened after the snapshot was taken */
-    g_assert(new->n_acqs >= old->n_acqs);
-    g_assert(new->ns >= old->ns);
+    assert(new->n_acqs >= old->n_acqs);
+    assert(new->ns >= old->ns);
 
     new->n_acqs -= old->n_acqs;
     new->ns -= old->ns;
@@ -562,7 +562,7 @@ static void qsp_iter_diff(void *p, uint32_t hash, void *htp)
     if (new->n_acqs == 0 && new->ns == 0) {
         bool removed = qht_remove(ht, new, hash);
 
-        g_assert(removed);
+        assert(removed);
         g_free(new);
     }
 }

@@ -82,7 +82,7 @@ static void type_construct(TypeImpl *ti, const TypeInfo *info)
 {
     int i;
 
-    g_assert(info->name != NULL);
+    assert(info->name != NULL);
 
     if (type_table_lookup(info->name) != NULL) {
         fprintf(stderr, "Registering `%s' which already exists\n", info->name);
@@ -140,7 +140,7 @@ static bool type_name_is_valid(const char *name)
     const int slen = strlen(name);
     int plen;
 
-    g_assert(slen > 1);
+    assert(slen > 1);
 
     /*
      * Ideally, the name should start with a letter - however, we've got
@@ -359,8 +359,8 @@ static void type_initialize(TypeImpl *ti)
         GSList *e;
         int i;
 
-        g_assert(parent->class_size <= ti->class_size);
-        g_assert(parent->instance_size <= ti->instance_size);
+        assert(parent->class_size <= ti->class_size);
+        assert(parent->instance_size <= ti->instance_size);
         memcpy(ti->class, parent->class, parent->class_size);
         ti->class->interfaces = NULL;
 
@@ -550,9 +550,9 @@ static void object_initialize_with_type(Object *obj, size_t size, TypeImpl *type
 {
     type_initialize(type);
 
-    g_assert(type->instance_size >= sizeof(Object));
-    g_assert(type->abstract == false);
-    g_assert(size >= type->instance_size);
+    assert(type->instance_size >= sizeof(Object));
+    assert(type->abstract == false);
+    assert(size >= type->instance_size);
 
     memset(obj, 0, type->instance_size);
     obj->class = type->class;
@@ -721,8 +721,8 @@ static void object_finalize(void *data)
     object_property_del_all(obj);
     object_deinit(obj, ti);
 
-    g_assert(obj->ref == 0);
-    g_assert(obj->parent == NULL);
+    assert(obj->ref == 0);
+    assert(obj->parent == NULL);
     if (obj->free) {
         obj->free(obj);
     }
@@ -746,7 +746,7 @@ static Object *object_new_with_type(Type type)
     size_t size, align;
     void (*obj_free)(void *);
 
-    g_assert(type != NULL);
+    assert(type != NULL);
     type_initialize(type);
 
     size = type->instance_size;
@@ -874,7 +874,7 @@ bool object_set_propv(Object *obj,
     while (propname != NULL) {
         const char *value = va_arg(vargs, char *);
 
-        g_assert(value != NULL);
+        assert(value != NULL);
         if (!object_property_parse(obj, propname, value, errp)) {
             return false;
         }
@@ -939,8 +939,8 @@ static ObjectClass *object_class_dynamic_cast_type(ObjectClass *class,
     ObjectClass *ret = NULL;
     TypeImpl *type;
 
-    g_assert(class);
-    g_assert(target_type);
+    assert(class);
+    assert(target_type);
 
     type = class->type;
 
@@ -1226,7 +1226,7 @@ Object *object_ref(void *objptr)
     }
     ref = qatomic_fetch_inc(&obj->ref);
     /* Assert waaay before the integer overflows */
-    g_assert(ref < INT_MAX);
+    assert(ref < INT_MAX);
     return obj;
 }
 
@@ -1236,7 +1236,7 @@ void object_unref(void *objptr)
     if (!obj) {
         return;
     }
-    g_assert(obj->ref > 0);
+    assert(obj->ref > 0);
 
     /* parent always holds a reference to its children */
     if (qatomic_fetch_dec(&obj->ref) == 1) {
@@ -2108,7 +2108,7 @@ const char *object_get_canonical_path_component(const Object *obj)
     }
 
     /* obj had a parent but was not a child, should never happen */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 char *object_get_canonical_path(const Object *obj)

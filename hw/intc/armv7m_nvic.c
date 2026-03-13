@@ -718,7 +718,7 @@ void armv7m_nvic_set_pending_lazyfp(NVICState *s, int irq, bool secure)
         escalate = !(fpccr_s & R_V7M_FPCCR_SFRDY_MASK);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (escalate) {
@@ -2204,7 +2204,7 @@ static int shpr_bank(NVICState *s, int exc, MemTxAttrs attrs)
         return -1;
     default:
         /* Not reachable due to decode of SHPR register addresses */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

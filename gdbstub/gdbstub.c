@@ -55,7 +55,7 @@ GDBState gdbserver_state;
 
 void gdb_init_gdbserver_state(void)
 {
-    g_assert(!gdbserver_state.init);
+    assert(!gdbserver_state.init);
     memset(&gdbserver_state, 0, sizeof(GDBState));
     gdbserver_state.init = true;
     gdbserver_state.str_buf = g_string_new(NULL);
@@ -481,7 +481,7 @@ const GDBFeature *gdb_find_static_feature(const char *xmlname)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 GArray *gdb_get_register_list(CPUState *cpu)
@@ -883,8 +883,8 @@ static int cmd_parse_params(const char *data, const char *schema,
 {
     const char *curr_schema, *curr_data;
 
-    g_assert(schema);
-    g_assert(params->len == 0);
+    assert(schema);
+    assert(params->len == 0);
 
     curr_schema = schema;
     curr_data = data;
@@ -956,7 +956,7 @@ static bool process_string_cmd(const char *data,
     for (i = 0; i < num_cmds; i++) {
         const GdbCmdParseEntry *cmd = &cmds[i];
         void *user_ctx = NULL;
-        g_assert(cmd->handler && cmd->cmd);
+        assert(cmd->handler && cmd->cmd);
 
         if ((cmd->cmd_startswith && !startswith(data, cmd->cmd)) ||
             (!cmd->cmd_startswith && strcmp(cmd->cmd, data))) {
@@ -1324,7 +1324,7 @@ static void handle_read_all_regs(GArray *params, void *user_ctx)
         len += gdb_read_register(gdbserver_state.g_cpu,
                                  gdbserver_state.mem_buf,
                                  reg_id);
-        g_assert(len == gdbserver_state.mem_buf->len);
+        assert(len == gdbserver_state.mem_buf->len);
     }
 
     gdb_memtohex(gdbserver_state.str_buf, gdbserver_state.mem_buf->data, len);

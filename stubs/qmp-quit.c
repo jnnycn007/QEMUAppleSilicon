@@ -4,5 +4,5 @@
 
 void qmp_quit(Error **errp)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

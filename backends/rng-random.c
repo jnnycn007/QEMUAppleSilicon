@@ -45,7 +45,7 @@ static void entropy_available(void *opaque)
         if (len < 0 && errno == EAGAIN) {
             return;
         }
-        g_assert(len != -1);
+        assert(len != -1);
 
         req->receive_entropy(req->opaque, req->data, len);
 

@@ -56,7 +56,7 @@ void xen_backend_register(const XenBackendInfo *info)
 {
     XenBackendImpl *impl = g_new0(XenBackendImpl, 1);
 
-    g_assert(info->type);
+    assert(info->type);
 
     if (xen_backend_table_lookup(info->type)) {
         error_report("attempt to register duplicate Xen backend type '%s'",
@@ -158,7 +158,7 @@ const char *xen_backend_get_name(XenBackendInstance *backend)
 void xen_backend_set_device(XenBackendInstance *backend,
                             XenDevice *xendev)
 {
-    g_assert(!backend->xendev);
+    assert(!backend->xendev);
     backend->xendev = xendev;
 }
 

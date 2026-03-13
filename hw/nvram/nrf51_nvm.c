@@ -279,7 +279,7 @@ static uint64_t flash_read(void *opaque, hwaddr offset, unsigned size)
      * romd_mode (we never put it in MMIO mode), so reads always
      * go directly to RAM and never come here.
      */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void flash_write(void *opaque, hwaddr offset, uint64_t value,

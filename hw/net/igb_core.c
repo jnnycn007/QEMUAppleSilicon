@@ -397,7 +397,7 @@ igb_rss_calc_hash(IGBCore *core, struct NetRxPkt *pkt, E1000E_RSSInfo *info)
         type = NetPktRssIpV6Udp;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return net_rx_pkt_calc_rss_hash(pkt, type, (uint8_t *) &core->mac[RSSRK]);
@@ -585,7 +585,7 @@ igb_on_tx_done_update_stats(IGBCore *core, struct NetTxPkt *tx_pkt, int qn)
     case ETH_PKT_UCAST:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     e1000x_inc_reg_if_not_full(core->mac, GPTC);
@@ -745,7 +745,7 @@ igb_ring_free_descr_num(IGBCore *core, const E1000ERingInfo *r)
                core->mac[r->dt] - core->mac[r->dh];
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static inline bool

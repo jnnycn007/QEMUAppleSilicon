@@ -221,7 +221,7 @@ static bool tci_compare32(uint32_t u0, uint32_t u1, TCGCond condition)
         result = (u0 & u1) != 0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return result;
 }
@@ -269,7 +269,7 @@ static bool tci_compare64(uint64_t u0, uint64_t u1, TCGCond condition)
         result = (u0 & u1) != 0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return result;
 }
@@ -296,7 +296,7 @@ static uint64_t tci_qemu_ld(CPUArchState *env, uint64_t taddr,
     case MO_UQ:
         return helper_ldq_mmu(env, taddr, oi, ra);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -320,7 +320,7 @@ static void tci_qemu_st(CPUArchState *env, uint64_t taddr, uint64_t val,
         helper_stq_mmu(env, taddr, val, oi, ra);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -409,7 +409,7 @@ uintptr_t QEMU_DISABLE_CFI tcg_qemu_tb_exec(CPUArchState *env,
                 memcpy(&regs[TCG_REG_R0], stack, 16);
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
             break;
 
@@ -823,7 +823,7 @@ uintptr_t QEMU_DISABLE_CFI tcg_qemu_tb_exec(CPUArchState *env,
             smp_mb();
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }

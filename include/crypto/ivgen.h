@@ -42,7 +42,7 @@
  * size_t niv;
  * size_t sector = 0;
  *
- * g_assert((ndata % 512) == 0);
+ * assert((ndata % 512) == 0);
  *
  * QCryptoIVGen *ivgen = qcrypto_ivgen_new(QCRYPTO_IV_GEN_ALGO_ESSIV,
  *                                         QCRYPTO_CIPHER_ALGO_AES_128,

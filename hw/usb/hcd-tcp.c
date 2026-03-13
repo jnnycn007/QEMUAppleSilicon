@@ -71,7 +71,7 @@ static ssize_t tcp_usb_read(QIOChannel *ioc, void *buf, size_t len)
      * Dont use in IOThread out of co-routine context as
      * it will block IOThread.
      */
-    g_assert_true(qemu_in_coroutine() || !iothread);
+    assert_true(qemu_in_coroutine() || !iothread);
 
     if (iolock && !iothread && !qemu_in_coroutine()) {
         bql_unlock();
@@ -101,7 +101,7 @@ static bool tcp_usb_write(QIOChannel *ioc, void *buf, ssize_t len)
      * Dont use in IOThread out of co-routine context as
      * it will block IOThread.
      */
-    g_assert_true(qemu_in_coroutine() || !iothread);
+    assert_true(qemu_in_coroutine() || !iothread);
 
     if (iolock && !iothread && !qemu_in_coroutine()) {
         bql_unlock();
@@ -259,7 +259,7 @@ static void coroutine_fn usb_tcp_host_msg_loop_co(void *opaque)
             pkt->dev = ep->dev;
             pkt->s = s;
             pkt->addr = pkt_hdr.addr;
-            g_assert_true(bql_locked());
+            assert_true(bql_locked());
 
             usb_handle_packet(pkt->dev, &pkt->p);
             usb_tcp_host_respond_packet(s, pkt);
@@ -284,7 +284,7 @@ static void coroutine_fn usb_tcp_host_msg_loop_co(void *opaque)
             DPRINTF("%s: TCP_USB_CANCEL pid: 0x%x ep: %d\n", __func__,
                     pkt_hdr.pid, pkt_hdr.ep);
 
-            g_assert_true(bql_locked());
+            assert_true(bql_locked());
             p = usb_ep_find_packet_by_id(port->dev, pkt_hdr.pid, pkt_hdr.ep,
                                          pkt_hdr.id);
             if (p) {
@@ -304,12 +304,12 @@ static void coroutine_fn usb_tcp_host_msg_loop_co(void *opaque)
         }
         case TCP_USB_RESET:
             DPRINTF("%s: TCP_USB_RESET\n", __func__);
-            g_assert_true(bql_locked());
+            assert_true(bql_locked());
             usb_device_reset(port->dev);
             break;
             ;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
             break;
         }
     }
@@ -488,7 +488,7 @@ static void usb_tcp_host_attach(USBPort *port)
         sock = usb_tcp_host_connect_ipv6(s, &err);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (sock == -1) {

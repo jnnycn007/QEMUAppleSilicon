@@ -656,7 +656,7 @@ static void gt64120_writel(void *opaque, hwaddr addr,
     case GT_PCI0_CFGADDR:
     case GT_PCI0_CFGDATA:
         /* Mapped via in gt64120_pci_mapping() */
-        g_assert_not_reached();
+        assert_not_reached();
 
     /* Interrupts */
     case GT_INTRCAUSE:
@@ -899,7 +899,7 @@ static uint64_t gt64120_readl(void *opaque,
     case GT_PCI0_CFGADDR:
     case GT_PCI0_CFGDATA:
         /* Mapped via in gt64120_pci_mapping() */
-        g_assert_not_reached();
+        assert_not_reached();
 
     case GT_PCI0_CMD:
     case GT_PCI0_TOR:

@@ -134,7 +134,7 @@ static void memory_dump(Monitor *mon, int count, int format, int wsize,
     }
 
     if (format == 'i') {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     len = wsize * count;

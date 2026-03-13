@@ -22,7 +22,7 @@
 
 static inline void register_write_val(RegisterInfo *reg, uint64_t val)
 {
-    g_assert(reg->data);
+    assert(reg->data);
 
     switch (reg->data_size) {
     case 1:
@@ -38,7 +38,7 @@ static inline void register_write_val(RegisterInfo *reg, uint64_t val)
         *(uint64_t *)reg->data = val;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -54,7 +54,7 @@ static inline uint64_t register_read_val(RegisterInfo *reg)
     case 8:
         return *(uint64_t *)reg->data;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return 0; /* unreachable */
 }
@@ -161,7 +161,7 @@ void register_reset(RegisterInfo *reg)
 {
     const RegisterAccessInfo *ac;
 
-    g_assert(reg);
+    assert(reg);
 
     if (!reg->data || !reg->access) {
         return;

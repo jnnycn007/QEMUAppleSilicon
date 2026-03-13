@@ -150,7 +150,7 @@ ram_block_attributes_rdm_get_min_granularity(const RamDiscardManager *rdm,
 {
     const RamBlockAttributes *attr = RAM_BLOCK_ATTRIBUTES(rdm);
 
-    g_assert(mr == attr->ram_block->mr);
+    assert(mr == attr->ram_block->mr);
     return ram_block_attributes_get_block_size();
 }
 
@@ -162,7 +162,7 @@ ram_block_attributes_rdm_register_listener(RamDiscardManager *rdm,
     RamBlockAttributes *attr = RAM_BLOCK_ATTRIBUTES(rdm);
     int ret;
 
-    g_assert(section->mr == attr->ram_block->mr);
+    assert(section->mr == attr->ram_block->mr);
     rdl->section = memory_region_section_new_copy(section);
 
     QLIST_INSERT_HEAD(&attr->rdl_list, rdl, next);
@@ -182,8 +182,8 @@ ram_block_attributes_rdm_unregister_listener(RamDiscardManager *rdm,
 {
     RamBlockAttributes *attr = RAM_BLOCK_ATTRIBUTES(rdm);
 
-    g_assert(rdl->section);
-    g_assert(rdl->section->mr == attr->ram_block->mr);
+    assert(rdl->section);
+    assert(rdl->section->mr == attr->ram_block->mr);
 
     rdl->notify_discard(rdl, rdl->section);
 
@@ -214,7 +214,7 @@ ram_block_attributes_rdm_replay_populated(const RamDiscardManager *rdm,
     RamBlockAttributes *attr = RAM_BLOCK_ATTRIBUTES(rdm);
     RamBlockAttributesReplayData data = { .fn = replay_fn, .opaque = opaque };
 
-    g_assert(section->mr == attr->ram_block->mr);
+    assert(section->mr == attr->ram_block->mr);
     return ram_block_attributes_for_each_populated_section(attr, section, &data,
                                             ram_block_attributes_rdm_replay_cb);
 }
@@ -228,7 +228,7 @@ ram_block_attributes_rdm_replay_discarded(const RamDiscardManager *rdm,
     RamBlockAttributes *attr = RAM_BLOCK_ATTRIBUTES(rdm);
     RamBlockAttributesReplayData data = { .fn = replay_fn, .opaque = opaque };
 
-    g_assert(section->mr == attr->ram_block->mr);
+    assert(section->mr == attr->ram_block->mr);
     return ram_block_attributes_for_each_discarded_section(attr, section, &data,
                                             ram_block_attributes_rdm_replay_cb);
 }
@@ -239,7 +239,7 @@ ram_block_attributes_is_valid_range(RamBlockAttributes *attr, uint64_t offset,
 {
     MemoryRegion *mr = attr->ram_block->mr;
 
-    g_assert(mr);
+    assert(mr);
 
     uint64_t region_size = memory_region_size(mr);
     const size_t block_size = ram_block_attributes_get_block_size();
@@ -388,7 +388,7 @@ RamBlockAttributes *ram_block_attributes_create(RAMBlock *ram_block)
 
 void ram_block_attributes_destroy(RamBlockAttributes *attr)
 {
-    g_assert(attr);
+    assert(attr);
 
     g_free(attr->bitmap);
     memory_region_set_ram_discard_manager(attr->ram_block->mr, NULL);

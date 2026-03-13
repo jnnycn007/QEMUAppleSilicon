@@ -112,7 +112,7 @@ static bool ptw_setl_slow(const PTETranslate *in, uint32_t old, uint32_t new)
 
     CPUState *cpu = env_cpu(in->env);
     /* We are in cpu_exec, and start_exclusive can't be called directly.*/
-    g_assert(cpu->running);
+    assert(cpu->running);
     cpu_exec_end(cpu);
     /* Does x86 really perform a rmw cycle on mmio for ptw? */
     start_exclusive();
@@ -534,7 +534,7 @@ static G_NORETURN void raise_stage2(CPUX86State *env, TranslateFault *err,
         exit_info_1 |= SVM_NPTEXIT_GPA;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     x86_stq_phys(env_cpu(env),

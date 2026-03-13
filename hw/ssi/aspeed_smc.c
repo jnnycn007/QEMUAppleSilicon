@@ -804,7 +804,7 @@ static uint8_t aspeed_smc_hclk_divisor(uint8_t hclk_mask)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*
@@ -869,7 +869,7 @@ static bool aspeed_smc_inject_read_failure(AspeedSMCState *s)
     case 1: /* (> 100MHz) is above the max freq of the controller */
         return true;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

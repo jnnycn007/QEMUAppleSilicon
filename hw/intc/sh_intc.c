@@ -96,7 +96,7 @@ int sh_intc_get_pending_vector(struct intc_desc *desc, int imask)
             return source->vect;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 typedef enum {
@@ -165,7 +165,7 @@ static void sh_intc_locate(struct intc_desc *desc,
             }
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void sh_intc_toggle_mask(struct intc_desc *desc, intc_enum id,
@@ -235,7 +235,7 @@ static void sh_intc_write(void *opaque, hwaddr offset,
         value = *valuep & ~value;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     for (k = 0; k <= first; k++) {

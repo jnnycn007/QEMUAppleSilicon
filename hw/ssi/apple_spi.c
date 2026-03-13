@@ -113,7 +113,7 @@ static uint32_t apple_spi_word_size(AppleSPIState *spi)
     default:
         break;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void apple_spi_update_xfer_tx(AppleSPIState *spi)
@@ -168,7 +168,7 @@ static void apple_spi_update_xfer_tx(AppleSPIState *spi)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     g_free(buffer);
@@ -211,7 +211,7 @@ static void apple_spi_flush_rx(AppleSPIState *spi)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     apple_sio_dma_write(spi->rx_chan, buffer, dma_len);
@@ -407,7 +407,7 @@ static void apple_spi_reg_write(void *opaque, hwaddr addr, uint64_t data,
             fifo32_push(&spi->tx_fifo, value);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         run = true;

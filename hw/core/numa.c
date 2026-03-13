@@ -377,7 +377,7 @@ void parse_numa_hmat_lb(NumaState *numa_state, NumaHmatLBOptions *node,
         }
         lb_data.data = node->bandwidth;
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     g_array_append_val(hmat_lb->list, lb_data);
@@ -791,7 +791,7 @@ static void numa_stat_memory_devices(NumaNodeMem node_mem[])
                 node_mem[se->node].node_plugged_mem = 0;
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
         }
     }

@@ -653,7 +653,7 @@ static void vdagent_chr_recv_clipboard(VDAgentChardev *vd, VDAgentMessage *msg)
     case VD_AGENT_CLIPBOARD_RELEASE:
         return vdagent_clipboard_recv_release(vd, s);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

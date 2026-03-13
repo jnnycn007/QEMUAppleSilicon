@@ -199,7 +199,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
         machine->cpu_type = ARM_CPU_TYPE_NAME("cortex-a15");
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     for (n = 0; n < smp_cpus; n++) {

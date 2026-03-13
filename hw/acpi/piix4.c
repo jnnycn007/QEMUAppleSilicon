@@ -357,7 +357,7 @@ static void piix4_device_plug_cb(HotplugHandler *hotplug_dev,
             acpi_cpu_plug_cb(hotplug_dev, &s->cpuhp_state, dev, errp);
         }
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

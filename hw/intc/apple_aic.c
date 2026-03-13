@@ -522,7 +522,7 @@ static void apple_aic_realize(DeviceState *dev, struct Error **errp)
 
     qdev_init_gpio_in(dev, apple_aic_set_irq, s->numIRQ);
 
-    g_assert_cmpuint(s->numCPU, !=, 0);
+    assert_cmpuint(s->numCPU, !=, 0);
 
     s->eir_mask = g_new0(uint32_t, s->numEIR);
     s->eir_dest = g_new0(uint32_t, s->numIRQ);
@@ -554,12 +554,12 @@ SysBusDevice *apple_aic_create(uint32_t numCPU, AppleDTNode *node,
     s->phandle = apple_dt_get_prop_u32(node, "AAPL,phandle", &error_fatal);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (hwaddr *)prop->data;
     s->base_size = reg[1];
 
     prop = apple_dt_get_prop(node, "ipid-mask");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     s->numEIR = prop->len / 4;
     s->numIRQ = s->numEIR * 32;
     s->numCPU = numCPU;

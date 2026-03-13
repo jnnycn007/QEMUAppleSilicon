@@ -37,7 +37,7 @@ static void ga_command_group_init(gpointer opaque, gpointer unused)
 {
     GACommandGroup *cg = opaque;
 
-    g_assert(cg);
+    assert(cg);
     if (cg->init) {
         cg->init();
     }
@@ -45,7 +45,7 @@ static void ga_command_group_init(gpointer opaque, gpointer unused)
 
 void ga_command_state_init_all(GACommandState *cs)
 {
-    g_assert(cs);
+    assert(cs);
     g_slist_foreach(cs->groups, ga_command_group_init, NULL);
 }
 
@@ -53,7 +53,7 @@ static void ga_command_group_cleanup(gpointer opaque, gpointer unused)
 {
     GACommandGroup *cg = opaque;
 
-    g_assert(cg);
+    assert(cg);
     if (cg->cleanup) {
         cg->cleanup();
     }
@@ -61,7 +61,7 @@ static void ga_command_group_cleanup(gpointer opaque, gpointer unused)
 
 void ga_command_state_cleanup_all(GACommandState *cs)
 {
-    g_assert(cs);
+    assert(cs);
     g_slist_foreach(cs->groups, ga_command_group_cleanup, NULL);
 }
 

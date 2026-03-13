@@ -1121,7 +1121,7 @@ int nbd_receive_negotiate(QIOChannel *ioc, QCryptoTLSCreds *tlscreds,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_nbd_receive_negotiate_size_flags(info->size, info->flags);
@@ -1254,7 +1254,7 @@ int nbd_receive_export_list(QIOChannel *ioc, QCryptoTLSCreds *tlscreds,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     *info = array;

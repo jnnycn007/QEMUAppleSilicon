@@ -2445,7 +2445,7 @@ void helper_vpermdq_ymm(Reg *d, Reg *v, Reg *s, uint32_t order)
         r1 = s->Q(3);
         break;
     default: /* default case added to help the compiler to avoid warnings */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     switch ((order >> 4) & 3) {
     case 0:
@@ -2465,7 +2465,7 @@ void helper_vpermdq_ymm(Reg *d, Reg *v, Reg *s, uint32_t order)
         r3 = s->Q(3);
         break;
     default: /* default case added to help the compiler to avoid warnings */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     d->Q(0) = r0;
     d->Q(1) = r1;

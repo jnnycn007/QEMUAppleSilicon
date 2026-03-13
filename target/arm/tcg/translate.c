@@ -183,7 +183,7 @@ void store_cpu_offset(TCGv_i32 var, int offset, int size)
         tcg_gen_st_i32(var, tcg_env, offset);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -253,7 +253,7 @@ static inline int get_a32_user_mem_index(DisasContext *s)
     case ARMMMUIdx_MSPrivNegPri:
         return arm_to_core_mmu_idx(ARMMMUIdx_MSUserNegPri);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -886,7 +886,7 @@ MemOp pow2_align(unsigned i)
     static const MemOp mop_align[] = {
         0, MO_ALIGN_2, MO_ALIGN_4, MO_ALIGN_8, MO_ALIGN_16, MO_ALIGN_32
     };
-    g_assert(i < ARRAY_SIZE(mop_align));
+    assert(i < ARRAY_SIZE(mop_align));
     return mop_align[i];
 }
 
@@ -1183,7 +1183,7 @@ void read_neon_element32(TCGv_i32 dest, int reg, int ele, MemOp memop)
         tcg_gen_ld_i32(dest, tcg_env, off);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1202,7 +1202,7 @@ void read_neon_element64(TCGv_i64 dest, int reg, int ele, MemOp memop)
         tcg_gen_ld_i64(dest, tcg_env, off);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1221,7 +1221,7 @@ void write_neon_element32(TCGv_i32 src, int reg, int ele, MemOp memop)
         tcg_gen_st_i32(src, tcg_env, off);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1237,7 +1237,7 @@ void write_neon_element64(TCGv_i64 src, int reg, int ele, MemOp memop)
         tcg_gen_st_i64(src, tcg_env, off);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1316,7 +1316,7 @@ static void gen_jmp_tb(DisasContext *s, target_long diff, int tbno)
          * We shouldn't be emitting code for a jump and also have
          * is_jmp set to one of the special cases like DISAS_SWI.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1817,7 +1817,7 @@ static void do_coproc_insn(DisasContext *s, int cpnum, int is64,
         }
         return;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (ri->type & ARM_CP_IO) {
@@ -2160,7 +2160,7 @@ static void gen_srs(DisasContext *s,
         offset = 4;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_gen_addi_i32(addr, addr, offset);
     tmp = load_reg(s, 14);
@@ -2183,7 +2183,7 @@ static void gen_srs(DisasContext *s,
             offset = 0;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_gen_addi_i32(addr, addr, offset);
         gen_helper_set_r13_banked(tcg_env, tcg_constant_i32(mode), addr);
@@ -2388,7 +2388,7 @@ static bool store_reg_kind(DisasContext *s, int rd,
         gen_exception_return(s, val);
         return true;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*
@@ -3101,7 +3101,7 @@ static bool op_smlaxxx(DisasContext *s, arg_rrrr *a,
         store_reg(s, a->rd, th);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return true;
 }
@@ -3276,7 +3276,7 @@ static bool op_crc32(DisasContext *s, arg_rrr *a, bool c, MemOp sz)
     case MO_32:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     t3 = tcg_constant_i32(1 << sz);
     if (c) {
@@ -5994,7 +5994,7 @@ static bool trans_CSEL(DisasContext *s, arg_CSEL *a)
         tcg_gen_neg_i32(rm, rm);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     arm_test_cc(&c, a->fcond);

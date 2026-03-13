@@ -1302,7 +1302,7 @@ static void ehci_execute_complete(EHCIQueue *q)
     default:
         /* should not be triggerable */
         fprintf(stderr, "USB invalid response %d\n", p->packet.status);
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* TODO check 4.12 for splits */
@@ -2117,7 +2117,7 @@ static void ehci_advance_state(EHCIState *ehci, int async)
 
         default:
             fprintf(stderr, "Bad state!\n");
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (again < 0 || itd_count > 16) {
@@ -2181,7 +2181,7 @@ static void ehci_advance_async_state(EHCIState *ehci)
         /* this should only be due to a developer mistake */
         fprintf(stderr, "ehci: Bad asynchronous state %d. "
                 "Resetting to active\n", ehci->astate);
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2231,7 +2231,7 @@ static void ehci_advance_periodic_state(EHCIState *ehci)
         /* this should only be due to a developer mistake */
         fprintf(stderr, "ehci: Bad periodic state %d. "
                 "Resetting to active\n", ehci->pstate);
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

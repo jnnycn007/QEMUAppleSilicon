@@ -1460,7 +1460,7 @@ kvm_check_extension_list(KVMState *s, const KVMCapabilityInfo *list)
 
 void kvm_set_max_memslot_size(hwaddr max_slot_size)
 {
-    g_assert(
+    assert(
         ROUND_UP(max_slot_size, qemu_real_host_page_size()) == max_slot_size
     );
     kvm_max_slot_size = max_slot_size;
@@ -1653,7 +1653,7 @@ static void *kvm_dirty_ring_reaper_thread(void *data)
         r->reaper_iteration++;
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void kvm_dirty_ring_reaper_init(KVMState *s)
@@ -4320,7 +4320,7 @@ static void query_stats(StatsResultList **result, StatsTarget target,
                         stats_list);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

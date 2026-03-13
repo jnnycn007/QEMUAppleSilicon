@@ -111,8 +111,8 @@ void icount_prepare_for_run(CPUState *cpu, int64_t cpu_budget)
      * each vCPU execution. However u16.high can be raised
      * asynchronously by cpu_exit/cpu_interrupt/tcg_handle_interrupt
      */
-    g_assert(cpu->neg.icount_decr.u16.low == 0);
-    g_assert(cpu->icount_extra == 0);
+    assert(cpu->neg.icount_decr.u16.low == 0);
+    assert(cpu->icount_extra == 0);
 
     replay_mutex_lock();
 

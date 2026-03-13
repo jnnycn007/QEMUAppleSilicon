@@ -61,7 +61,7 @@ int (*qemu_main)(void);
 static int os_darwin_cfrunloop_main(void)
 {
     CFRunLoopRun();
-    g_assert_not_reached();
+    assert_not_reached();
 }
 int (*qemu_main)(void) = os_darwin_cfrunloop_main;
 #endif
@@ -91,6 +91,6 @@ int main(int argc, char **argv)
         return qemu_main();
     } else {
         qemu_default_main(NULL);
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }

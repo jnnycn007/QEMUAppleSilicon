@@ -360,7 +360,7 @@ void build_erst(GArray *table_data, BIOSLinker *linker, Object *erst_dev,
      * Instruction Entry Count
      * Each instruction entry is 32 bytes
      */
-    g_assert((table_instruction_data->len) % 32 == 0);
+    assert((table_instruction_data->len) % 32 == 0);
     build_append_int_noprefix(table_data,
         (table_instruction_data->len / 32), 4);
 
@@ -379,7 +379,7 @@ static uint8_t *get_nvram_ptr_by_index(ERSTDeviceState *s, unsigned index)
     uint8_t *rc = NULL;
     off_t offset = (index * le32_to_cpu(s->header->record_size));
 
-    g_assert(offset < s->storage_size);
+    assert(offset < s->storage_size);
 
     rc = memory_region_get_ram_ptr(s->hostmem_mr);
     rc += offset;
@@ -422,7 +422,7 @@ static void check_erst_backend_storage(ERSTDeviceState *s, Error **errp)
     s->header = header;
 
     /* Ensure pointer to header is 64-bit aligned */
-    g_assert(QEMU_PTR_IS_ALIGNED(header, sizeof(uint64_t)));
+    assert(QEMU_PTR_IS_ALIGNED(header, sizeof(uint64_t)));
 
     /*
      * Check if header is uninitialized; HostMemoryBackend inits to 0

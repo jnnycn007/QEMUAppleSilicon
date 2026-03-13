@@ -583,7 +583,7 @@ static void file_monitor_event(int64_t id,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (entry) {
@@ -1232,7 +1232,7 @@ static void usb_mtp_object_delete(MTPState *s, uint32_t handle,
                              trans, 0, 0, 0, 0);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

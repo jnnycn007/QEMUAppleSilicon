@@ -257,7 +257,7 @@ static void xen_bus_device_cleanup(XenDevice *xendev)
 
     trace_xen_bus_device_cleanup(type, xendev->name);
 
-    g_assert(!xendev->backend_online);
+    assert(!xendev->backend_online);
 
     if (!xen_backend_try_device_destroy(xendev, &local_err)) {
         object_unparent(OBJECT(xendev));
@@ -275,7 +275,7 @@ static void xen_bus_cleanup(XenBus *xenbus)
     trace_xen_bus_cleanup();
 
     QLIST_FOREACH_SAFE(xendev, &xenbus->inactive_devices, list, next) {
-        g_assert(xendev->inactive);
+        assert(xendev->inactive);
         QLIST_REMOVE(xendev, list);
         xen_bus_device_cleanup(xendev);
     }
@@ -412,7 +412,7 @@ void xen_device_backend_printf(XenDevice *xendev, const char *key,
     Error *local_err = NULL;
     va_list ap;
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     va_start(ap, fmt);
     xs_node_vprintf(xenbus->xsh, XBT_NULL, xendev->backend_path, key,
@@ -432,7 +432,7 @@ static int xen_device_backend_scanf(XenDevice *xendev, const char *key,
     va_list ap;
     int rc;
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     va_start(ap, fmt);
     rc = xs_node_vscanf(xenbus->xsh, XBT_NULL, xendev->backend_path, key,
@@ -555,7 +555,7 @@ static void xen_device_backend_create(XenDevice *xendev, Error **errp)
 
     xendev->backend_path = xen_device_get_backend_path(xendev);
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     xs_node_create(xenbus->xsh, XBT_NULL, xendev->backend_path,
                    xenbus->backend_id, xendev->frontend_id, XS_PERM_READ, errp);
@@ -602,7 +602,7 @@ static void xen_device_backend_destroy(XenDevice *xendev)
         return;
     }
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     xs_node_destroy(xenbus->xsh, XBT_NULL, xendev->backend_path,
                     &local_err);
@@ -621,7 +621,7 @@ void xen_device_frontend_printf(XenDevice *xendev, const char *key,
     Error *local_err = NULL;
     va_list ap;
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     va_start(ap, fmt);
     xs_node_vprintf(xenbus->xsh, XBT_NULL, xendev->frontend_path, key,
@@ -640,7 +640,7 @@ int xen_device_frontend_scanf(XenDevice *xendev, const char *key,
     va_list ap;
     int rc;
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     va_start(ap, fmt);
     rc = xs_node_vscanf(xenbus->xsh, XBT_NULL, xendev->frontend_path, key,
@@ -654,7 +654,7 @@ char *xen_device_frontend_read(XenDevice *xendev, const char *key)
 {
     XenBus *xenbus = XEN_BUS(qdev_get_parent_bus(DEVICE(xendev)));
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     return xs_node_read(xenbus->xsh, XBT_NULL, NULL, NULL, "%s/%s",
                         xendev->frontend_path, key);
@@ -744,7 +744,7 @@ static void xen_device_frontend_create(XenDevice *xendev, Error **errp)
      * toolstack.
      */
     if (!xen_device_frontend_exists(xendev)) {
-        g_assert(xenbus->xsh);
+        assert(xenbus->xsh);
 
         xs_node_create(xenbus->xsh, XBT_NULL, xendev->frontend_path,
                        xendev->frontend_id, xenbus->backend_id,
@@ -777,7 +777,7 @@ static void xen_device_frontend_destroy(XenDevice *xendev)
         return;
     }
 
-    g_assert(xenbus->xsh);
+    assert(xenbus->xsh);
 
     xs_node_destroy(xenbus->xsh, XBT_NULL, xendev->frontend_path,
                     &local_err);

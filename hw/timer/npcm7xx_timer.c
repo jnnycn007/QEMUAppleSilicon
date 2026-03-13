@@ -113,7 +113,7 @@ static int npcm7xx_timer_index(NPCM7xxTimerCtrlState *tc, NPCM7xxTimer *timer)
 {
     int index = timer - tc->timer;
 
-    g_assert(index >= 0 && index < NPCM7XX_TIMERS_PER_CTRL);
+    assert(index >= 0 && index < NPCM7XX_TIMERS_PER_CTRL);
 
     return index;
 }
@@ -157,7 +157,7 @@ static uint32_t npcm7xx_watchdog_timer_prescaler(const NPCM7xxWatchdogTimer *t)
     case 3:
         return 65536;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -182,7 +182,7 @@ static void npcm7xx_watchdog_timer_reset(NPCM7xxWatchdogTimer *t)
     int64_t cycles = 1;
     uint32_t s = NPCM7XX_WTCR_WTIS(t->wtcr);
 
-    g_assert(s <= 3);
+    assert(s <= 3);
 
     cycles <<= NPCM7XX_WATCHDOG_BASETIME_SHIFT;
     cycles <<= 2 * s;
@@ -383,7 +383,7 @@ static hwaddr npcm7xx_tcsr_index(hwaddr reg)
     case NPCM7XX_TIMER_TCSR4:
         return 4;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -401,7 +401,7 @@ static hwaddr npcm7xx_ticr_index(hwaddr reg)
     case NPCM7XX_TIMER_TICR4:
         return 4;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -419,7 +419,7 @@ static hwaddr npcm7xx_tdr_index(hwaddr reg)
     case NPCM7XX_TIMER_TDR4:
         return 4;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

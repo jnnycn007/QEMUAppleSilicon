@@ -52,7 +52,7 @@ static uint64_t bcm2835_thermal_read(void *opaque, hwaddr addr, unsigned size)
         break;
     default:
         /* MemoryRegionOps are aligned, so this can not happen. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return val;
 }
@@ -73,7 +73,7 @@ static void bcm2835_thermal_write(void *opaque, hwaddr addr,
         break;
     default:
         /* MemoryRegionOps are aligned, so this can not happen. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

@@ -88,7 +88,7 @@ int vfio_container_dma_map(VFIOContainerBase *bcontainer,
         return vioc->dma_map_file(bcontainer, iova, size, mfd, start + offset,
                                   readonly);
     }
-    g_assert(vioc->dma_map);
+    assert(vioc->dma_map);
     return vioc->dma_map(bcontainer, iova, size, vaddr, readonly, mr);
 }
 
@@ -98,7 +98,7 @@ int vfio_container_dma_unmap(VFIOContainerBase *bcontainer,
 {
     VFIOIOMMUClass *vioc = VFIO_IOMMU_GET_CLASS(bcontainer);
 
-    g_assert(vioc->dma_unmap);
+    assert(vioc->dma_unmap);
     return vioc->dma_unmap(bcontainer, iova, size, iotlb, unmap_all);
 }
 
@@ -137,7 +137,7 @@ int vfio_container_set_dirty_page_tracking(VFIOContainerBase *bcontainer,
         return 0;
     }
 
-    g_assert(vioc->set_dirty_page_tracking);
+    assert(vioc->set_dirty_page_tracking);
     if (bcontainer->dirty_pages_started == start) {
         return 0;
     }
@@ -215,7 +215,7 @@ static int vfio_container_iommu_query_dirty_bitmap(const VFIOContainerBase *bcon
 {
     VFIOIOMMUClass *vioc = VFIO_IOMMU_GET_CLASS(bcontainer);
 
-    g_assert(vioc->query_dirty_bitmap);
+    assert(vioc->query_dirty_bitmap);
     return vioc->query_dirty_bitmap(bcontainer, vbmap, iova, size,
                                                errp);
 }

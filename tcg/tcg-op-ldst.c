@@ -71,7 +71,7 @@ static MemOp tcg_canonicalize_memop(MemOp op, bool is64, bool st)
         }
         /* fall through */
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (st) {
         op &= ~MO_SIGN;
@@ -191,7 +191,7 @@ static void tcg_gen_qemu_ld_i32_int(TCGv_i32 val, TCGTemp *addr,
             tcg_gen_bswap32_i32(val, val);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -225,7 +225,7 @@ static void tcg_gen_qemu_st_i32_int(TCGv_i32 val, TCGTemp *addr,
             tcg_gen_bswap32_i32(swap, val);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         val = swap;
         memop &= ~MO_BSWAP;
@@ -298,7 +298,7 @@ static void tcg_gen_qemu_ld_i64_int(TCGv_i64 val, TCGTemp *addr,
             tcg_gen_bswap64_i64(val, val);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -340,7 +340,7 @@ static void tcg_gen_qemu_st_i64_int(TCGv_i64 val, TCGTemp *addr,
             tcg_gen_bswap64_i64(swap, val);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         val = swap;
         memop &= ~MO_BSWAP;
@@ -528,7 +528,7 @@ void tcg_gen_ext_i32(TCGv_i32 ret, TCGv_i32 val, MemOp opc)
         tcg_gen_mov_i32(ret, val);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -558,7 +558,7 @@ void tcg_gen_ext_i64(TCGv_i64 ret, TCGv_i64 val, MemOp opc)
         tcg_gen_mov_i64(ret, val);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

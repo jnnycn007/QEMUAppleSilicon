@@ -249,7 +249,7 @@ static struct qemu_xs_handle *libxenstore_open(void)
 
 static void libxenstore_close(struct qemu_xs_handle *h)
 {
-    g_assert(notifier_list_empty(&h->notifiers));
+    assert(notifier_list_empty(&h->notifiers));
     qemu_set_fd_handler(xs_fileno(h->xsh), NULL, NULL, NULL);
     xs_close(h->xsh);
     g_free(h);

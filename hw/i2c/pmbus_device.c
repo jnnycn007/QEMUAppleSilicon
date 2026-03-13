@@ -63,7 +63,7 @@ void pmbus_send(PMBusDevice *pmdev, const uint8_t *data, uint16_t len)
 static void pmbus_send_uint(PMBusDevice *pmdev, uint64_t data, uint8_t size)
 {
     uint8_t bytes[8];
-    g_assert(size <= 8);
+    assert(size <= 8);
 
     for (int i = 0; i < size; i++) {
         bytes[i] = data & 0xFF;
@@ -102,7 +102,7 @@ void pmbus_send_string(PMBusDevice *pmdev, const char *data)
     }
 
     size_t len = strlen(data);
-    g_assert(len + pmdev->out_buf_len < SMBUS_DATA_MAX_LEN);
+    assert(len + pmdev->out_buf_len < SMBUS_DATA_MAX_LEN);
     pmdev->out_buf[len + pmdev->out_buf_len] = len;
 
     for (int i = len - 1; i >= 0; i--) {

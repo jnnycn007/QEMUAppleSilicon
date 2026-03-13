@@ -85,7 +85,7 @@ mig_state_to_qapi_state(enum vfio_device_mig_state state)
     case VFIO_DEVICE_STATE_PRE_COPY_P2P:
         return QAPI_VFIO_MIGRATION_STATE_PRE_COPY_P2P;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -100,9 +100,9 @@ static void vfio_migration_send_event(VFIODevice *vbasedev)
         return;
     }
 
-    g_assert(vbasedev->ops->vfio_get_object);
+    assert(vbasedev->ops->vfio_get_object);
     obj = vbasedev->ops->vfio_get_object(vbasedev);
-    g_assert(obj);
+    assert(obj);
     qom_path = object_get_canonical_path(obj);
 
     qapi_event_send_vfio_migration(

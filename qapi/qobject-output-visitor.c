@@ -100,7 +100,7 @@ static void qobject_output_add_obj(QObjectOutputVisitor *qov, const char *name,
             qlist_append_obj(qobject_to(QList, cur), value);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }

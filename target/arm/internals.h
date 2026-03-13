@@ -336,7 +336,7 @@ static inline int bank_number(int mode)
     case ARM_CPU_MODE_MON:
         return BANK_MON;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /**
@@ -811,7 +811,7 @@ static inline uint32_t arm_fi_to_sfsc(ARMMMUFaultInfo *fi)
         /* Other faults can't occur in a context that requires a
          * short-format status code.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     fsc |= (fi->domain << 4);
@@ -920,7 +920,7 @@ static inline uint32_t arm_fi_to_lfsc(ARMMMUFaultInfo *fi)
         /* Other faults can't occur in a context that requires a
          * long-format status code.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     fsc |= 1 << 9;
@@ -1138,7 +1138,7 @@ static inline uint32_t regime_el(CPUARMState *env, ARMMMUIdx mmu_idx)
     case ARMMMUIdx_MSUser:
         return 1;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1158,7 +1158,7 @@ static inline bool regime_is_user(CPUARMState *env, ARMMMUIdx mmu_idx)
     case ARMMMUIdx_E10_1_PAN:
     case ARMMMUIdx_GE10_1:
     case ARMMMUIdx_GE10_1_PAN:
-        g_assert_not_reached();
+        assert_not_reached();
     default:
         return false;
     }
@@ -1309,7 +1309,7 @@ static inline bool v7m_cpacr_pass(CPUARMState *env,
     case 3:
         return true;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1515,7 +1515,7 @@ static inline int arm_granule_bits(ARMGranuleSize gran)
     case Gran4K:
         return 12;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

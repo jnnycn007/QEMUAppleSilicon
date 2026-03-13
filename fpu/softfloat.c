@@ -1861,7 +1861,7 @@ static float64 float64r32_pack_raw(FloatParts64 *p)
     case float_class_zero:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return float64_pack_raw(p);
@@ -1899,7 +1899,7 @@ static bool floatx80_unpack_canonical(FloatParts128 *p, floatx80 f,
     case floatx80_precision_s:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (unlikely(floatx80_invalid_encoding(f, s))) {
@@ -1970,7 +1970,7 @@ static floatx80 floatx80_round_pack_canonical(FloatParts128 *p,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return packFloatx80(p->sign, exp, frac);
@@ -2846,7 +2846,7 @@ static void parts_float_to_ahp(FloatParts64 *a, float_status *s)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2875,7 +2875,7 @@ static void parts_float_to_e5m2(FloatParts64 *a, float_status *s, bool saturate)
     case float_class_zero:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -3494,7 +3494,7 @@ static Int128 float128_to_int128_scalbn(float128 a, FloatRoundMode rmode,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     float_raise(flags, s);
@@ -3923,7 +3923,7 @@ static Int128 float128_to_uint128_scalbn(float128 a, FloatRoundMode rmode,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     float_raise(flags, s);
@@ -5254,7 +5254,7 @@ floatx80 roundAndPackFloatx80(FloatX80RoundPrec roundingPrecision, bool zSign,
         roundMask = UINT64_C(0x000000FFFFFFFFFF);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     zSig0 |= ( zSig1 != 0 );
     switch (roundingMode) {
@@ -5505,7 +5505,7 @@ float32 float32_exp2(float32 a, float_status *status)
         case float_class_zero:
             return float32_one;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 

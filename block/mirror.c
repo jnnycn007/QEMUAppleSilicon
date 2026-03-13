@@ -711,7 +711,7 @@ static int mirror_exit_common(Job *job)
     BlockDriverState *target_bs;
     BlockDriverState *mirror_top_bs;
     Error *local_err = NULL;
-    bool abort = job->ret < 0;
+    bool should_abort = job->ret < 0;
     int ret = 0;
 
     GLOBAL_STATE_CODE();
@@ -763,7 +763,7 @@ static int mirror_exit_common(Job *job)
                              &error_abort);
     bdrv_graph_rdunlock_main_loop();
 
-    if (!abort && s->backing_mode == MIRROR_SOURCE_BACKING_CHAIN) {
+    if (!should_abort && s->backing_mode == MIRROR_SOURCE_BACKING_CHAIN) {
         BlockDriverState *backing;
         BlockDriverState *unfiltered_target;
 
@@ -780,7 +780,7 @@ static int mirror_exit_common(Job *job)
             }
         }
         bdrv_graph_wrunlock();
-    } else if (!abort && s->backing_mode == MIRROR_OPEN_BACKING_CHAIN) {
+    } else if (!should_abort && s->backing_mode == MIRROR_OPEN_BACKING_CHAIN) {
         bdrv_graph_rdlock_main_loop();
         assert(!bdrv_backing_chain_next(target_bs));
         ret = bdrv_open_backing_file(bdrv_skip_filters(target_bs), NULL,
@@ -792,7 +792,7 @@ static int mirror_exit_common(Job *job)
         }
     }
 
-    if (s->should_complete && !abort) {
+    if (s->should_complete && !should_abort) {
         BlockDriverState *to_replace = s->to_replace ?: src;
         bool ro = bdrv_is_read_only(to_replace);
 
@@ -842,7 +842,7 @@ static int mirror_exit_common(Job *job)
     bdrv_replace_node(mirror_top_bs, mirror_top_bs->backing->bs, &error_abort);
     bdrv_graph_wrunlock();
 
-    if (abort && s->base_ro && !bdrv_is_read_only(target_bs)) {
+    if (should_abort && s->base_ro && !bdrv_is_read_only(target_bs)) {
         bdrv_reopen_set_read_only(target_bs, true, NULL);
     }
 

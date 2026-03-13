@@ -365,7 +365,7 @@ static void virtio_scsi_do_tmf_aio_context(void *opaque)
         match_tag = false;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     WITH_QEMU_LOCK_GUARD(&d->requests_lock) {

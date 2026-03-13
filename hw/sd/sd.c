@@ -330,7 +330,7 @@ static enum SDCardModes sd_mode(SDState *sd)
     case sd_disconnect_state:
         return sd_data_transfer_mode;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -625,7 +625,7 @@ static uint16_t sd_req_get_rca(SDState *s, SDRequest req)
         return req.arg >> 16;
     case sd_spi:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -751,7 +751,7 @@ static size_t sd_response_size(SDState *sd, sd_rsp_type_t rtype)
         return sd_is_spi(sd) ? 1 : 0;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -854,7 +854,7 @@ static uint32_t sd_part_offset(SDState *sd)
     case EXT_CSD_PART_CONFIG_ACC_BOOT2:
         return sd->boot_part_size * 1;
     default:
-         g_assert_not_reached();
+         assert_not_reached();
     }
 }
 
@@ -2331,7 +2331,7 @@ send_response:
     case sd_illegal:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     trace_sdcard_response(sd_response_name(rtype), rsplen);
 
@@ -2502,7 +2502,7 @@ static void sd_write_byte(SDState *sd, uint8_t value)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

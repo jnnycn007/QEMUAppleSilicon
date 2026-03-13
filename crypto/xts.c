@@ -116,7 +116,7 @@ void xts_decrypt(const void *datactx,
     mo = length & 15;
 
     /* must have at least one full block */
-    g_assert(m != 0);
+    assert(m != 0);
 
     if (mo == 0) {
         lim = m;
@@ -192,7 +192,7 @@ void xts_encrypt(const void *datactx,
     mo = length & 15;
 
     /* must have at least one full block */
-    g_assert(m != 0);
+    assert(m != 0);
 
     if (mo == 0) {
         lim = m;

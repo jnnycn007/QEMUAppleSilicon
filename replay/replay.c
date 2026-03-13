@@ -53,7 +53,7 @@ static const char *replay_async_event_name(ReplayAsyncEventKind event)
         ASYNC_EVENT(NET);
 #undef ASYNC_EVENT
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -65,7 +65,7 @@ static const char *replay_clock_event_name(ReplayClockKind clock)
         CLOCK_EVENT(VIRTUAL_RT);
 #undef CLOCK_EVENT
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -87,7 +87,7 @@ static const char *replay_shutdown_event_name(ShutdownCause cause)
         SHUTDOWN_EVENT(SNAPSHOT_LOAD);
 #undef SHUTDOWN_EVENT
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -106,7 +106,7 @@ static const char *replay_checkpoint_event_name(enum ReplayCheckpoint checkpoint
         CHECKPOINT_EVENT(RESET);
 #undef CHECKPOINT_EVENT
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -136,7 +136,7 @@ static const char *replay_event_name(enum ReplayEvents event)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 bool replay_next_event_is(int event)
@@ -175,7 +175,7 @@ uint64_t replay_get_current_icount(void)
 int replay_get_instructions(void)
 {
     int res = 0;
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
     if (replay_next_event_is(EVENT_INSTRUCTION)) {
         res = replay_state.instruction_count;
         if (replay_break_icount != -1LL) {
@@ -192,7 +192,7 @@ int replay_get_instructions(void)
 void replay_account_executed_instructions(void)
 {
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         if (replay_state.instruction_count > 0) {
             replay_advance_current_icount(replay_get_current_icount());
         }
@@ -203,12 +203,12 @@ bool replay_exception(void)
 {
 
     if (replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_save_instructions();
         replay_put_event(EVENT_EXCEPTION);
         return true;
     } else if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         bool res = replay_has_exception();
         if (res) {
             replay_finish_event();
@@ -223,7 +223,7 @@ bool replay_has_exception(void)
 {
     bool res = false;
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_account_executed_instructions();
         res = replay_next_event_is(EVENT_EXCEPTION);
     }
@@ -234,12 +234,12 @@ bool replay_has_exception(void)
 bool replay_interrupt(void)
 {
     if (replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_save_instructions();
         replay_put_event(EVENT_INTERRUPT);
         return true;
     } else if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         bool res = replay_has_interrupt();
         if (res) {
             replay_finish_event();
@@ -254,7 +254,7 @@ bool replay_has_interrupt(void)
 {
     bool res = false;
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_account_executed_instructions();
         res = replay_next_event_is(EVENT_INTERRUPT);
     }
@@ -264,7 +264,7 @@ bool replay_has_interrupt(void)
 void replay_shutdown_request(ShutdownCause cause)
 {
     if (replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_put_event(EVENT_SHUTDOWN + cause);
     }
 }
@@ -276,14 +276,14 @@ bool replay_checkpoint(ReplayCheckpoint checkpoint)
     replay_save_instructions();
 
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         if (replay_next_event_is(EVENT_CHECKPOINT + checkpoint)) {
             replay_finish_event();
         } else {
             return false;
         }
     } else if (replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_put_event(EVENT_CHECKPOINT + checkpoint);
     }
     return true;
@@ -298,16 +298,16 @@ void replay_async_events(void)
      * Timer modification may invoke the icount warp, event processing,
      * and cause the recursion.
      */
-    g_assert(!processing);
+    assert(!processing);
     processing = true;
 
     replay_save_instructions();
 
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_read_events();
     } else if (replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_save_events();
     }
     processing = false;
@@ -317,7 +317,7 @@ bool replay_has_event(void)
 {
     bool res = false;
     if (replay_mode == REPLAY_MODE_PLAY) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_account_executed_instructions();
         res = EVENT_CHECKPOINT <= replay_state.data_kind
               && replay_state.data_kind <= EVENT_CHECKPOINT_LAST;

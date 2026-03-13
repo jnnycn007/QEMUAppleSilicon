@@ -258,10 +258,10 @@ static void vfio_ram_discard_register_listener(VFIOContainerBase *bcontainer,
     VFIORamDiscardListener *vrdl;
 
     /* Ignore some corner cases not relevant in practice. */
-    g_assert(QEMU_IS_ALIGNED(section->offset_within_region, target_page_size));
-    g_assert(QEMU_IS_ALIGNED(section->offset_within_address_space,
+    assert(QEMU_IS_ALIGNED(section->offset_within_region, target_page_size));
+    assert(QEMU_IS_ALIGNED(section->offset_within_address_space,
                              target_page_size));
-    g_assert(QEMU_IS_ALIGNED(int128_get64(section->size), target_page_size));
+    assert(QEMU_IS_ALIGNED(int128_get64(section->size), target_page_size));
 
     vrdl = g_new0(VFIORamDiscardListener, 1);
     vrdl->bcontainer = bcontainer;
@@ -271,8 +271,8 @@ static void vfio_ram_discard_register_listener(VFIOContainerBase *bcontainer,
     vrdl->granularity = ram_discard_manager_get_min_granularity(rdm,
                                                                 section->mr);
 
-    g_assert(vrdl->granularity && is_power_of_2(vrdl->granularity));
-    g_assert(bcontainer->pgsizes &&
+    assert(vrdl->granularity && is_power_of_2(vrdl->granularity));
+    assert(bcontainer->pgsizes &&
              vrdl->granularity >= 1ULL << ctz64(bcontainer->pgsizes));
 
     ram_discard_listener_init(&vrdl->listener,

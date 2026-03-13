@@ -1940,7 +1940,7 @@ static void do_sat_addsub_vec(DisasContext *s, int esz, int rd, int rn,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2466,7 +2466,7 @@ static bool trans_PMOV_pv(DisasContext *s, arg_PMOV_pv *a)
         tcg_gen_extract_i64(tmp, tmp, 0, 48);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_gen_st_i64(tmp, tcg_env, pofs);
     return true;
@@ -2755,7 +2755,7 @@ static TCGv_i64 load_esz(TCGv_ptr base, int ofs, int esz)
         tcg_gen_ld_i64(r, base, ofs);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return r;
 }
@@ -2899,7 +2899,7 @@ static bool do_clast_general(DisasContext *s, arg_rpr_esz *a, bool before)
     case 3:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     do_clast_scalar(s, a->esz, a->pg, a->rn, before, reg);
@@ -4689,7 +4689,7 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_gen_st_i64(t0, base, vofs + len_align);
     }
@@ -4796,7 +4796,7 @@ void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -5113,7 +5113,7 @@ static bool trans_LD_zprr(DisasContext *s, arg_rprr_load *a)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (sve_access_check(s)) {
@@ -5146,7 +5146,7 @@ static bool trans_LD_zpri(DisasContext *s, arg_rpri_load *a)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (sve_access_check(s)) {
@@ -5754,7 +5754,7 @@ static bool trans_ST_zprr(DisasContext *s, arg_rprr_store *a)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (sve_access_check(s)) {
@@ -5791,7 +5791,7 @@ static bool trans_ST_zpri(DisasContext *s, arg_rpri_store *a)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (sve_access_check(s)) {
@@ -6185,7 +6185,7 @@ static bool trans_LD1_zprz(DisasContext *s, arg_LD1_zprz *a)
         fn = gather_load_fn64[mte][be][a->ff][a->xs][a->u][a->msz];
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     assert(fn != NULL);
 
@@ -6411,7 +6411,7 @@ static bool trans_ST1_zprz(DisasContext *s, arg_ST1_zprz *a)
         fn = scatter_store_fn64[mte][be][a->xs][a->msz];
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     do_mem_zpz(s, a->rd, a->pg, a->rm, a->scale * a->msz,
                cpu_reg_sp(s, a->rn), a->msz, true, fn);
@@ -6501,7 +6501,7 @@ static bool trans_STNT1_zprz(DisasContext *s, arg_ST1_zprz *a)
         fn = scatter_store_fn64[mte][be][2][a->msz];
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     do_mem_zpz(s, a->rd, a->pg, a->rn, 0,

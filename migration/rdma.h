@@ -55,7 +55,7 @@ static inline
 int rdma_control_save_page(QEMUFile *f, ram_addr_t block_offset,
                            ram_addr_t offset, size_t size)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 #endif
 #endif

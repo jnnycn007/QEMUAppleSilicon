@@ -439,7 +439,7 @@ static MemTxResult apple_aop_ep_write_ready_report(AppleAOPEndpoint *s,
         flags = READY_REPORT_FLAG_SPU_APP;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     stl_le_p(buf + sizeof(service_name) + 4, flags);
     stl_le_p(buf + sizeof(service_name) + 8, s->descr->interface_num);
@@ -468,7 +468,7 @@ static MemTxResult apple_aop_ep_recv_packet_locked(
     uint32_t total_rb_entry_len;
     uint32_t final_rptr;
 
-    g_assert_false(apple_aop_ep_rx_empty(s));
+    assert_false(apple_aop_ep_rx_empty(s));
 
     *payload = NULL;
 
@@ -712,7 +712,7 @@ static void apple_aop_ep_handle_message(void *opaque, uint8_t ep, uint64_t msg)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -775,7 +775,7 @@ static void apple_aop_realize(DeviceState *dev, Error **errp)
     obj = object_property_get_link(OBJECT(dev), "dma-mr", &error_abort);
 
     s->dma_mr = MEMORY_REGION(obj);
-    g_assert_nonnull(s->dma_mr);
+    assert_nonnull(s->dma_mr);
     address_space_init(&s->dma_as, s->dma_mr, "aop.dma-as");
 }
 
@@ -857,10 +857,10 @@ SysBusDevice *apple_aop_create(AppleDTNode *node, AppleA7IOPVersion version)
     dev->id = g_strdup("aop");
 
     child = apple_dt_get_node(node, "iop-aop-nub");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 
@@ -885,9 +885,9 @@ AppleAOPEndpoint *apple_aop_ep_create(AppleAOPState *s, void *opaque,
     AppleAOPEndpoint *ep;
     AppleRTKit *rtk = &s->parent_obj;
 
-    g_assert_nonnull(descr);
-    g_assert_cmpuint(descr->rx_len % s->align, ==, 0);
-    g_assert_cmpuint(descr->tx_len % s->align, ==, 0);
+    assert_nonnull(descr);
+    assert_cmpuint(descr->rx_len % s->align, ==, 0);
+    assert_cmpuint(descr->tx_len % s->align, ==, 0);
 
     ep = g_new0(AppleAOPEndpoint, 1);
 

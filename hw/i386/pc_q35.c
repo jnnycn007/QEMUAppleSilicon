@@ -296,7 +296,7 @@ static void pc_q35_init(MachineState *machine)
         ich9 = ICH9_AHCI(pdev);
         pcms->idebus[0] = qdev_get_child_bus(DEVICE(pdev), "ide.0");
         pcms->idebus[1] = qdev_get_child_bus(DEVICE(pdev), "ide.1");
-        g_assert(MAX_SATA_PORTS == ich9->ahci.ports);
+        assert(MAX_SATA_PORTS == ich9->ahci.ports);
         ide_drive_get(hd, ich9->ahci.ports);
         ahci_ide_create_devs(&ich9->ahci, hd);
     }
@@ -334,7 +334,7 @@ static void pc_q35_init(MachineState *machine)
     if (x86ms->igvm) {
         if (IGVM_CFG_GET_CLASS(x86ms->igvm)
                 ->process(x86ms->igvm, machine->cgs, false, &error_fatal) < 0) {
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 #endif

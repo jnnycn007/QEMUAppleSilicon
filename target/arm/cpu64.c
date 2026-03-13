@@ -52,7 +52,7 @@ int get_sysreg_idx(ARMSysRegs sysreg)
     switch (sysreg) {
 #include "cpu-sysregs.h.inc"
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 #undef DEF
@@ -514,7 +514,7 @@ void arm_cpu_pauth_finalize(ARMCPU *cpu, Error **errp)
                 isar1 = REG_FIELD_DP64(isar1, ID_AA64ISAR1, API, features);
                 isar1 = REG_FIELD_DP64(isar1, ID_AA64ISAR1, GPI, 1);
             } else {
-                g_assert_not_reached();
+                assert_not_reached();
             }
         } else if (cpu->prop_pauth_impdef ||
                    cpu->prop_pauth_qarma3 ||
@@ -722,7 +722,7 @@ static void aarch64_host_initfn(Object *obj)
     hvf_arm_set_cpu_features_from_host(cpu);
     aarch64_add_pauth_properties(obj);
 #else
-    g_assert_not_reached();
+    assert_not_reached();
 #endif
 }
 

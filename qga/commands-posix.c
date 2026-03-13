@@ -61,7 +61,7 @@ static bool ga_wait_child(pid_t pid, int *status, Error **errp)
         return false;
     }
 
-    g_assert(rpid == pid);
+    assert(rpid == pid);
     return true;
 }
 

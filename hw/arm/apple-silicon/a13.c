@@ -393,7 +393,7 @@ static void apple_a13_ipi_rr_local(CPUARMState *env, const ARMCPRegInfo *ri,
         apple_a13_deliver_ipi(dst_acpu, acpu->cpu_id, IPI_RR_TYPE_IMMEDIATE);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -449,7 +449,7 @@ static void apple_a13_ipi_rr_global(CPUARMState *env, const ARMCPRegInfo *ri,
         apple_a13_deliver_ipi(dst_acpu, acpu->cpu_id, IPI_RR_TYPE_IMMEDIATE);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

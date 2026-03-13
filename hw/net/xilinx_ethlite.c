@@ -141,7 +141,7 @@ static uint64_t port_tx_read(void *opaque, hwaddr addr, unsigned int size)
         r = s->port[port_index].reg.tx_ctrl;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return r;
@@ -181,7 +181,7 @@ static void port_tx_write(void *opaque, hwaddr addr, uint64_t value,
         s->port[port_index].reg.tx_ctrl = value & ~(CTRL_P | CTRL_S);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -213,7 +213,7 @@ static uint64_t port_rx_read(void *opaque, hwaddr addr, unsigned int size)
         r = s->port[port_index].reg.rx_ctrl;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return r;
@@ -233,7 +233,7 @@ static void port_rx_write(void *opaque, hwaddr addr, uint64_t value,
         s->port[port_index].reg.rx_ctrl = value;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

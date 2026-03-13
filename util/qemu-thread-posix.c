@@ -455,7 +455,7 @@ int qemu_thread_set_affinity(QemuThread *thread, unsigned long *host_cpus,
     int err;
 
     cpuset = CPU_ALLOC(nbits);
-    g_assert(cpuset);
+    assert(cpuset);
 
     CPU_ZERO_S(setsize, cpuset);
     value = find_first_bit(host_cpus, nbits);
@@ -485,7 +485,7 @@ int qemu_thread_get_affinity(QemuThread *thread, unsigned long **host_cpus,
     while (true) {
         setsize = CPU_ALLOC_SIZE(tmpbits);
         cpuset = CPU_ALLOC(tmpbits);
-        g_assert(cpuset);
+        assert(cpuset);
 
         err = pthread_getaffinity_np(thread->thread, setsize, cpuset);
         if (err) {

@@ -417,7 +417,7 @@ static bool gen_M_fp_sysreg_write(DisasContext *s, int regno,
         break;
     }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (lab_end) {
         gen_set_label(lab_end);
@@ -558,7 +558,7 @@ static bool gen_M_fp_sysreg_read(DisasContext *s, int regno,
         storefn(s, opaque, tmp, true);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (lab_end) {

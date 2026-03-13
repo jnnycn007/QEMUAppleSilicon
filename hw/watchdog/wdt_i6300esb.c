@@ -370,7 +370,7 @@ static uint64_t i6300esb_mem_readfn(void *opaque, hwaddr addr, unsigned size)
     case 4:
         return i6300esb_mem_readl(opaque, addr);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -388,7 +388,7 @@ static void i6300esb_mem_writefn(void *opaque, hwaddr addr,
         i6300esb_mem_writel(opaque, addr, value);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

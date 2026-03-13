@@ -1147,7 +1147,7 @@ void tcg_gen_mulu2_i32(TCGv_i32 rl, TCGv_i32 rh, TCGv_i32 arg1, TCGv_i32 arg2)
         tcg_temp_free_i64(t0);
         tcg_temp_free_i64(t1);
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

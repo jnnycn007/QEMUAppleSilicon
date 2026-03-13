@@ -17,8 +17,8 @@
 int64_t replay_save_clock(ReplayClockKind kind, int64_t clock,
                           int64_t raw_icount)
 {
-    g_assert(replay_file);
-    g_assert(replay_mutex_locked());
+    assert(replay_file);
+    assert(replay_mutex_locked());
 
     /*
      * Due to the caller's locking requirements we get the icount from it
@@ -48,7 +48,7 @@ void replay_read_next_clock(ReplayClockKind kind)
 /*! Reads next clock event from the input. */
 int64_t replay_read_clock(ReplayClockKind kind, int64_t raw_icount)
 {
-    g_assert(replay_file && replay_mutex_locked());
+    assert(replay_file && replay_mutex_locked());
 
     replay_advance_current_icount(raw_icount);
 

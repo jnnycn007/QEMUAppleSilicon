@@ -354,7 +354,7 @@ bool net_tx_pkt_build_vheader(struct NetTxPkt *pkt, bool tso_enable,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (csum_enable) {

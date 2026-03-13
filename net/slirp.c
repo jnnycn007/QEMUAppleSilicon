@@ -379,7 +379,7 @@ static void net_slirp_poll_notify(Notifier *notifier, void *data)
                            net_slirp_get_revents, poll->pollfds);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -668,7 +668,7 @@ static int net_slirp_init(NetClientState *peer, const char *model,
      * FIXME: use bitfields of features? teach libslirp to save with
      * specific version?
      */
-    g_assert(slirp_state_version() == 4);
+    assert(slirp_state_version() == 4);
     register_savevm_live("slirp", VMSTATE_INSTANCE_ID_ANY,
                          slirp_state_version(), &savevm_slirp_state, s->slirp);
 

@@ -300,7 +300,7 @@ static uint64_t imx6_analog_get_periph_clk(IMX6CCMState *dev)
         break;
     default:
         /* We should never get there */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_imx6_analog_get_periph_clk(freq);

@@ -421,7 +421,7 @@ static TCGv gen_op_deposit_reg_v(DisasContext *s, MemOp ot, int reg, TCGv dest, 
         break;
 #endif
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return cpu_regs[reg];
 }
@@ -611,7 +611,7 @@ static void gen_lea_v_seg_dest(DisasContext *s, MemOp aflag, TCGv dest, TCGv a0,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (ovr_seg >= 0) {
@@ -727,7 +727,7 @@ static void gen_helper_in_func(MemOp ot, TCGv v, TCGv_i32 n)
         gen_helper_inl(v, tcg_env, n);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -744,7 +744,7 @@ static void gen_helper_out_func(MemOp ot, TCGv_i32 v, TCGv_i32 n)
         gen_helper_outl(tcg_env, v, n);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1765,7 +1765,7 @@ static AddressParts gen_lea_modrm_0(CPUX86State *env, DisasContext *s,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
  done:
@@ -1876,7 +1876,7 @@ static target_ulong insn_get_addr(CPUX86State *env, DisasContext *s, MemOp ot)
         break;
 #endif
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return ret;
 }
@@ -1899,7 +1899,7 @@ static inline uint32_t insn_get(CPUX86State *env, DisasContext *s, MemOp ot)
         ret = x86_ldl_code(env, s);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return ret;
 }
@@ -1924,7 +1924,7 @@ static target_long insn_get_signed(CPUX86State *env, DisasContext *s, MemOp ot)
         break;
 #endif
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return ret;
 }
@@ -3586,7 +3586,7 @@ static void gen_multi0F(DisasContext *s, X86DecodedInsn *decode)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return;
  illegal_op:
@@ -3700,17 +3700,17 @@ static void i386_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cpu)
     dc->iopl = iopl;
 
     /* We make some simplifying assumptions; validate they're correct. */
-    g_assert(PE(dc) == ((flags & HF_PE_MASK) != 0));
-    g_assert(CPL(dc) == cpl);
-    g_assert(IOPL(dc) == iopl);
-    g_assert(VM86(dc) == ((flags & HF_VM_MASK) != 0));
-    g_assert(CODE32(dc) == ((flags & HF_CS32_MASK) != 0));
-    g_assert(CODE64(dc) == ((flags & HF_CS64_MASK) != 0));
-    g_assert(SS32(dc) == ((flags & HF_SS32_MASK) != 0));
-    g_assert(LMA(dc) == ((flags & HF_LMA_MASK) != 0));
-    g_assert(ADDSEG(dc) == ((flags & HF_ADDSEG_MASK) != 0));
-    g_assert(SVME(dc) == ((flags & HF_SVME_MASK) != 0));
-    g_assert(GUEST(dc) == ((flags & HF_GUEST_MASK) != 0));
+    assert(PE(dc) == ((flags & HF_PE_MASK) != 0));
+    assert(CPL(dc) == cpl);
+    assert(IOPL(dc) == iopl);
+    assert(VM86(dc) == ((flags & HF_VM_MASK) != 0));
+    assert(CODE32(dc) == ((flags & HF_CS32_MASK) != 0));
+    assert(CODE64(dc) == ((flags & HF_CS64_MASK) != 0));
+    assert(SS32(dc) == ((flags & HF_SS32_MASK) != 0));
+    assert(LMA(dc) == ((flags & HF_LMA_MASK) != 0));
+    assert(ADDSEG(dc) == ((flags & HF_ADDSEG_MASK) != 0));
+    assert(SVME(dc) == ((flags & HF_SVME_MASK) != 0));
+    assert(GUEST(dc) == ((flags & HF_GUEST_MASK) != 0));
 
     dc->cc_op = CC_OP_DYNAMIC;
     dc->cc_op_dirty = false;
@@ -3779,7 +3779,7 @@ static void i386_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
         dc->base.is_jmp = DISAS_TOO_MANY;
         return;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /*
@@ -3836,7 +3836,7 @@ static void i386_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
         gen_eob(dc, dc->base.is_jmp);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

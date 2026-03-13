@@ -99,7 +99,7 @@ static SMCKey *apple_smc_new_key(uint32_t key, uint8_t size, SMCKeyType type,
     SMCKey *key_entry;
     SMCKeyData *data_entry;
 
-    g_assert_nonnull(out_data_entry);
+    assert_nonnull(out_data_entry);
 
     key_entry = g_new0(SMCKey, 1);
     data_entry = g_new0(SMCKeyData, 1);
@@ -142,7 +142,7 @@ void apple_smc_add_key(AppleSMCState *s, uint32_t key, uint8_t size,
     SMCKey *key_entry;
     SMCKeyData *data_entry;
 
-    g_assert_false(attr & SMC_ATTR_FUNC);
+    assert_false(attr & SMC_ATTR_FUNC);
 
     key_entry = apple_smc_new_key(key, size, type, attr, data, &data_entry);
 
@@ -156,7 +156,7 @@ void apple_smc_add_sensor(AppleSMCState *s, uint32_t key, uint8_t size,
     SMCKey *key_entry;
     SMCKeyData *data_entry;
 
-    g_assert_false(attr & SMC_ATTR_FUNC);
+    assert_false(attr & SMC_ATTR_FUNC);
 
     key_entry = apple_smc_new_key(key, size, type, attr, data, &data_entry);
     key_entry->is_sensor = true;
@@ -171,7 +171,7 @@ void apple_smc_add_key_func(AppleSMCState *s, uint32_t key, uint8_t size,
     SMCKey *key_entry;
     SMCKeyData *data_entry;
 
-    g_assert_false(attr & (SMC_ATTR_FUNC | SMC_ATTR_RW));
+    assert_false(attr & (SMC_ATTR_FUNC | SMC_ATTR_RW));
 
     attr |= SMC_ATTR_FUNC;
     if (reader != NULL) {
@@ -500,7 +500,7 @@ SysBusDevice *apple_smc_create(AppleDTNode *node, AppleA7IOPVersion version,
     int16_t batt_actual_amperage = 0x0;
     uint16_t batt_actual_voltage = batt_cell_voltage;
 
-    g_assert_cmphex(sram_size, <=, UINT32_MAX);
+    assert_cmphex(sram_size, <=, UINT32_MAX);
 
     dev = qdev_new(TYPE_APPLE_SMC_IOP);
     s = APPLE_SMC_IOP(dev);
@@ -508,10 +508,10 @@ SysBusDevice *apple_smc_create(AppleDTNode *node, AppleA7IOPVersion version,
     sbd = SYS_BUS_DEVICE(dev);
 
     child = apple_dt_get_node(node, "iop-smc-nub");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 

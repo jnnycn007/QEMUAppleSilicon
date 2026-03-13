@@ -635,7 +635,7 @@ bool postcopy_ram_supported_by_host(MigrationIncomingState *mis, Error **errp)
         error_setg(errp, "Failed to map test area: %s", strerror(errno));
         goto out;
     }
-    g_assert(QEMU_PTR_IS_ALIGNED(testarea, pagesize));
+    assert(QEMU_PTR_IS_ALIGNED(testarea, pagesize));
 
     reg_struct.range.start = (uintptr_t)testarea;
     reg_struct.range.len = pagesize;
@@ -1711,42 +1711,42 @@ int postcopy_ram_incoming_init(MigrationIncomingState *mis)
 
 int postcopy_ram_incoming_cleanup(MigrationIncomingState *mis)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_ram_prepare_discard(MigrationIncomingState *mis)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_request_shared_page(struct PostCopyFD *pcfd, RAMBlock *rb,
                                  uint64_t client_addr, uint64_t rb_offset)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_ram_incoming_setup(MigrationIncomingState *mis)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_place_page(MigrationIncomingState *mis, void *host, void *from,
                         RAMBlock *rb)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_place_page_zero(MigrationIncomingState *mis, void *host,
                         RAMBlock *rb)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int postcopy_wake_shared(struct PostCopyFD *pcfd,
                          uint64_t client_addr,
                          RAMBlock *rb)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void mark_postcopy_blocktime_begin(uintptr_t addr, uint32_t ptid,

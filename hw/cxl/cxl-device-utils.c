@@ -38,7 +38,7 @@ static uint64_t caps_reg_read(void *opaque, hwaddr offset, unsigned size)
     case 8:
         return cxl_dstate->caps_reg_state64[offset / size];
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -56,7 +56,7 @@ static uint64_t dev_reg_read(void *opaque, hwaddr offset, unsigned size)
     case 8:
         return cxl_dstate->dev_reg_state64[offset / size];
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -107,7 +107,7 @@ static uint64_t mailbox_reg_read(void *opaque, hwaddr offset, unsigned size)
         }
         return cxl_dstate->mbox_reg_state64[offset / size];
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -180,7 +180,7 @@ static void mailbox_reg_write(void *opaque, hwaddr offset, uint64_t value,
         mailbox_mem_writeq(cxl_dstate->mbox_reg_state64, offset, value);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (REG_ARRAY_FIELD_EX32(cxl_dstate->mbox_reg_state32, CXL_DEV_MAILBOX_CTRL,

@@ -13,13 +13,13 @@
 
 void write_v7m_exception(CPUARMState *env, uint32_t new_exc)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void raise_exception_ra(CPUARMState *env, uint32_t excp, uint32_t syndrome,
                         uint32_t target_el, uintptr_t ra)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* With KVM, we never use float_status, so these can be no-ops */

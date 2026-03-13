@@ -39,9 +39,9 @@ MemoryRegion *acpi_add_rom_blob(FWCfgCallback update, void *opaque,
     } else if (!strcmp(name, ACPI_BUILD_RSDP_FILE)) {
         max_size = 0x1000;
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
-    g_assert(acpi_data_len(blob) <= max_size);
+    assert(acpi_data_len(blob) <= max_size);
 
     return rom_add_blob(name, blob->data, acpi_data_len(blob), max_size, -1,
                         name, update, opaque, NULL, true);

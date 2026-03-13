@@ -312,7 +312,7 @@ static const RAMInfo *find_raminfo_for_mpc(MPS2TZMachineState *mms, int mpc)
     for (p = mmc->raminfo; p->name; p++) {
         if (p->mpc == mpc && !(p->flags & IS_ALIAS)) {
             /* There should only be one entry in the array for this MPC */
-            g_assert(!found);
+            assert(!found);
             found = p;
         }
     }
@@ -794,7 +794,7 @@ static uint32_t boot_ram_size(MPS2TZMachineState *mms)
             return p->size;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void mps2tz_common_init(MachineState *machine)
@@ -1117,7 +1117,7 @@ static void mps2tz_common_init(MachineState *machine)
         num_ppcs = ARRAY_SIZE(an547_ppcs);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     for (i = 0; i < num_ppcs; i++) {
@@ -1301,7 +1301,7 @@ static void mps2tz_set_default_ram_info(MPS2TZMachineClass *mmc)
             return;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void mps2tz_an505_class_init(ObjectClass *oc, const void *data)

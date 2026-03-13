@@ -137,7 +137,7 @@ static bool mve_skip_first_beat(DisasContext *s)
     case ECI_A0A1A2B0:
         return true;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1344,7 +1344,7 @@ static void gen_vpst(DisasContext *s, uint32_t mask)
                             R_V7M_VPR_MASK23_SHIFT, R_V7M_VPR_MASK23_LENGTH);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     store_cpu_field(vpr, v7m.vpr);
 }

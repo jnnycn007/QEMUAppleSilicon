@@ -212,7 +212,7 @@ static void guest_phys_block_add_section(GuestPhysListener *g,
         predecessor_size = predecessor->target_end - predecessor->target_start;
 
         /* the memory API guarantees monotonically increasing traversal */
-        g_assert(predecessor->target_end <= target_start);
+        assert(predecessor->target_end <= target_start);
 
         /* we want continuity in both guest-physical and host-virtual memory */
         if (predecessor->target_end < target_start ||

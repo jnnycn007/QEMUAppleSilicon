@@ -159,7 +159,7 @@ static MemTxResult tz_msc_read(void *opaque, hwaddr addr, uint64_t *pdata,
         data = address_space_ldq_le(as, addr, attrs, &res);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     *pdata = data;
     return res;
@@ -201,7 +201,7 @@ static MemTxResult tz_msc_write(void *opaque, hwaddr addr, uint64_t val,
         address_space_stq_le(as, addr, val, attrs, &res);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return res;
 }

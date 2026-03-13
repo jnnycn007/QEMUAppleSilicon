@@ -983,7 +983,7 @@ static int usb_host_open(USBHostDevice *s, libusb_device *dev, int hostfd)
         bus_num = libusb_get_bus_number(dev);
         addr = libusb_get_device_address(dev);
 #else
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     }
 

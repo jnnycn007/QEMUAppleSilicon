@@ -2039,7 +2039,7 @@ static int coroutine_fn nbd_co_send_iov(NBDClient *client, struct iovec *iov,
 {
     int ret;
 
-    g_assert(qemu_in_coroutine());
+    assert(qemu_in_coroutine());
     qemu_co_mutex_lock(&client->send_lock);
     client->send_coroutine = qemu_coroutine_self();
 
@@ -2658,7 +2658,7 @@ static int coroutine_fn nbd_co_receive_request(NBDRequestData *req,
     int valid_flags = NBD_CMD_FLAG_FUA;
     int ret;
 
-    g_assert(qemu_in_coroutine());
+    assert(qemu_in_coroutine());
     ret = nbd_receive_request(client, request, errp);
     if (ret < 0) {
         return ret;

@@ -754,7 +754,7 @@ int monitor_init(MonitorOptions *opts, bool allow_hmp, Error **errp)
         monitor_init_hmp(chr, true, errp);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return *errp ? -1 : 0;

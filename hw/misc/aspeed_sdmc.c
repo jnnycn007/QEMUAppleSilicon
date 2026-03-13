@@ -338,7 +338,7 @@ static int aspeed_sdmc_get_ram_bits(AspeedSDMCState *s)
      * Invalid RAM sizes should have been excluded when setting the
      * SoC RAM size.
      */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static uint32_t aspeed_2400_sdmc_compute_conf(AspeedSDMCState *s, uint32_t data)

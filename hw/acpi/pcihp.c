@@ -317,7 +317,7 @@ void acpi_pcihp_device_plug_cb(HotplugHandler *hotplug_dev, AcpiPciHpState *s,
     }
 
     bsel = acpi_pcihp_get_bsel(bus);
-    g_assert(bsel >= 0);
+    assert(bsel >= 0);
     s->acpi_pcihp_pci_status[bsel].up |= (1U << slot);
     acpi_send_event(DEVICE(hotplug_dev), ACPI_PCI_HOTPLUG_STATUS);
 }
@@ -785,7 +785,7 @@ static Aml *aml_pci_static_endpoint_dsm(PCIDevice *pdev)
 {
     Aml *method;
 
-    g_assert(pdev->acpi_index != 0);
+    assert(pdev->acpi_index != 0);
     method = aml_method("_DSM", 4, AML_SERIALIZED);
     {
         Aml *params = aml_local(0);

@@ -23,7 +23,7 @@ QemuOptsList qemu_semihosting_config_opts = {
 };
 
 /*
- * All the rest are empty subs. We could g_assert_not_reached() but
+ * All the rest are empty subs. We could assert_not_reached() but
  * that adds extra weight to the final binary. Waste not want not.
  */
 void qemu_semihosting_enable(void)

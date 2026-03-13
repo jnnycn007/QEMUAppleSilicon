@@ -118,9 +118,9 @@ static inline XsNode *xs_node_new(void)
 static inline XsNode *xs_node_ref(XsNode *n)
 {
     /* With just 10 transactions, it can never get anywhere near this. */
-    g_assert(n->ref < INT_MAX);
+    assert(n->ref < INT_MAX);
 
-    g_assert(n->ref);
+    assert(n->ref);
     n->ref++;
     return n;
 }
@@ -130,7 +130,7 @@ static inline void xs_node_unref(XsNode *n)
     if (!n) {
         return;
     }
-    g_assert(n->ref);
+    assert(n->ref);
     if (--n->ref) {
         return;
     }
@@ -1041,7 +1041,7 @@ static int transaction_commit(XenstoreImplState *s, XsTransaction *tx)
      * because the transaction *was* committed, and all this tree walk is
      * trying to do is fire the resulting watches on newly-committed nodes.
      */
-    g_assert(!ret);
+    assert(!ret);
 
     op.deleted_in_tx = false;
     op.mutating = true;
@@ -1653,7 +1653,7 @@ static XsNode *lookup_tx_node(struct unsave_state *us, unsigned int tx_id)
     if (!t) {
         return NULL;
     }
-    g_assert(t->root);
+    assert(t->root);
     return lookup_node(t->root, us->path + 1);
 }
 
@@ -1778,7 +1778,7 @@ static int consume_node(struct unsave_state *us, XsNode **nodep,
                 xs_node_unref(n);
                 return ret;
             }
-            g_assert(child);
+            assert(child);
             xs_node_add_child(n, childname, child);
         }
 
@@ -1895,7 +1895,7 @@ int xs_impl_deserialize(XenstoreImplState *s, GByteArray *bytes,
             g_free(t);
             return ret;
         }
-        g_assert(t->root);
+        assert(t->root);
         if (t->dom_id) {
             s->nr_domu_transactions++;
         }

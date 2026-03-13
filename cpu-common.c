@@ -195,7 +195,7 @@ void start_exclusive(void)
     int running_cpus;
 
     /* Ensure we are not running, or start_exclusive will be blocked. */
-    g_assert(!current_cpu->running);
+    assert(!current_cpu->running);
 
     if (current_cpu->exclusive_context_count) {
         current_cpu->exclusive_context_count++;

@@ -5945,7 +5945,7 @@ static int kvm_handle_rdmsr(X86CPU *cpu, struct kvm_run *run)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static int kvm_handle_wrmsr(X86CPU *cpu, struct kvm_run *run)
@@ -5964,7 +5964,7 @@ static int kvm_handle_wrmsr(X86CPU *cpu, struct kvm_run *run)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static bool has_sgx_provisioning;

@@ -541,7 +541,7 @@ static void fdt_add_memory_nodes(VersalVirt *s, void *fdt, uint64_t ram_size)
                                      2, mem_reg_prop[7]);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     g_free(name);
 }

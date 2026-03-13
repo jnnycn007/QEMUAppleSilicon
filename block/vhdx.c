@@ -1969,7 +1969,7 @@ vhdx_co_create(BlockdevCreateOptions *opts, Error **errp)
         image_type = VHDX_TYPE_FIXED;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* These are pretty arbitrary, and mainly designed to keep the BAT

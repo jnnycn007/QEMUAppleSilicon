@@ -106,7 +106,7 @@ void accel_ioctl_inhibit_begin(void)
      * We allow to inhibit only when holding the BQL, so we can identify
      * when an inhibitor wants to issue an ioctl easily.
      */
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     /* Block further invocations of the ioctls outside the BQL.  */
     CPU_FOREACH(cpu) {

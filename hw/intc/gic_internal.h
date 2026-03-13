@@ -240,7 +240,7 @@ static inline uint32_t *gic_get_lr_entry(GICState *s, int irq, int vcpu)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static inline bool gic_test_group(GICState *s, int irq, int cpu)

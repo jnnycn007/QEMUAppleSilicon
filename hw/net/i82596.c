@@ -288,7 +288,7 @@ static void command_loop(I82596State *s)
         case CmdDump:
         case CmdDiagnose:
             printf("FIXME Command %d !!\n", cmd & 7);
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         /* update status */

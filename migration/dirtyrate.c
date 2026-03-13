@@ -229,7 +229,7 @@ static int time_unit_to_power(TimeUnit time_unit)
     case TIME_UNIT_MILLISECOND:
         return -3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -448,7 +448,7 @@ static void get_ramblock_dirty_info(RAMBlock *block,
     info->ramblock_addr = qemu_ram_get_host_addr(block);
     len = g_strlcpy(info->idstr, qemu_ram_get_idstr(block),
                     sizeof(info->idstr));
-    g_assert(len < sizeof(info->idstr));
+    assert(len < sizeof(info->idstr));
 }
 
 static void free_ramblock_dirty_info(struct RamblockDirtyInfo *infos, int count)

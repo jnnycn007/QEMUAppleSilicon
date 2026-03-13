@@ -125,7 +125,7 @@ static void net_stream_listen(QIONetListener *listener,
     } else {
         addr = qio_channel_socket_get_remote_address(cioc, NULL);
     }
-    g_assert(addr != NULL);
+    assert(addr != NULL);
     uri = socket_uri(addr);
     qemu_set_info_str(&d->nc, "%s", uri);
     g_free(uri);
@@ -147,7 +147,7 @@ static void net_stream_server_listening(QIOTask *task, gpointer opaque)
     }
 
     addr = qio_channel_socket_get_local_address(listen_sioc, NULL);
-    g_assert(addr != NULL);
+    assert(addr != NULL);
     if (!qemu_set_blocking(listen_sioc->fd, false, &err)) {
         qemu_set_info_str(&d->nc, "error: %s", error_get_pretty(err));
         error_free(err);
@@ -203,7 +203,7 @@ static void net_stream_client_connected(QIOTask *task, gpointer opaque)
     }
 
     addr = qio_channel_socket_get_remote_address(sioc, NULL);
-    g_assert(addr != NULL);
+    assert(addr != NULL);
     uri = socket_uri(addr);
     qemu_set_info_str(&d->nc, "%s", uri);
     g_free(uri);

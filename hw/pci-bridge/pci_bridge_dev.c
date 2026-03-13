@@ -223,7 +223,7 @@ void pci_bridge_dev_unplug_cb(HotplugHandler *hotplug_dev, DeviceState *dev,
 {
     PCIDevice *pci_hotplug_dev = PCI_DEVICE(hotplug_dev);
 
-    g_assert(shpc_present(pci_hotplug_dev));
+    assert(shpc_present(pci_hotplug_dev));
     shpc_device_unplug_cb(hotplug_dev, dev, errp);
 }
 

@@ -53,7 +53,7 @@ static void tcg_assert_listed_vecop(TCGOpcode op)
                 return;
             }
         }
-        g_assert_not_reached();
+        assert_not_reached();
     }
 #endif
 }
@@ -80,10 +80,10 @@ bool tcg_can_emit_vecop_list(const TCGOpcode *list,
         case INDEX_op_st_vec:
         case INDEX_op_bitsel_vec:
             /* These opcodes are mandatory and should not be listed.  */
-            g_assert_not_reached();
+            assert_not_reached();
         case INDEX_op_not_vec:
             /* These opcodes have generic expansions using the above.  */
-            g_assert_not_reached();
+            assert_not_reached();
         default:
             break;
         }
@@ -715,7 +715,7 @@ static void do_shifts(unsigned vece, TCGv_vec r, TCGv_vec a,
         tcg_expand_vec_op(opc, type, vece, ri, ai, si);
         tcg_swap_vecop_list(hold_list);
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

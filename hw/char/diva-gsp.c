@@ -110,7 +110,7 @@ static struct diva_info diva_get_diva_info(PCIDeviceClass *pc)
         return (struct diva_info) { .nports = 4,
                         .omask = BIT(0) | BIT(1) | BIT(2) | BIT(7) };
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 

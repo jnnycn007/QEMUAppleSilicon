@@ -2048,7 +2048,7 @@ static int hvf_handle_vmexit(CPUState *cpu, hv_vcpu_exit_t *exit)
         ret = -1;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return ret;
@@ -2084,7 +2084,7 @@ int hvf_arch_vcpu_exec(CPUState *cpu)
             trace_hvf_illegal_guest_state();
             /* fall through */
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } while (ret == 0);
 

@@ -19,7 +19,7 @@
 
 int sev_encrypt_flash(hwaddr gpa, uint8_t *ptr, uint64_t len, Error **errp)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void sev_es_set_reset_vector(CPUState *cpu)
@@ -28,7 +28,7 @@ void sev_es_set_reset_vector(CPUState *cpu)
 
 int sev_es_save_reset_vector(void *flash_ptr, uint64_t flash_size)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void hmp_info_sev(Monitor *mon, const QDict *qdict)

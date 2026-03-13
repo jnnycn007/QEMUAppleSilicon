@@ -277,7 +277,7 @@ static void prop_set_on_off_auto_bit64(Object *obj, Visitor *v,
         break;
 
     case ON_OFF_AUTO__MAX:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

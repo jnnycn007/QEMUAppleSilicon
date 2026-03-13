@@ -344,7 +344,7 @@ static void process_options(int argc, char *argv[], bool pre_init_pass)
             error_report("Unexpected argument");
             exit(EXIT_FAILURE);
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     loc_set_none();

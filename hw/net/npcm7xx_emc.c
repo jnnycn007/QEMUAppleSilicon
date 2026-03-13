@@ -471,7 +471,7 @@ static bool emc_receive_filter1(NPCM7xxEMCState *emc, const uint8_t *buf,
         }
     }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -657,7 +657,7 @@ static void npcm7xx_emc_write(void *opaque, hwaddr offset,
     uint32_t reg = offset / sizeof(uint32_t);
     uint32_t value = v;
 
-    g_assert(size == sizeof(uint32_t));
+    assert(size == sizeof(uint32_t));
 
     if (reg >= NPCM7XX_NUM_EMC_REGS) {
         qemu_log_mask(LOG_GUEST_ERROR,

@@ -168,7 +168,7 @@ I2CBus *pca954x_i2c_get_bus(I2CSlave *mux, uint8_t channel)
     Pca954xClass *pc = PCA954X_GET_CLASS(mux);
     Pca954xState *pca954x = PCA954X(mux);
 
-    g_assert(channel < pc->nchans);
+    assert(channel < pc->nchans);
     return pca954x->bus[channel];
 }
 

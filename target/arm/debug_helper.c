@@ -341,7 +341,7 @@ static bool bp_wp_matches(ARMCPU *cpu, int n, bool is_wp)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     wt = REG_FIELD_EX64(cr, DBGWCR, WT);

@@ -136,7 +136,7 @@ static MemTxResult tz_ppc_read(void *opaque, hwaddr addr, uint64_t *pdata,
         data = address_space_ldq_le(as, addr, attrs, &res);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     *pdata = data;
     return res;
@@ -174,7 +174,7 @@ static MemTxResult tz_ppc_write(void *opaque, hwaddr addr, uint64_t val,
         address_space_stq_le(as, addr, val, attrs, &res);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return res;
 }
@@ -193,18 +193,18 @@ static bool tz_ppc_dummy_accepts(void *opaque, hwaddr addr,
      * Board code should never map the upstream end of an unused port,
      * so we should never try to make a memory access to it.
      */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static uint64_t tz_ppc_dummy_read(void *opaque, hwaddr addr, unsigned size)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void tz_ppc_dummy_write(void *opaque, hwaddr addr,
                                         uint64_t data, unsigned size)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static const MemoryRegionOps tz_ppc_dummy_ops = {

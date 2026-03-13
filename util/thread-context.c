@@ -76,7 +76,7 @@ static void *thread_context_run(void *opaque)
             break;
         }
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         qemu_sem_wait(&tc->sem_thread);
     }

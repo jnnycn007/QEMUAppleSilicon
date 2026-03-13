@@ -120,7 +120,7 @@ static void rxicu_set_irq(void *opaque, int n_IRQ, int level)
         src->level = level;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (issue == 0 && src->sense == TRG_LEVEL) {
         icu->ir[n_IRQ] = 0;

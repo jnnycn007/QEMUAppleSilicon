@@ -31,7 +31,7 @@ test_get_passwd_entry(const gchar *user_name, GError **error)
     p->pw_gid = getegid();
 
     ret = g_mkdir_with_parents(p->pw_dir, 0700);
-    g_assert(ret == 0);
+    assert(ret == 0);
 
     return p;
 }
@@ -267,12 +267,12 @@ test_authorized_keys_set(const char *contents)
 
     path = g_build_filename(g_get_home_dir(), ".ssh", NULL);
     ret = g_mkdir_with_parents(path, 0700);
-    g_assert(ret == 0);
+    assert(ret == 0);
     g_free(path);
 
     path = test_get_authorized_keys_path();
     g_file_set_contents(path, contents, -1, &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 }
 
 static void
@@ -284,9 +284,9 @@ test_authorized_keys_equal(const char *expected)
 
     path = test_get_authorized_keys_path();
     g_file_get_contents(path, &contents, NULL, &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
-    g_assert(g_strcmp0(contents, expected) == 0);
+    assert(g_strcmp0(contents, expected) == 0);
 }
 
 static void
@@ -326,7 +326,7 @@ test_add_keys(void)
                                       (strList *)&test_key2,
                                       FALSE, FALSE,
                                       &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     test_authorized_keys_equal("algo key2 comments");
 
@@ -334,7 +334,7 @@ test_add_keys(void)
                                       (strList *)&test_key1_2,
                                       FALSE, FALSE,
                                       &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     /*  key2 came first, and shouldn't be duplicated */
     test_authorized_keys_equal("algo key2 comments\n"
@@ -350,7 +350,7 @@ test_add_reset_keys(void)
                                       (strList *)&test_key1_2,
                                       FALSE, FALSE,
                                       &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     /* reset with key2 only */
     test_authorized_keys_equal("algo key1 comments\n"
@@ -360,7 +360,7 @@ test_add_reset_keys(void)
                                       (strList *)&test_key2,
                                       TRUE, TRUE,
                                       &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     test_authorized_keys_equal("algo key2 comments");
 
@@ -369,7 +369,7 @@ test_add_reset_keys(void)
                                       (strList *)NULL,
                                       TRUE, TRUE,
                                       &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     test_authorized_keys_equal("");
 }
@@ -388,12 +388,12 @@ test_remove_keys(void)
     test_authorized_keys_set(authkeys);
     qmp_guest_ssh_remove_authorized_keys(g_get_user_name(),
                                          (strList *)&test_key2, &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
     test_authorized_keys_equal(authkeys);
 
     qmp_guest_ssh_remove_authorized_keys(g_get_user_name(),
                                          (strList *)&test_key1_2, &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
     test_authorized_keys_equal("# a commented line\n"
                                "algo some-key another\n");
 }
@@ -413,14 +413,14 @@ test_get_keys(void)
     test_authorized_keys_set(authkeys);
 
     ret = qmp_guest_ssh_get_authorized_keys(g_get_user_name(), &err);
-    g_assert(err == NULL);
+    assert(err == NULL);
 
     for (len = 0, k = ret->keys; k != NULL; k = k->next) {
-        g_assert(g_str_has_prefix(k->value, "algo "));
+        assert(g_str_has_prefix(k->value, "algo "));
         len++;
     }
 
-    g_assert(len == 2);
+    assert(len == 2);
 }
 
 int main(int argc, char *argv[])

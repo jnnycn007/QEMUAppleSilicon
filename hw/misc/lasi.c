@@ -105,7 +105,7 @@ static MemTxResult lasi_chip_read_with_attrs(void *opaque, hwaddr addr,
 
     default:
         /* Controlled by lasi_chip_mem_valid above. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_lasi_chip_read(addr, val);
@@ -185,7 +185,7 @@ static MemTxResult lasi_chip_write_with_attrs(void *opaque, hwaddr addr,
 
     default:
         /* Controlled by lasi_chip_mem_valid above. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return MEMTX_OK;
 }

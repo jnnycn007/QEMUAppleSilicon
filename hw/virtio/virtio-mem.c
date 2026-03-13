@@ -886,7 +886,7 @@ static void virtio_mem_prepare_memslots(VirtIOMEM *vmem)
     const uint64_t region_size = memory_region_size(&vmem->memdev->mr);
     unsigned int idx;
 
-    g_assert(!vmem->memslots && vmem->nb_memslots && vmem->dynamic_memslots);
+    assert(!vmem->memslots && vmem->nb_memslots && vmem->dynamic_memslots);
     vmem->memslots = g_new0(MemoryRegion, vmem->nb_memslots);
 
     /* Initialize our memslots, but don't map them yet. */
@@ -1518,7 +1518,7 @@ static unsigned int virtio_mem_get_memslots(VirtIOMEM *vmem)
     }
 
     /* We're called after instructed to make a decision. */
-    g_assert(vmem->nb_memslots);
+    assert(vmem->nb_memslots);
     return vmem->nb_memslots;
 }
 
@@ -1695,7 +1695,7 @@ static uint64_t virtio_mem_rdm_get_min_granularity(const RamDiscardManager *rdm,
 {
     const VirtIOMEM *vmem = VIRTIO_MEM(rdm);
 
-    g_assert(mr == &vmem->memdev->mr);
+    assert(mr == &vmem->memdev->mr);
     return vmem->block_size;
 }
 
@@ -1706,7 +1706,7 @@ static bool virtio_mem_rdm_is_populated(const RamDiscardManager *rdm,
     uint64_t start_gpa = vmem->addr + s->offset_within_region;
     uint64_t end_gpa = start_gpa + int128_get64(s->size);
 
-    g_assert(s->mr == &vmem->memdev->mr);
+    assert(s->mr == &vmem->memdev->mr);
 
     start_gpa = QEMU_ALIGN_DOWN(start_gpa, vmem->block_size);
     end_gpa = QEMU_ALIGN_UP(end_gpa, vmem->block_size);
@@ -1741,7 +1741,7 @@ static int virtio_mem_rdm_replay_populated(const RamDiscardManager *rdm,
         .opaque = opaque,
     };
 
-    g_assert(s->mr == &vmem->memdev->mr);
+    assert(s->mr == &vmem->memdev->mr);
     return virtio_mem_for_each_plugged_section(vmem, s, &data,
                                             virtio_mem_rdm_replay_populated_cb);
 }
@@ -1765,7 +1765,7 @@ static int virtio_mem_rdm_replay_discarded(const RamDiscardManager *rdm,
         .opaque = opaque,
     };
 
-    g_assert(s->mr == &vmem->memdev->mr);
+    assert(s->mr == &vmem->memdev->mr);
     return virtio_mem_for_each_unplugged_section(vmem, s, &data,
                                                  virtio_mem_rdm_replay_discarded_cb);
 }
@@ -1777,7 +1777,7 @@ static void virtio_mem_rdm_register_listener(RamDiscardManager *rdm,
     VirtIOMEM *vmem = VIRTIO_MEM(rdm);
     int ret;
 
-    g_assert(s->mr == &vmem->memdev->mr);
+    assert(s->mr == &vmem->memdev->mr);
     rdl->section = memory_region_section_new_copy(s);
 
     QLIST_INSERT_HEAD(&vmem->rdl_list, rdl, next);
@@ -1794,7 +1794,7 @@ static void virtio_mem_rdm_unregister_listener(RamDiscardManager *rdm,
 {
     VirtIOMEM *vmem = VIRTIO_MEM(rdm);
 
-    g_assert(rdl->section->mr == &vmem->memdev->mr);
+    assert(rdl->section->mr == &vmem->memdev->mr);
     if (vmem->size) {
         rdl->notify_discard(rdl, rdl->section);
     }

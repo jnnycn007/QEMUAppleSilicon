@@ -5907,7 +5907,7 @@ bool sve_probe_page(SVEHostPage *info, bool nofault, CPUARMState *env,
     info->flags = flags;
 
     if (flags & TLB_INVALID_MASK) {
-        g_assert(nofault);
+        assert(nofault);
         return false;
     }
 

@@ -178,7 +178,7 @@ static void apple_pcie_port_msi_write(void *opaque, hwaddr addr, uint64_t data,
     ////int msi_intr_index = 1;
     // int msi_intr_index = data;
     int msi_intr_index = data % 8;
-    g_assert_cmpuint(msi_intr_index, <, APPLE_PCIE_NUM_MSI_BANKS);
+    assert_cmpuint(msi_intr_index, <, APPLE_PCIE_NUM_MSI_BANKS);
 
 #if 0
     port->msi.intr[msi_intr_index].status |=
@@ -219,7 +219,7 @@ void apple_pcie_port_temp_lower_msi_irq(ApplePCIEPort *port, int msi_intr_index)
     DPRINTF("%s: temporary function: bus_nr: %d ; msi_intr_index: %d\n",
             __func__, bus_nr, msi_intr_index);
 
-    g_assert_cmpuint(msi_intr_index, <, APPLE_PCIE_NUM_MSI_BANKS);
+    assert_cmpuint(msi_intr_index, <, APPLE_PCIE_NUM_MSI_BANKS);
 
     qemu_set_irq(host->msi_irqs[bus_nr * 8 + msi_intr_index], 0);
 }
@@ -1480,10 +1480,10 @@ static ApplePCIEPort *apple_pcie_create_port(AppleDTNode *node, uint32_t bus_nr,
 #if 0
     if (child != NULL) {
         // only on S8000
-        g_assert_nonnull(child);
+        assert_nonnull(child);
 
         prop = apple_dt_find_prop(child, "function-clkreq");
-        g_assert_nonnull(prop);
+        assert_nonnull(prop);
         if (prop->length == 16) {
             armfunc = (uint32_t *)prop->data;
             clkreq_gpio_id = armfunc[2];
@@ -1540,15 +1540,15 @@ static ApplePCIEPort *apple_pcie_create_port(AppleDTNode *node, uint32_t bus_nr,
 
         dart = APPLE_DART(object_property_get_link(OBJECT(qdev_get_machine()),
                                                    dart_name, &error_fatal));
-        g_assert_nonnull(dart);
+        assert_nonnull(dart);
 
         if (host->pcie->chip_id == 0x8015) {
             dma_mr = apple_dart_iommu_mr(dart, 0);
         } else {
             dma_mr = apple_dart_iommu_mr(dart, 1);
         }
-        g_assert_nonnull(dma_mr);
-        g_assert_nonnull(object_property_add_const_link(OBJECT(port), "dma-mr",
+        assert_nonnull(dma_mr);
+        assert_nonnull(object_property_add_const_link(OBJECT(port), "dma-mr",
                                                         OBJECT(dma_mr)));
         port->dma_mr = MEMORY_REGION(dma_mr);
 
@@ -1679,7 +1679,7 @@ SysBusDevice *apple_pcie_from_node(AppleDTNode *node, uint32_t chip_id)
 
     s->node = node;
     prop = apple_dt_get_prop(s->node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
 
     s->msi_vector_offset =
@@ -1724,7 +1724,7 @@ SysBusDevice *apple_pcie_from_node(AppleDTNode *node, uint32_t chip_id)
         root_mappings = 5;
         port_mappings = 4;
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     sysbus_realize_and_unref(SYS_BUS_DEVICE(host_dev), &error_fatal);
@@ -1733,7 +1733,7 @@ SysBusDevice *apple_pcie_from_node(AppleDTNode *node, uint32_t chip_id)
         s->ports[i] =
             apple_pcie_create_port(node, i, host->irqs[i], pci->bus, host);
     }
-    g_assert_cmpuint(reg[common_index * 2 + 1], <=, APCIE_COMMON_REGS_LENGTH);
+    assert_cmpuint(reg[common_index * 2 + 1], <=, APCIE_COMMON_REGS_LENGTH);
 
     memory_region_init_io(&host->root_cfg, OBJECT(host),
                           &apple_pcie_root_conf_ops, host, "root_cfg",

@@ -94,7 +94,7 @@ static void stm32l4x5_syscfg_set_irq(void *opaque, int irq, int level)
     const int exticr_reg = line / NUM_LINES_PER_EXTICR_REG;
     const int startbit = (line % NUM_LINES_PER_EXTICR_REG) * 4;
 
-    g_assert(gpio < NUM_GPIOS);
+    assert(gpio < NUM_GPIOS);
     trace_stm32l4x5_syscfg_set_irq(gpio, line, level);
 
     if (extract32(s->exticr[exticr_reg], startbit, 4) == gpio) {

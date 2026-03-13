@@ -2339,7 +2339,7 @@ qcow2_co_preadv_task(BlockDriverState *bs, QCow2SubclusterType subc_type,
     case QCOW2_SUBCLUSTER_ZERO_PLAIN:
     case QCOW2_SUBCLUSTER_ZERO_ALLOC:
         /* Both zero types are handled in qcow2_co_preadv_part */
-        g_assert_not_reached();
+        assert_not_reached();
 
     case QCOW2_SUBCLUSTER_UNALLOCATED_PLAIN:
     case QCOW2_SUBCLUSTER_UNALLOCATED_ALLOC:
@@ -2364,10 +2364,10 @@ qcow2_co_preadv_task(BlockDriverState *bs, QCow2SubclusterType subc_type,
                                    bytes, qiov, qiov_offset, 0);
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*
@@ -3551,7 +3551,7 @@ qcow2_co_create(BlockdevCreateOptions *create_options, Error **errp)
             version = 3;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         version = 3;
@@ -4655,7 +4655,7 @@ qcow2_co_truncate(BlockDriverState *bs, int64_t offset, bool exact,
     }
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if ((flags & BDRV_REQ_ZERO_WRITE) && offset > old_length) {
@@ -5358,7 +5358,7 @@ qcow2_get_specific_info(BlockDriverState *bs, Error **errp)
     } else {
         /* if this assertion fails, this probably means a new version was
          * added without having it covered here */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (encrypt_info) {

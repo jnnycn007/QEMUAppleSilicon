@@ -271,7 +271,7 @@ void generic_handle_interrupt(CPUState *cpu, int mask)
 
 void cpu_interrupt(CPUState *cpu, int mask)
 {
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     cpus_accel->handle_interrupt(cpu, mask);
 }
@@ -441,7 +441,7 @@ void run_on_cpu(CPUState *cpu, run_on_cpu_func func, run_on_cpu_data data)
 
 static void qemu_cpu_stop(CPUState *cpu, bool exit)
 {
-    g_assert(qemu_cpu_is_self(cpu));
+    assert(qemu_cpu_is_self(cpu));
     cpu->stop = false;
     cpu->stopped = true;
     if (exit) {
@@ -545,15 +545,15 @@ void bql_lock_impl(const char *file, int line)
 {
     QemuMutexLockFunc bql_lock_fn = qatomic_read(&bql_mutex_lock_func);
 
-    g_assert(!bql_locked());
+    assert(!bql_locked());
     bql_lock_fn(&bql, file, line);
     set_bql_locked(true);
 }
 
 void bql_unlock(void)
 {
-    g_assert(bql_locked());
-    g_assert(!bql_unlock_blocked);
+    assert(bql_locked());
+    assert(!bql_unlock_blocked);
     set_bql_locked(false);
     qemu_mutex_unlock(&bql);
 }
@@ -696,7 +696,7 @@ void qemu_init_vcpu(CPUState *cpu)
     }
 
     /* accelerators all implement the AccelOpsClass */
-    g_assert(cpus_accel != NULL && cpus_accel->create_vcpu_thread != NULL);
+    assert(cpus_accel != NULL && cpus_accel->create_vcpu_thread != NULL);
     cpus_accel->create_vcpu_thread(cpu);
 
     while (!cpu->created) {

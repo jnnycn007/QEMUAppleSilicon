@@ -1380,7 +1380,7 @@ static void do_v7m_exception_exit(ARMCPU *cpu)
         rettobase = true;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return_to_handler = !(excret & R_V7M_EXCRET_MODE_MASK);
@@ -2263,7 +2263,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
 #ifdef CONFIG_TCG
         do_common_semihosting(cs);
 #else
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
         env->regs[15] += env->thumb ? 2 : 4;
         return;

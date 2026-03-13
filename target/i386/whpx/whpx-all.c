@@ -1319,7 +1319,7 @@ static int whpx_first_vcpu_starting(CPUState *cpu)
     struct whpx_state *whpx = &whpx_global;
     HRESULT hr;
 
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     if (!QTAILQ_EMPTY(&cpu->breakpoints) ||
             (whpx->breakpoints.breakpoints &&
@@ -1639,7 +1639,7 @@ static int whpx_vcpu_run(CPUState *cpu)
     WhpxStepMode exclusive_step_mode = WHPX_STEP_NONE;
     int ret;
 
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     if (whpx->running_cpus++ == 0) {
         /* Insert breakpoints into memory, update exception exit bitmap. */
@@ -1681,8 +1681,8 @@ static int whpx_vcpu_run(CPUState *cpu)
 
     if (exclusive_step_mode != WHPX_STEP_NONE) {
         start_exclusive();
-        g_assert(cpu == current_cpu);
-        g_assert(!cpu->running);
+        assert(cpu == current_cpu);
+        assert(!cpu->running);
         cpu->running = true;
 
         hr = whpx_set_exception_exit_bitmap(
@@ -2034,7 +2034,7 @@ static int whpx_vcpu_run(CPUState *cpu)
     }
 
     if (exclusive_step_mode != WHPX_STEP_NONE) {
-        g_assert(cpu_in_exclusive_context(cpu));
+        assert(cpu_in_exclusive_context(cpu));
         cpu->running = false;
         end_exclusive();
 

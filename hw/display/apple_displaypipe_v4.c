@@ -751,7 +751,7 @@ static void adp_v4_read_and_draw_boot_splash(AppleDisplayPipeV4State *adp)
 
     path = get_relocated_path(CONFIG_QEMU_ICONDIR
                               "/hicolor/512x512/apps/CKQEMUBootSplash@2x.png");
-    g_assert_nonnull(path);
+    assert_nonnull(path);
     fp = fopen(path, "rb");
     if (fp == NULL) {
         error_setg(&error_abort, "Missing emulator branding: %s.", path);
@@ -764,9 +764,9 @@ static void adp_v4_read_and_draw_boot_splash(AppleDisplayPipeV4State *adp)
     }
     g_free(path);
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    g_assert_nonnull(png_ptr);
+    assert_nonnull(png_ptr);
     info_ptr = png_create_info_struct(png_ptr);
-    g_assert_nonnull(info_ptr);
+    assert_nonnull(info_ptr);
     png_init_io(png_ptr, fp);
     png_set_sig_bytes(png_ptr, sizeof(sig));
 
@@ -954,8 +954,8 @@ SysBusDevice *adp_v4_from_node(AppleDTNode *node, MemoryRegion *dma_mr)
     uint64_t *reg;
     int i;
 
-    g_assert_nonnull(node);
-    g_assert_nonnull(dma_mr);
+    assert_nonnull(node);
+    assert_nonnull(dma_mr);
 
     dev = qdev_new(TYPE_APPLE_DISPLAY_PIPE_V4);
     sbd = SYS_BUS_DEVICE(dev);
@@ -977,7 +977,7 @@ SysBusDevice *adp_v4_from_node(AppleDTNode *node, MemoryRegion *dma_mr)
     address_space_init(&adp->dma_as, adp->dma_mr, "disp0.dma");
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
     memory_region_init_io(&adp->up_regs, OBJECT(sbd), &adp_v4_reg_ops, sbd,
                           "up.regs", reg[1]);

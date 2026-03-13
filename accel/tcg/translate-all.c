@@ -378,7 +378,7 @@ TranslationBlock *tb_gen_code(CPUState *cpu, TCGTBCPUState s)
             goto restart_translate;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     tcg_ctx->gen_tb = NULL;

@@ -115,7 +115,7 @@ void sdl2_2d_switch(DisplayChangeListener *dcl,
         format = SDL_PIXELFORMAT_BGRA8888;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     scon->texture = SDL_CreateTexture(scon->real_renderer, format,
                                       SDL_TEXTUREACCESS_STREAMING,

@@ -16,7 +16,7 @@
 
 void replay_save_random(int ret, void *buf, size_t len)
 {
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
 
     replay_save_instructions();
     replay_put_event(EVENT_RANDOM);
@@ -27,7 +27,7 @@ void replay_save_random(int ret, void *buf, size_t len)
 int replay_read_random(void *buf, size_t len)
 {
     int ret = 0;
-    g_assert(replay_mutex_locked());
+    assert(replay_mutex_locked());
 
     replay_account_executed_instructions();
     if (replay_next_event_is(EVENT_RANDOM)) {
@@ -35,7 +35,7 @@ int replay_read_random(void *buf, size_t len)
         ret = replay_get_dword();
         replay_get_array(buf, &buf_size);
         replay_finish_event();
-        g_assert(buf_size == len);
+        assert(buf_size == len);
     } else {
         error_report("Missing random event in the replay log");
         exit(1);

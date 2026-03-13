@@ -416,7 +416,7 @@ static void pflash_blk_write_start(PFlashCFI01 *pfl, hwaddr offset)
 /* commit block update buffer changes */
 static void pflash_blk_write_flush(PFlashCFI01 *pfl)
 {
-    g_assert(pfl->blk_offset != -1);
+    assert(pfl->blk_offset != -1);
     trace_pflash_write_block_flush(pfl->name);
     memcpy(pfl->storage + pfl->blk_offset, pfl->blk_bytes,
            pfl->writeblock_size);

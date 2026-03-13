@@ -1008,7 +1008,7 @@ vpc_co_create(BlockdevCreateOptions *opts, Error **errp)
         disk_type = VHD_FIXED;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Create BlockBackend to write to the image */

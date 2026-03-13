@@ -311,7 +311,7 @@ static int lsm303dlhc_mag_send(I2CSlave *i2c, uint8_t data)
         s->buf = data;
         lsm303dlhc_mag_write(s);
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return 0;

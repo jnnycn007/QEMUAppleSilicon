@@ -1051,7 +1051,7 @@ void gicv3_cpuif_update(GICv3CPUState *cs)
     ARMCPU *cpu = ARM_CPU(cs->cpu);
     CPUARMState *env = &cpu->env;
 
-    g_assert(bql_locked());
+    assert(bql_locked());
 
     trace_gicv3_cpuif_update(gicv3_redist_affid(cs), cs->hppi.irq,
                              cs->hppi.grp, cs->hppi.prio);
@@ -1081,7 +1081,7 @@ void gicv3_cpuif_update(GICv3CPUState *cs)
             isfiq = arm_is_secure(env);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (isfiq) {
@@ -1958,7 +1958,7 @@ static void icc_dir_write(CPUARMState *env, const ARMCPRegInfo *ri,
         }
         return;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     icc_deactivate_irq(cs, irq);
@@ -2295,7 +2295,7 @@ static CPAccessResult gicv3_irqfiq_access(CPUARMState *env,
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -2357,7 +2357,7 @@ static CPAccessResult gicv3_fiq_access(CPUARMState *env,
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -2393,7 +2393,7 @@ static CPAccessResult gicv3_irq_access(CPUARMState *env,
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -3090,7 +3090,7 @@ void gicv3_init_cpuif(GICv3State *s)
          * Check that CPU code defining pribits didn't violate
          * architectural constraints our implementation relies on.
          */
-        g_assert(cs->pribits >= 4 && cs->pribits <= 8);
+        assert(cs->pribits >= 4 && cs->pribits <= 8);
 
         /*
          * gicv3_cpuif_reginfo[] defines ICC_AP*R0_EL1; add definitions
@@ -3114,9 +3114,9 @@ void gicv3_init_cpuif(GICv3State *s)
              * wrong would be a bug in the CPU code defining these,
              * and the implementation relies on them holding.
              */
-            g_assert(cs->vprebits <= cs->vpribits);
-            g_assert(cs->vprebits >= 5 && cs->vprebits <= 7);
-            g_assert(cs->vpribits >= 5 && cs->vpribits <= 8);
+            assert(cs->vprebits <= cs->vpribits);
+            assert(cs->vprebits >= 5 && cs->vprebits <= 7);
+            assert(cs->vpribits >= 5 && cs->vpribits <= 8);
 
             define_arm_cp_regs(cpu, gicv3_cpuif_hcr_reginfo);
 

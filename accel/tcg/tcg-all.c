@@ -134,7 +134,7 @@ static int tcg_init_machine(AccelState *as, MachineState *ms)
     case ON_OFF_AUTO_OFF:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     qemu_add_vm_change_state_handler(tcg_vm_change_state, NULL);

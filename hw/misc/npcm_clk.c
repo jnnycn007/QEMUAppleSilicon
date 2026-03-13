@@ -285,7 +285,7 @@ static NPCM7xxClockPLL find_pll_by_reg(enum NPCM7xxCLKRegisters reg)
     case NPCM7XX_CLK_PLLCONG:
         return NPCM7XX_CLOCK_PLLG;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -745,7 +745,7 @@ static void npcm7xx_init_clock_sel(NPCM7xxClockSELState *sel,
     sel->name = init_info->name;
     sel->clk = clk;
     sel->input_size = init_info->input_size;
-    g_assert(input_size <= NPCM7XX_CLK_SEL_MAX_INPUT);
+    assert(input_size <= NPCM7XX_CLK_SEL_MAX_INPUT);
     sel->offset = init_info->offset;
     sel->len = init_info->len;
     if (init_info->public_name != NULL) {
@@ -787,7 +787,7 @@ static Clock *npcm7xx_get_clock(NPCMCLKState *clk, ClockSrcType type,
     case CLKSRC_DIV:
         return clk->dividers[index].clock_out;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -938,7 +938,7 @@ static void npcm7xx_clk_perform_watchdog_reset(void *opaque, int n,
     NPCMCLKState *clk = NPCM_CLK(opaque);
     uint32_t rcr;
 
-    g_assert(n >= 0 && n <= NPCM7XX_NR_WATCHDOGS);
+    assert(n >= 0 && n <= NPCM7XX_NR_WATCHDOGS);
     rcr = clk->regs[NPCM7XX_CLK_WD0RCR + n];
     if (rcr & NPCM7XX_CLK_WDRCR_CA9C) {
         watchdog_perform_action();
@@ -966,7 +966,7 @@ static void npcm_clk_enter_reset(Object *obj, ResetType type)
     NPCMCLKClass *c = NPCM_CLK_GET_CLASS(s);
 
     size_t sizeof_regs = c->nr_regs * sizeof(uint32_t);
-    g_assert(sizeof(s->regs) >= sizeof_regs);
+    assert(sizeof(s->regs) >= sizeof_regs);
     memcpy(s->regs, c->cold_reset_values, sizeof_regs);
     s->ref_ns = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
     npcm7xx_clk_update_all_clocks(s);

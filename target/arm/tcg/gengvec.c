@@ -2441,7 +2441,7 @@ void gen_gvec_rev32(unsigned vece, uint32_t rd_ofs, uint32_t rn_ofs,
         tcg_gen_gvec_2(rd_ofs, rn_ofs, opr_sz, max_sz, &g);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2464,7 +2464,7 @@ void gen_gvec_rev64(unsigned vece, uint32_t rd_ofs, uint32_t rn_ofs,
         tcg_gen_gvec_2(rd_ofs, rn_ofs, opr_sz, max_sz, &g[vece]);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

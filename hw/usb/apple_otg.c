@@ -216,9 +216,9 @@ DeviceState *apple_otg_from_node(AppleDTNode *node)
     sysbus_init_mmio(sbd, &s->usbctl);
 
     child = apple_dt_get_node(node, "usb-device");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
     prop = apple_dt_get_prop(child, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     object_initialize_child(OBJECT(dev), "dwc2", &s->dwc2, TYPE_DWC2_USB);
     memory_region_init_alias(

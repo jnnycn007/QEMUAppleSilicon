@@ -216,7 +216,7 @@ void vfio_cpr_load_device(VFIODevice *vbasedev)
 {
     if (cpr_is_incoming()) {
         bool ret = vfio_cpr_find_device(vbasedev);
-        g_assert(ret);
+        assert(ret);
 
         if (vbasedev->fd < 0) {
             vbasedev->fd = cpr_find_fd(vbasedev->name, 0);

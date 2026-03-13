@@ -652,8 +652,8 @@ dbus_audio_set_server(AudioState *s, GDBusObjectManagerServer *server, bool p2p)
 {
     DBusAudio *da = s->drv_opaque;
 
-    g_assert(da);
-    g_assert(!da->server);
+    assert(da);
+    assert(!da->server);
 
     da->server = g_object_ref(server);
     da->p2p = p2p;

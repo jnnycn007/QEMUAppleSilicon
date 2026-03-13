@@ -368,7 +368,7 @@ static void dump_cpu_handler(void)
     MachineState *machine = MACHINE(qdev_get_machine());
     AppleSEPState *sep = APPLE_SEP(
         object_property_get_link(OBJECT(machine), "sep", &error_fatal));
-    g_assert_nonnull(sep);
+    assert_nonnull(sep);
     cpu_dump_state(CPU(sep->cpu), stderr, CPU_DUMP_CODE);
 }
 
@@ -388,12 +388,12 @@ static void enable_trace_buffer(AppleSEPState *s)
     } QEMU_PACKED shm_region_t;
 #ifdef SEP_ENABLE_OVERWRITE_SHMBUF_OBJECTS
     shm_region_t shm_region_TRAC = { 0 };
-    g_assert_cmpuint(sizeof(shm_region_TRAC), ==, 0x10);
+    assert_cmpuint(sizeof(shm_region_TRAC), ==, 0x10);
     shm_region_TRAC.name = 'TRAC';
     shm_region_TRAC.size = s->debug_trace_size;
     shm_region_TRAC.offset = s->trace_buffer_base_offset;
     shm_region_t shm_region_null = { 0 };
-    g_assert_cmpuint(sizeof(shm_region_null), ==, 0x10);
+    assert_cmpuint(sizeof(shm_region_null), ==, 0x10);
     shm_region_null.name = 'null';
     uint32_t region_SCOT_size = 0x4000;
     address_space_write(nsas, s->shmbuf_base + 0x14, MEMTXATTRS_UNSPECIFIED,
@@ -475,18 +475,18 @@ static void enable_trace_buffer(AppleSEPState *s)
     } QEMU_PACKED sepos_virt_mapping_t;
 #endif
     // object_mappings_ios14_t object_mapping_THDR_IOS15 = { 0 };
-    // g_assert_cmpuint(sizeof(object_mapping_THDR_IOS15), ==, 0x48);
+    // assert_cmpuint(sizeof(object_mapping_THDR_IOS15), ==, 0x48);
     object_mappings_ios14_t object_mapping_TRAC_IOS14 = { 0 };
-    g_assert_cmpuint(sizeof(object_mapping_TRAC_IOS14), ==, 0x48);
+    assert_cmpuint(sizeof(object_mapping_TRAC_IOS14), ==, 0x48);
 
     // object_mappings_ios16_t object_mapping_THDR_IOS16 = { 0 };
-    // g_assert_cmpuint(sizeof(object_mapping_THDR_IOS16), ==, 0x68);
+    // assert_cmpuint(sizeof(object_mapping_THDR_IOS16), ==, 0x68);
     // object_mappings_ios16_t object_mapping_TRAC_IOS16 = { 0 };
-    // g_assert_cmpuint(sizeof(object_mapping_TRAC_IOS16), ==, 0x68);
+    // assert_cmpuint(sizeof(object_mapping_TRAC_IOS16), ==, 0x68);
     sepos_acl_t acl_for_TRAC = { 0 };
-    g_assert_cmpuint(sizeof(acl_for_TRAC), ==, 0x18);
+    assert_cmpuint(sizeof(acl_for_TRAC), ==, 0x18);
     // sepos_virt_mapping_t virt_mapping_for_TRAC = { 0 };
-    // g_assert_cmpuint(sizeof(virt_mapping_for_TRAC), ==, 0x38);
+    // assert_cmpuint(sizeof(virt_mapping_for_TRAC), ==, 0x38);
 
 // SEPOS_PHYS_BASEs: not in runtime, but while in SEPROM. Same on T8020
 // (0x340611BA8-0x11BA8)
@@ -525,9 +525,9 @@ static void enable_trace_buffer(AppleSEPState *s)
 #elif SEP_USE_VERSION_OVERRIDE == 15
         sepos_phys_base = SEPOS_PHYS_BASE_T8020_IOS15;
 #elif SEP_USE_VERSION_OVERRIDE == 16
-        g_assert_not_reached();
+        assert_not_reached();
 #elif SEP_USE_VERSION_OVERRIDE == 18
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     } else if (s->chip_id == 0x8030) {
 #if SEP_USE_VERSION_OVERRIDE == 14
@@ -540,7 +540,7 @@ static void enable_trace_buffer(AppleSEPState *s)
         sepos_phys_base = SEPOS_PHYS_BASE_T8030_IOS18;
 #endif
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     // alternative bypass as if_module_AAES_Debu_or_SEPD is also used by other
@@ -650,7 +650,7 @@ static void disable_aslr(AppleSEPState *s)
 #if SEP_USE_VERSION_OVERRIDE == 14
         phys_addr = 0x34015FD40ULL; // T8015
 #else
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     } else if (s->chip_id == 0x8020) {
 #if SEP_USE_VERSION_OVERRIDE == 14
@@ -658,16 +658,16 @@ static void disable_aslr(AppleSEPState *s)
 #elif SEP_USE_VERSION_OVERRIDE == 15
         phys_addr = 0x34086E380ULL; // T8020 iOS 15
 #elif SEP_USE_VERSION_OVERRIDE == 16
-        g_assert_not_reached();
+        assert_not_reached();
 #elif SEP_USE_VERSION_OVERRIDE == 18
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     } else if (s->chip_id == 0x8030) {
         // 0x8030 is now handled in disable_aslr_SYS_ACC_PWR_DN_SAVE, which is
         // handled/called in apple_sep_iop_start
         return;
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (phys_addr) {
         // The first 16bytes of SEPB.random_0 are being used for SEPOS'
@@ -1009,7 +1009,7 @@ static const char *sepos_return_module_thread_string(uint32_t chip_id,
         return sepos_return_module_thread_string_t8030(module_thread_id);
 #endif
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void debug_trace_reg_write(void *opaque, hwaddr addr, uint64_t data,
@@ -1531,7 +1531,7 @@ static void trng_regs_reg_write(void *opaque, hwaddr addr, uint64_t data,
             cipher = qcrypto_cipher_new(QCRYPTO_CIPHER_ALGO_AES_256,
                                         QCRYPTO_CIPHER_MODE_ECB, s->key,
                                         sizeof(s->key), &error_abort);
-            g_assert_nonnull(cipher);
+            assert_nonnull(cipher);
             qcrypto_cipher_encrypt(cipher, s->fifo, s->fifo, sizeof(s->fifo),
                                    &error_abort);
             qcrypto_cipher_free(cipher);
@@ -2376,7 +2376,7 @@ static QCryptoCipherAlgo get_aes_cipher_alg(uint32_t flags)
     case SEP_AESS_CMD_FLAG_KEYSIZE_AES256:
         return QCRYPTO_CIPHER_ALGO_AES_256;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2411,12 +2411,12 @@ static void aess_keywrap_uid(AppleAESSState *s, uint8_t *in, uint8_t *out,
                              uint32_t reg_0x18_keydisable)
 { // for keywrap only
     // TODO: Second half of output might be CMAC!!!
-    g_assert_cmpuint(cipher_alg, ==, QCRYPTO_CIPHER_ALGO_AES_256);
+    assert_cmpuint(cipher_alg, ==, QCRYPTO_CIPHER_ALGO_AES_256);
     QCryptoCipher *cipher;
     uint32_t normalized_cmd = SEP_AESS_CMD_WITHOUT_FLAGS(cmd);
     size_t key_len = qcrypto_cipher_get_key_len(cipher_alg);
     size_t data_len = 0x20;
-    g_assert_cmpuint(data_len, ==, 0x20);
+    assert_cmpuint(data_len, ==, 0x20);
     uint8_t used_key[0x20] = { 0 };
     if (normalized_cmd == 0x02 && s->keywrap_uid0_enabled) {
         memcpy(used_key, (uint8_t *)s->keywrap_key_uid0,
@@ -2428,7 +2428,7 @@ static void aess_keywrap_uid(AppleAESSState *s, uint8_t *in, uint8_t *out,
         memcpy(used_key, (uint8_t *)AESS_UID_SEED_NOT_ENABLED,
                sizeof(used_key));
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
     // TODO: Dirty hack, so iteration_register being set/unset shouldn't result
     // in the same output keys.
@@ -2444,7 +2444,7 @@ static void aess_keywrap_uid(AppleAESSState *s, uint8_t *in, uint8_t *out,
     HEXDUMP("aess_keywrap_uid: in", in, data_len);
     cipher = qcrypto_cipher_new(cipher_alg, QCRYPTO_CIPHER_MODE_CBC, used_key,
                                 key_len, &error_abort);
-    g_assert_nonnull(cipher);
+    assert_nonnull(cipher);
     uint8_t iv[0x10] = { 0 };
     qcrypto_cipher_setiv(cipher, iv, sizeof(iv), &error_abort);
     uint8_t enc_temp[0x20] = { 0 };
@@ -2488,7 +2488,7 @@ static int aess_get_custom_keywrap_index(uint32_t cmd)
     case 0xC8:
         return 3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2581,7 +2581,7 @@ static void aess_handle_cmd(AppleAESSState *s)
         // key wrapping/deriving data
         uint8_t key_wrap_data_in[0x20] = { 0 };
         uint8_t key_wrap_data_out[0x20] = { 0 };
-        g_assert_cmpuint(sizeof(key_wrap_data_in), >=, key_len);
+        assert_cmpuint(sizeof(key_wrap_data_in), >=, key_len);
         memcpy(key_wrap_data_in, s->in_full, key_len);
         // aess_encrypt_decrypt_uid(s, key_wrap_data_in, key_wrap_data_out,
         // cipher_alg, true);
@@ -2655,7 +2655,7 @@ static void aess_handle_cmd(AppleAESSState *s)
         QCryptoCipher *cipher;
         cipher = qcrypto_cipher_new(cipher_alg, QCRYPTO_CIPHER_MODE_CBC,
                                     used_key, key_len, &error_abort);
-        g_assert_nonnull(cipher);
+        assert_nonnull(cipher);
         uint8_t iv[0x10] = { 0 };
         uint8_t in[0x10] = { 0 };
         if (do_encryption) {
@@ -4040,7 +4040,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
     sbd = SYS_BUS_DEVICE(dev);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
 
     apple_a7iop_init(a7iop, "SEP", reg[1],
@@ -4052,7 +4052,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
 
     if (s->chip_id >= 0x8020) {
         if (s->chip_id == 0x8020) {
-            g_assert_not_reached();
+            assert_not_reached();
         }
         s->shmbuf_base = SEP_SHMBUF_BASE;
         s->trace_buffer_base_offset = 0x10000;
@@ -4066,7 +4066,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
         s->trace_buffer_base_offset = 0x10000; // ???
         s->debug_trace_size = 0x10000; // ???
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     MemoryRegion *mr0 = g_new0(MemoryRegion, 1);
@@ -4174,7 +4174,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
 #endif
 
     AppleDTNode *child = apple_dt_get_node(node, "iop-sep-nub");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     MachineState *machine = MACHINE(qdev_get_machine());
     SysBusDevice *gpio = NULL;
@@ -4182,7 +4182,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
     uint32_t sep_gpio_int_groups = 0x1;
     gpio = SYS_BUS_DEVICE(apple_gpio_new("sep_gpio", 0x10000, sep_gpio_pins,
                                          sep_gpio_int_groups));
-    g_assert_nonnull(gpio);
+    assert_nonnull(gpio);
     if (s->chip_id == 0x8030) {
         sysbus_mmio_map(gpio, 0, 0x2414C0000ULL); // T8030
     } else if (s->chip_id == 0x8020) {
@@ -4212,7 +4212,7 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
     sysbus_realize_and_unref(gpio, &error_fatal);
     SysBusDevice *i2c = NULL;
     i2c = apple_i2c_create("sep_i2c");
-    g_assert_nonnull(i2c);
+    assert_nonnull(i2c);
     object_property_add_child(OBJECT(machine), "sep_i2c", OBJECT(i2c));
     if (s->chip_id == 0x8030) {
         sysbus_mmio_map(i2c, 0, 0x241480000ULL); // T8030
@@ -4227,20 +4227,20 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
     uint64_t nvram_size = 64 * KiB;
 
     DriveInfo *dinfo_eeprom = drive_get_by_index(IF_PFLASH, 0);
-    g_assert_nonnull(dinfo_eeprom);
+    assert_nonnull(dinfo_eeprom);
     BlockBackend *blk_eeprom = blk_by_legacy_dinfo(dinfo_eeprom);
-    g_assert_nonnull(blk_eeprom);
+    assert_nonnull(blk_eeprom);
     I2CSlave *nvram = at24c_eeprom_init_rom_blk(
         APPLE_I2C(i2c)->bus, 0x51, nvram_size, NULL, 0, 2, blk_eeprom);
-    g_assert_nonnull(nvram);
+    assert_nonnull(nvram);
     s->nvram = nvram;
     if (s->chip_id >= 0x8020) {
         DriveInfo *dinfo_ssc = drive_get_by_index(IF_PFLASH, 1);
-        g_assert_nonnull(dinfo_ssc);
+        assert_nonnull(dinfo_ssc);
         BlockBackend *blk_ssc = blk_by_legacy_dinfo(dinfo_ssc);
-        g_assert_nonnull(blk_ssc);
+        assert_nonnull(blk_ssc);
         AppleSSCState *ssc = apple_ssc_create(machine, 0x71);
-        g_assert_nonnull(ssc);
+        assert_nonnull(ssc);
         s->ssc_state = ssc;
         s->ssc_state->aess_state = &s->aess_state;
         qdev_prop_set_drive_err(DEVICE(s->ssc_state), "drive", blk_ssc,
@@ -4251,11 +4251,11 @@ AppleSEPState *apple_sep_from_node(AppleDTNode *node, MemoryRegion *ool_mr,
 
 #if 1
     s->ool_mr = ool_mr;
-    g_assert_nonnull(s->ool_mr);
-    g_assert_nonnull(
+    assert_nonnull(s->ool_mr);
+    assert_nonnull(
         object_property_add_const_link(OBJECT(s), "ool-mr", OBJECT(s->ool_mr)));
     s->ool_as = g_new0(AddressSpace, 1);
-    g_assert_nonnull(s->ool_as);
+    assert_nonnull(s->ool_as);
     address_space_init(s->ool_as, s->ool_mr, "sep.ool");
 #endif
 

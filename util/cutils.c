@@ -897,7 +897,7 @@ int qemu_parse_fd(const char *param)
  */
 int uleb128_encode_small(uint8_t *out, uint32_t n)
 {
-    g_assert(n <= 0x3fff);
+    assert(n <= 0x3fff);
     if (n < 0x80) {
         *out = n;
         return 1;

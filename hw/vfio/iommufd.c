@@ -926,7 +926,7 @@ hiod_iommufd_vfio_get_iova_ranges(HostIOMMUDevice *hiod)
 {
     VFIODevice *vdev = hiod->agent;
 
-    g_assert(vdev);
+    assert(vdev);
     return vfio_container_get_iova_ranges(vdev->bcontainer);
 }
 
@@ -935,7 +935,7 @@ hiod_iommufd_vfio_get_page_size_mask(HostIOMMUDevice *hiod)
 {
     VFIODevice *vdev = hiod->agent;
 
-    g_assert(vdev);
+    assert(vdev);
     return vfio_container_get_page_size_mask(vdev->bcontainer);
 }
 

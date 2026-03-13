@@ -157,8 +157,8 @@ init_dfl_pathnames(void)
 {
     g_autofree char *state = qemu_get_local_state_dir();
 
-    g_assert(dfl_pathnames.state_dir == NULL);
-    g_assert(dfl_pathnames.pidfile == NULL);
+    assert(dfl_pathnames.state_dir == NULL);
+    assert(dfl_pathnames.pidfile == NULL);
     dfl_pathnames.state_dir = g_build_filename(state, QGA_STATE_RELATIVE_DIR, NULL);
     dfl_pathnames.pidfile = g_build_filename(state, QGA_STATE_RELATIVE_DIR, "qemu-ga.pid", NULL);
 }
@@ -656,7 +656,7 @@ static int send_response(GAState *s, const QDict *rsp)
     GString *response;
     GIOStatus status;
 
-    g_assert(s->channel);
+    assert(s->channel);
 
     if (!rsp) {
         return 0;
@@ -874,15 +874,15 @@ VOID WINAPI service_main(DWORD argc, TCHAR *argv[])
 
 static void set_persistent_state_defaults(GAPersistentState *pstate)
 {
-    g_assert(pstate);
+    assert(pstate);
     pstate->fd_counter = QGA_PSTATE_DEFAULT_FD_COUNTER;
 }
 
 static void persistent_state_from_keyfile(GAPersistentState *pstate,
                                           GKeyFile *keyfile)
 {
-    g_assert(pstate);
-    g_assert(keyfile);
+    assert(pstate);
+    assert(keyfile);
     /* if any fields are missing, either because the file was tampered with
      * by agents of chaos, or because the field wasn't present at the time the
      * file was created, the best we can ever do is start over with the default
@@ -900,8 +900,8 @@ static void persistent_state_from_keyfile(GAPersistentState *pstate,
 static void persistent_state_to_keyfile(const GAPersistentState *pstate,
                                         GKeyFile *keyfile)
 {
-    g_assert(pstate);
-    g_assert(keyfile);
+    assert(pstate);
+    assert(keyfile);
 
     g_key_file_set_integer(keyfile, "global", "fd_counter", pstate->fd_counter);
 }
@@ -915,7 +915,7 @@ static gboolean write_persistent_state(const GAPersistentState *pstate,
     gchar *data = NULL;
     gsize data_len;
 
-    g_assert(pstate);
+    assert(pstate);
 
     persistent_state_to_keyfile(pstate, keyfile);
     data = g_key_file_to_data(keyfile, &data_len, &gerr);
@@ -953,7 +953,7 @@ static gboolean read_persistent_state(GAPersistentState *pstate,
     struct stat st;
     gboolean ret = true;
 
-    g_assert(pstate);
+    assert(pstate);
 
     if (stat(path, &st) == -1) {
         /* it's okay if state file doesn't exist, but any other error
@@ -1019,13 +1019,13 @@ int64_t ga_get_fd_handle(GAState *s, Error **errp)
 {
     int64_t handle;
 
-    g_assert(s->pstate_filepath);
+    assert(s->pstate_filepath);
     /*
      * We block commands and avoid operations that potentially require
      * writing to disk when we're in a frozen state. this includes opening
      * new files, so we should never get here in that situation
      */
-    g_assert(!ga_is_frozen(s));
+    assert(!ga_is_frozen(s));
 
     handle = s->pstate.fd_counter++;
 
@@ -1160,7 +1160,7 @@ static void config_dump(GAConfig *config)
     gchar *tmp;
 
     keyfile = g_key_file_new();
-    g_assert(keyfile);
+    assert(keyfile);
 
     g_key_file_set_boolean(keyfile, "general", "daemon", config->daemonize);
     g_key_file_set_string(keyfile, "general", "method", config->method);
@@ -1406,7 +1406,7 @@ static GAState *initialize_agent(GAConfig *config, int socket_activation)
 {
     GAState *s = g_new0(GAState, 1);
 
-    g_assert(ga_state == NULL);
+    assert(ga_state == NULL);
 
     s->log_level = config->log_level;
     s->log_file = stderr;

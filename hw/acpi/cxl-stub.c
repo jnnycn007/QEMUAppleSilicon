@@ -8,5 +8,5 @@
 
 void build_cxl_osc_method(Aml *dev)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

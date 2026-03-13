@@ -28,7 +28,7 @@ static __thread Notifier pollfds_cleanup_notifier;
 
 static void pollfds_cleanup(Notifier *n, void *unused)
 {
-    g_assert(npfd == 0);
+    assert(npfd == 0);
     g_free(pollfds);
     g_free(nodes);
     nalloc = 0;
@@ -42,7 +42,7 @@ static void add_pollfd(AioHandler *node)
             qemu_thread_atexit_add(&pollfds_cleanup_notifier);
             nalloc = 8;
         } else {
-            g_assert(nalloc <= INT_MAX);
+            assert(nalloc <= INT_MAX);
             nalloc *= 2;
         }
         pollfds = g_renew(GPollFD, pollfds, nalloc);

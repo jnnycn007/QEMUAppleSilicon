@@ -120,7 +120,7 @@ static void nvdimm_prepare_memory_region(NVDIMMDevice *nvdimm, Error **errp)
     uint64_t align, pmem_size, size;
     MemoryRegion *mr;
 
-    g_assert(!nvdimm->nvdimm_mr);
+    assert(!nvdimm->nvdimm_mr);
 
     if (!dimm->hostmem) {
         error_setg(errp, "'" PC_DIMM_MEMDEV_PROP "' property must be set");

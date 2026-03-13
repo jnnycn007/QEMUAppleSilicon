@@ -85,7 +85,7 @@ void watchdog_perform_action(void)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

@@ -85,7 +85,7 @@ static size_t multi_serial_get_port_count(PCIDeviceClass *pc)
         return 4;
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 

@@ -31,16 +31,16 @@ hwaddr g_phys_slide;
 
 hwaddr vtop_bases(vaddr va, hwaddr phys_base, vaddr virt_base)
 {
-    g_assert_cmphex(phys_base, !=, 0);
-    g_assert_cmphex(virt_base, !=, 0);
+    assert_cmphex(phys_base, !=, 0);
+    assert_cmphex(virt_base, !=, 0);
 
     return va - virt_base + phys_base;
 }
 
 vaddr ptov_bases(hwaddr pa, hwaddr phys_base, vaddr virt_base)
 {
-    g_assert_cmphex(phys_base, !=, 0);
-    g_assert_cmphex(virt_base, !=, 0);
+    assert_cmphex(phys_base, !=, 0);
+    assert_cmphex(virt_base, !=, 0);
 
     return pa - phys_base + virt_base;
 }
@@ -82,8 +82,8 @@ CarveoutAllocator *carveout_alloc_new(AppleDTNode *carveout_mmap,
 {
     CarveoutAllocator *ca;
 
-    g_assert_cmphex(dram_size, !=, 0);
-    g_assert_cmphex(alignment, !=, 0);
+    assert_cmphex(dram_size, !=, 0);
+    assert_cmphex(alignment, !=, 0);
 
     ca = g_new0(CarveoutAllocator, 1);
     ca->dram_base = dram_base;
@@ -99,7 +99,7 @@ hwaddr carveout_alloc_mem(CarveoutAllocator *ca, hwaddr size)
     hwaddr data[2] = { 0 };
     char region_name[32] = { 0 };
 
-    g_assert_cmphex(size, !=, 0);
+    assert_cmphex(size, !=, 0);
 
     ca->end = ROUND_DOWN(ca->end - size, ca->alignment);
 

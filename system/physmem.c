@@ -1772,7 +1772,7 @@ int qemu_ram_resize(RAMBlock *block, ram_addr_t newsize, Error **errp)
 void qemu_ram_msync(RAMBlock *block, ram_addr_t start, ram_addr_t length)
 {
     /* The requested range should fit in within the block range */
-    g_assert((start + length) <= block->used_length);
+    assert((start + length) <= block->used_length);
 
 #ifdef CONFIG_LIBPMEM
     /* The lack of support for pmem should not block the sync */

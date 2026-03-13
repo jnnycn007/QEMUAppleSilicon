@@ -388,7 +388,7 @@ static int net_dgram_mcast_init(NetClientState *peer,
         return -1;
     }
 
-    g_assert(s->dest_addr == NULL);
+    assert(s->dest_addr == NULL);
     s->dest_addr = (struct sockaddr *)saddr;
     s->dest_len = sizeof(*saddr);
 
@@ -409,7 +409,7 @@ static int net_dgram_mcast_init(NetClientState *peer,
                               ntohs(saddr->sin_port));
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -586,7 +586,7 @@ int net_init_dgram(const Netdev *netdev, const char *name,
     }
 
     if (remote) {
-        g_assert(s->dest_addr == NULL);
+        assert(s->dest_addr == NULL);
         s->dest_addr = dest_addr;
         s->dest_len = dest_len;
     }
@@ -620,7 +620,7 @@ int net_init_dgram(const Netdev *netdev, const char *name,
         break;
     }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return 0;

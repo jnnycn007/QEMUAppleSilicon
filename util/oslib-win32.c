@@ -229,7 +229,7 @@ qemu_get_local_state_dir(void)
 {
     const char * const *data_dirs = g_get_system_data_dirs();
 
-    g_assert(data_dirs && data_dirs[0]);
+    assert(data_dirs && data_dirs[0]);
 
     return g_strdup(data_dirs[0]);
 }

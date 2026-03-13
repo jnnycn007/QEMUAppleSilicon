@@ -230,7 +230,7 @@ static hwaddr npcm7xx_cnr_index(hwaddr offset)
     case A_NPCM7XX_PWM_CNR3:
         return 3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -246,7 +246,7 @@ static hwaddr npcm7xx_cmr_index(hwaddr offset)
     case A_NPCM7XX_PWM_CMR3:
         return 3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -262,7 +262,7 @@ static hwaddr npcm7xx_pdr_index(hwaddr offset)
     case A_NPCM7XX_PWM_PDR3:
         return 3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -278,7 +278,7 @@ static hwaddr npcm7xx_pwdr_index(hwaddr offset)
     case A_NPCM7XX_PWM_PWDR3:
         return 3;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

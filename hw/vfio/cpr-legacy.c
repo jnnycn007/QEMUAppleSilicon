@@ -51,7 +51,7 @@ static int vfio_legacy_cpr_dma_map(const VFIOContainerBase *bcontainer,
         .size = size,
     };
 
-    g_assert(cpr_is_incoming());
+    assert(cpr_is_incoming());
 
     if (ioctl(container->fd, VFIO_IOMMU_MAP_DMA, &map)) {
         return -errno;
@@ -220,7 +220,7 @@ void vfio_cpr_giommu_remap(VFIOContainerBase *bcontainer,
             break;
         }
     }
-    g_assert(giommu);
+    assert(giommu);
     memory_region_iommu_replay(giommu->iommu_mr, &giommu->n);
 }
 
@@ -238,7 +238,7 @@ bool vfio_cpr_ram_discard_register_listener(VFIOContainerBase *bcontainer,
     VFIORamDiscardListener *vrdl =
         vfio_find_ram_discard_listener(bcontainer, section);
 
-    g_assert(vrdl);
+    assert(vrdl);
     return vrdl->listener.notify_populate(&vrdl->listener, section) == 0;
 }
 

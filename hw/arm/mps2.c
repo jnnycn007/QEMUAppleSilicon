@@ -216,7 +216,7 @@ static void mps2_common_init(MachineState *machine)
         make_ram(&mms->ssram23, "mps.ssram23", 0x20400000, 0x400000);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     object_initialize_child(OBJECT(mms), "armv7m", &mms->armv7m, TYPE_ARMV7M);
@@ -235,7 +235,7 @@ static void mps2_common_init(MachineState *machine)
         qdev_prop_set_uint32(armv7m, "num-irq", 64);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     qdev_connect_clock_in(armv7m, "cpuclk", mms->sysclk);
     qdev_connect_clock_in(armv7m, "refclk", mms->refclk);
@@ -356,7 +356,7 @@ static void mps2_common_init(MachineState *machine)
         break;
     }
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     for (i = 0; i < 4; i++) {
         static const hwaddr gpiobase[] = {0x40010000, 0x40011000,

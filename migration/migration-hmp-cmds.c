@@ -717,7 +717,7 @@ void hmp_migrate_set_parameter(Monitor *mon, const QDict *qdict)
         visit_type_bool(v, param, &p->direct_io, &err);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (err) {

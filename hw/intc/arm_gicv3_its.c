@@ -541,7 +541,7 @@ static ItsCmdResult do_process_its_cmd(GICv3ITSState *s, uint32_t devid,
         cmdres = process_its_cmd_virt(s, &ite, irqlevel);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (cmdres == CMD_CONTINUE_OK && cmd == DISCARD) {
@@ -571,7 +571,7 @@ static ItsCmdResult process_its_cmd(GICv3ITSState *s, const uint64_t *cmdpkt,
         trace_gicv3_its_cmd_discard(devid, eventid);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return do_process_its_cmd(s, devid, eventid, cmd);
 }
@@ -1233,7 +1233,7 @@ static ItsCmdResult process_inv(GICv3ITSState *s, const uint64_t *cmdpkt)
                               vte.vptaddr << 16);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return CMD_CONTINUE_OK;
@@ -1447,7 +1447,7 @@ static void extract_table_params(GICv3ITSState *s)
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         num_pages = REG_FIELD_EX64(value, GITS_BASER, SIZE) + 1;
@@ -1483,7 +1483,7 @@ static void extract_table_params(GICv3ITSState *s)
              * ensures we will only see type values corresponding to
              * the values set up in gicv3_its_reset().
              */
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         memset(td, 0, sizeof(*td));

@@ -332,7 +332,7 @@ q_tree_remove_all(QTree *tree)
         g_free(node);
 
 #ifdef Q_TREE_DEBUG
-        g_assert(tree->nnodes > 0);
+        assert(tree->nnodes > 0);
         tree->nnodes--;
 #endif
 
@@ -340,7 +340,7 @@ q_tree_remove_all(QTree *tree)
     }
 
 #ifdef Q_TREE_DEBUG
-    g_assert(tree->nnodes == 0);
+    assert(tree->nnodes == 0);
 #endif
 
     tree->root = NULL;
@@ -625,7 +625,7 @@ q_tree_insert_internal(QTree    *tree,
     while (1) {
         QTreeNode *bparent = path[--idx];
         gboolean left_node = (bparent && node == bparent->left);
-        g_assert(!bparent || bparent->left == node || bparent->right == node);
+        assert(!bparent || bparent->left == node || bparent->right == node);
 
         if (node->balance < -1 || node->balance > 1) {
             node = q_tree_node_balance(node);
@@ -768,7 +768,7 @@ q_tree_remove_internal(QTree         *tree,
      * except that we do not have to call q_tree_node_parent.
      */
     balance = parent = path[--idx];
-    g_assert(!parent || parent->left == node || parent->right == node);
+    assert(!parent || parent->left == node || parent->right == node);
     left_node = (parent && node == parent->left);
 
     if (!node->left_child) {
@@ -872,7 +872,7 @@ q_tree_remove_internal(QTree         *tree,
     if (balance) {
         while (1) {
             QTreeNode *bparent = path[--idx];
-            g_assert(!bparent ||
+            assert(!bparent ||
                      bparent->left == balance ||
                      bparent->right == balance);
             left_node = (bparent && balance == bparent->left);
@@ -1358,12 +1358,12 @@ static void q_tree_node_check(QTreeNode *node)
     if (node) {
         if (node->left_child) {
             tmp = q_tree_node_previous(node);
-            g_assert(tmp->right == node);
+            assert(tmp->right == node);
         }
 
         if (node->right_child) {
             tmp = q_tree_node_next(node);
-            g_assert(tmp->left == node);
+            assert(tmp->left == node);
         }
 
         left_height = 0;
@@ -1377,7 +1377,7 @@ static void q_tree_node_check(QTreeNode *node)
         }
 
         balance = right_height - left_height;
-        g_assert(balance == node->balance);
+        assert(balance == node->balance);
 
         if (node->left_child) {
             q_tree_node_check(node->left);

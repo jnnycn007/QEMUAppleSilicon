@@ -80,7 +80,7 @@ static inline uint64_t host_pci_ldn_le_p(const void *ioaddr, int sz)
     case 8:
         return host_pci_ldq_le_p(ioaddr);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -100,7 +100,7 @@ static inline void host_pci_stn_le_p(void *ioaddr, int sz, uint64_t v)
         host_pci_stq_le_p(ioaddr, v);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

@@ -322,7 +322,7 @@ static bool scsi_handle_rw_error(SCSIDiskReq *r, int ret, bool acct_failed)
         return true;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

@@ -475,11 +475,11 @@ static int check_host_key(BDRVSSHState *s, SshHostKeyCheck *hkc, Error **errp)
                                        SSH_PUBLICKEY_HASH_SHA256, "sha256",
                                        errp);
         }
-        g_assert_not_reached();
+        assert_not_reached();
     case SSH_HOST_KEY_CHECK_MODE_KNOWN_HOSTS:
         return check_host_key_knownhosts(s, errp);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return -EINVAL;

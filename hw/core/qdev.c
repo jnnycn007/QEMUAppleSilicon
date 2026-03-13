@@ -667,7 +667,7 @@ static void device_finalize(Object *obj)
 
     DeviceState *dev = DEVICE(obj);
 
-    g_assert(!dev->unplug_blockers);
+    assert(!dev->unplug_blockers);
 
     QLIST_FOREACH_SAFE(ngl, &dev->gpios, node, next) {
         QLIST_REMOVE(ngl, node);
@@ -683,7 +683,7 @@ static void device_finalize(Object *obj)
 
     /* Only send event if the device had been completely realized */
     if (dev->pending_deleted_event) {
-        g_assert(dev->canonical_path);
+        assert(dev->canonical_path);
 
         qapi_event_send_device_deleted(dev->id, dev->canonical_path);
         g_free(dev->canonical_path);
@@ -824,7 +824,7 @@ Object *machine_get_container(const char *name)
 
 char *qdev_get_human_name(DeviceState *dev)
 {
-    g_assert(dev != NULL);
+    assert(dev != NULL);
 
     return dev->id ?
            g_strdup(dev->id) : object_get_canonical_path(OBJECT(dev));

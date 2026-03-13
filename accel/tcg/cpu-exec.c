@@ -496,7 +496,7 @@ static void cpu_exec_exit(CPUState *cpu)
 static void cpu_exec_longjmp_cleanup(CPUState *cpu)
 {
     /* Non-buggy compilers preserve this; assert the correct value. */
-    g_assert(cpu == current_cpu);
+    assert(cpu == current_cpu);
 
     /*
      * For softmmu, a tlb_fill fault during translation will land here,
@@ -531,8 +531,8 @@ void cpu_exec_step_atomic(CPUState *cpu)
 
     if (sigsetjmp(cpu->jmp_env, 0) == 0) {
         start_exclusive();
-        g_assert(cpu == current_cpu);
-        g_assert(!cpu->running);
+        assert(cpu == current_cpu);
+        assert(!cpu->running);
         cpu->running = true;
 
         TCGTBCPUState s = cpu->cc->tcg_ops->get_tb_cpu_state(cpu);
@@ -570,7 +570,7 @@ void cpu_exec_step_atomic(CPUState *cpu)
      * be in the region if we longjump out of either the codegen or
      * the execution.
      */
-    g_assert(cpu_in_exclusive_context(cpu));
+    assert(cpu_in_exclusive_context(cpu));
     cpu->running = false;
     end_exclusive();
 }

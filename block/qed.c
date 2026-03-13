@@ -1293,7 +1293,7 @@ qed_aio_write_data(void *opaque, int ret, uint64_t offset, size_t len)
         return qed_aio_write_alloc(acb, len);
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

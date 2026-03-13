@@ -278,7 +278,7 @@ SysBusDevice *apple_wdt_from_node(AppleDTNode *node)
     apple_dt_set_prop_u32(node, "wdt-version", 1);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 

@@ -166,7 +166,7 @@ static const char *opt_type_to_string(enum QemuOptType type)
         return "size";
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /**

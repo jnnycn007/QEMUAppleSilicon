@@ -217,8 +217,8 @@ void replay_mutex_lock(void)
 {
     if (replay_mode != REPLAY_MODE_NONE) {
         unsigned long id;
-        g_assert(!bql_locked());
-        g_assert(!replay_mutex_locked());
+        assert(!bql_locked());
+        assert(!replay_mutex_locked());
         qemu_mutex_lock(&lock);
         id = mutex_tail++;
         while (id != mutex_head) {
@@ -232,7 +232,7 @@ void replay_mutex_lock(void)
 void replay_mutex_unlock(void)
 {
     if (replay_mode != REPLAY_MODE_NONE) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         qemu_mutex_lock(&lock);
         ++mutex_head;
         replay_locked = false;
@@ -280,7 +280,7 @@ void replay_advance_current_icount(uint64_t current_icount)
 void replay_save_instructions(void)
 {
     if (replay_file && replay_mode == REPLAY_MODE_RECORD) {
-        g_assert(replay_mutex_locked());
+        assert(replay_mutex_locked());
         replay_advance_current_icount(replay_get_current_icount());
     }
 }

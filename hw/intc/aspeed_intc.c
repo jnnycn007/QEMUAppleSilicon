@@ -166,7 +166,7 @@ static const AspeedINTCIRQ *aspeed_intc_get_irq(AspeedINTCClass *aic,
     /*
      * Invalid reg.
      */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*

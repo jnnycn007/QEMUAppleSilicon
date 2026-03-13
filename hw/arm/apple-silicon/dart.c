@@ -703,7 +703,7 @@ AppleDARTState *apple_dart_from_node(AppleDTNode *node)
         dart->l_shift[2] = 0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     // NOTE: there can be up to 64 SIDs. Not on the currently-emulated hardware,
@@ -722,12 +722,12 @@ AppleDARTState *apple_dart_from_node(AppleDTNode *node)
             instance_data = (uint32_t *)"TRADDART\0\0\0";
         }
     } else {
-        g_assert_cmpuint(prop->len % 12, ==, 0);
+        assert_cmpuint(prop->len % 12, ==, 0);
         instance_data = (uint32_t *)prop->data;
     }
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 

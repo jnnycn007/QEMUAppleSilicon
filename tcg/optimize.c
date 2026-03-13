@@ -383,7 +383,7 @@ static bool tcg_opt_gen_mov(OptContext *ctx, TCGOp *op, TCGArg dst, TCGArg src)
         new_op = INDEX_op_mov_vec;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     op->opc = new_op;
     op->args[0] = dst;
@@ -584,7 +584,7 @@ static uint64_t do_constant_folding_2(TCGOpcode op, TCGType type,
         return (uint64_t)x % ((uint64_t)y ? : 1);
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -629,7 +629,7 @@ static bool do_constant_folding_cond_32(uint32_t x, uint32_t y, TCGCond c)
     case TCG_COND_NEVER:
         break;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static bool do_constant_folding_cond_64(uint64_t x, uint64_t y, TCGCond c)
@@ -663,7 +663,7 @@ static bool do_constant_folding_cond_64(uint64_t x, uint64_t y, TCGCond c)
     case TCG_COND_NEVER:
         break;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static int do_constant_folding_cond_eq(TCGCond c)
@@ -688,7 +688,7 @@ static int do_constant_folding_cond_eq(TCGCond c)
     case TCG_COND_NEVER:
         break;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*
@@ -1159,7 +1159,7 @@ static bool fold_to_not(OptContext *ctx, TCGOp *op, int idx)
         have_not = TCG_TARGET_HAS_not_vec;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (have_not) {
         op->opc = not_op;
@@ -1295,7 +1295,7 @@ static void squash_prev_carryout(OptContext *ctx, TCGOp *op)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1503,7 +1503,7 @@ static bool fold_andc(OptContext *ctx, TCGOp *op)
             op->opc = INDEX_op_and_vec;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         op->args[2] = arg_new_constant(ctx, ~ti_const_val(t2));
         return fold_and(ctx, op);
@@ -1737,7 +1737,7 @@ static bool fold_bswap(OptContext *ctx, TCGOp *op)
         o_mask = bswap64(o_mask);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return fold_masks_zos(ctx, op, z_mask, o_mask, s_mask);
@@ -1834,7 +1834,7 @@ static bool fold_count_zeros(OptContext *ctx, TCGOp *op)
         z_mask = 63;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     s_mask = ~z_mask;
     z_mask |= t2->z_mask;
@@ -1859,7 +1859,7 @@ static bool fold_ctpop(OptContext *ctx, TCGOp *op)
         z_mask = 64 | 63;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return fold_masks_z(ctx, op, z_mask);
 }
@@ -1968,7 +1968,7 @@ static bool fold_eqv(OptContext *ctx, TCGOp *op)
             op->opc = INDEX_op_xor_vec;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         op->args[2] = arg_new_constant(ctx, ~ti_const_val(t2));
         return fold_xor(ctx, op);
@@ -2050,7 +2050,7 @@ static bool fold_exts(OptContext *ctx, TCGOp *op)
         o_mask = (int32_t)o_mask;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return fold_masks_zos(ctx, op, z_mask, o_mask, s_mask);
 }
@@ -2079,7 +2079,7 @@ static bool fold_extu(OptContext *ctx, TCGOp *op)
         o_mask >>= 32;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return fold_masks_zo(ctx, op, z_mask, o_mask);
 }
@@ -2217,7 +2217,7 @@ static bool fold_multiply2(OptContext *ctx, TCGOp *op)
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         rl = op->args[0];
@@ -2346,7 +2346,7 @@ static bool fold_orc(OptContext *ctx, TCGOp *op)
             op->opc = INDEX_op_or_vec;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         op->args[2] = arg_new_constant(ctx, ~ti_const_val(t2));
         return fold_or(ctx, op);
@@ -2780,7 +2780,7 @@ static bool fold_sub_to_neg(OptContext *ctx, TCGOp *op)
                     tcg_can_emit_vec_op(neg_op, ctx->type, TCGOP_VECE(op)) > 0);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (have_neg) {
         op->opc = neg_op;
@@ -2850,7 +2850,7 @@ static void squash_prev_borrowout(OptContext *ctx, TCGOp *op)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2984,7 +2984,7 @@ static bool fold_tcg_ld(OptContext *ctx, TCGOp *op)
         z_mask = MAKE_64BIT_MASK(0, 32);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return fold_masks_zs(ctx, op, z_mask, s_mask);
 }
@@ -3037,7 +3037,7 @@ static bool fold_tcg_st(OptContext *ctx, TCGOp *op)
         lm1 = tcg_type_size(ctx->type) - 1;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     remove_mem_copy_in(ctx, ofs, ofs + lm1);
     return true;

@@ -147,7 +147,7 @@ static uint16_t read_tcnt(RTMRState *tmr, unsigned size, int ch)
             tcnt[1] = tmr->tcnt[1];
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         switch (REG_FIELD_EX8(tmr->tccr[0], TCCR, CSS)) {
         case CSS_INTERNAL:
@@ -162,7 +162,7 @@ static uint16_t read_tcnt(RTMRState *tmr, unsigned size, int ch)
             tcnt[0] = tmr->tcnt[0];
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         tcnt[0] = tmr->tcnt[0];
@@ -367,7 +367,7 @@ static uint16_t issue_event(RTMRState *tmr, int ch, int sz,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return ret;
 }

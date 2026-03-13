@@ -37,7 +37,7 @@ JSONWriter *json_writer_new(bool pretty)
 
 const char *json_writer_get(JSONWriter *writer)
 {
-    g_assert(!writer->container_is_array->len);
+    assert(!writer->container_is_array->len);
     return writer->contents->str;
 }
 

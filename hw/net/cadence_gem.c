@@ -995,7 +995,7 @@ static uint32_t gem_get_queue_base_addr(CadenceGEMState *s, bool tx, int q)
                                  R_RECEIVE_Q1_PTR) + q - 1];
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     };
 
     return base_addr;

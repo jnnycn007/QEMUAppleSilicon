@@ -88,7 +88,7 @@ DeviceState *apple_spmi_baseband_create(AppleDTNode *node)
     AppleDTProp *prop;
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     spmi_set_slave_sid(SPMI_SLAVE(dev), *(uint32_t *)prop->data);
 
     qdev_init_gpio_out(dev, &p->irq, 1);

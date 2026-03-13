@@ -212,7 +212,7 @@ static int fd_sector(FDrive *drv)
 /* Returns current position, in bytes, for given drive */
 static int fd_offset(FDrive *drv)
 {
-    g_assert(fd_sector(drv) < INT_MAX >> BDRV_SECTOR_BITS);
+    assert(fd_sector(drv) < INT_MAX >> BDRV_SECTOR_BITS);
     return fd_sector(drv) << BDRV_SECTOR_BITS;
 }
 
@@ -383,7 +383,7 @@ static void pick_drive_type(FDrive *drv)
         drv->drive = get_fallback_drive_type(drv);
     }
 
-    g_assert(drv->drive != FLOPPY_DRIVE_TYPE_AUTO);
+    assert(drv->drive != FLOPPY_DRIVE_TYPE_AUTO);
 }
 
 /* Revalidate a disk drive after a disk change */

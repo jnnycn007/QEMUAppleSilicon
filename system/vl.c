@@ -814,7 +814,7 @@ static void configure_msg(QemuOpts *opts)
 
 static bool usb_parse(const char *cmdline, Error **errp)
 {
-    g_assert(machine_usb(current_machine));
+    assert(machine_usb(current_machine));
 
     if (!usbdevice_create(cmdline)) {
         error_setg(errp, "could not add USB device '%s'", cmdline);
@@ -2176,7 +2176,7 @@ static void qemu_create_machine(QDict *qdict)
             /* This would be a board error: specifying a minimum smaller than
              * a target's compile-time fixed setting.
              */
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -2286,7 +2286,7 @@ static void qemu_parse_config_group(const char *group, QDict *qdict,
         error_setg(errp, "Lists cannot be at top level of a configuration section");
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     qobject_unref(crumpled);
 }

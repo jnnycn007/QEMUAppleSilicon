@@ -246,7 +246,7 @@ void smmuv3_record_event(SMMUv3State *s, SMMUEventInfo *info)
     case SMMU_EVT_F_TLB_CONFLICT:
     case SMMU_EVT_E_PAGE_REQ:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_smmuv3_record_event(smmu_event_string(info->type), info->sid);
@@ -435,7 +435,7 @@ static int decode_ste_s2_cfg(SMMUv3State *s, SMMUTransCfg *cfg,
     if (STE_S2AA64(ste) == 0x0) {
         qemu_log_mask(LOG_UNIMP,
                       "SMMUv3 AArch32 tables not supported\n");
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     switch (STE_S2TG(ste)) {
@@ -1005,7 +1005,7 @@ static SMMUTranslationStatus smmuv3_do_translate(SMMUv3State *s, hwaddr addr,
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         return SMMU_TRANS_ERROR;
     }

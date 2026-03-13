@@ -67,7 +67,7 @@ static void *mttcg_cpu_thread_fn(void *arg)
     CPUState *cpu = arg;
 
     assert(tcg_enabled());
-    g_assert(!icount_enabled());
+    assert(!icount_enabled());
 
     rcu_register_thread();
     force_rcu.notifier.notify = mttcg_force_rcu;
@@ -124,7 +124,7 @@ void mttcg_start_vcpu_thread(CPUState *cpu)
 {
     char thread_name[VCPU_THREAD_NAME_SIZE];
 
-    g_assert(tcg_enabled());
+    assert(tcg_enabled());
     tcg_cpu_init_cflags(cpu, current_machine->smp.max_cpus > 1);
 
     /* create a thread per vCPU with TCG (MTTCG) */

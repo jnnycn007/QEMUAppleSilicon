@@ -331,7 +331,7 @@ static void npcm7xx_gpio_set_input(void *opaque, int line, int level)
 
     trace_npcm7xx_gpio_set_input(DEVICE(s)->canonical_path, line, level);
 
-    g_assert(line >= 0 && line < NPCM7XX_GPIO_NR_PINS);
+    assert(line >= 0 && line < NPCM7XX_GPIO_NR_PINS);
 
     s->ext_driven = deposit32(s->ext_driven, line, 1, level >= 0);
     s->ext_level = deposit32(s->ext_level, line, 1, level > 0);

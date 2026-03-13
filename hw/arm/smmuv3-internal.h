@@ -600,7 +600,7 @@ static inline int oas2bits(int oas_field)
         return 48;
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* CD fields */

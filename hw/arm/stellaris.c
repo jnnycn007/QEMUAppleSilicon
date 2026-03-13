@@ -190,7 +190,7 @@ static int ssys_board_class(const ssys_state *s)
         /* This can only happen if the hardwired constant did0 value
          * in this board's stellaris_board_info struct is wrong.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -244,7 +244,7 @@ static uint64_t ssys_read(void *opaque, hwaddr offset,
             case DID0_CLASS_SANDSTORM:
                 return pllcfg_sandstorm[xtal];
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
         }
     case 0x070: /* RCC2 */

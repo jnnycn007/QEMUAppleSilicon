@@ -1349,7 +1349,7 @@ static uint64_t aspeed_mii_read(void *opaque, hwaddr addr, unsigned size)
     case 0x4:
         return s->phydata;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1366,7 +1366,7 @@ static void aspeed_mii_write(void *opaque, hwaddr addr,
         s->phydata = value & ~(0xffff | ASPEED_MII_PHYDATA_IDLE);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     aspeed_mii_transition(s, !!(s->phycr & ASPEED_MII_PHYCR_FIRE));

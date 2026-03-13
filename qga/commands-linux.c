@@ -1539,11 +1539,11 @@ static void transfer_vcpu(GuestLogicalProcessor *vcpu, bool sys2vcpu,
         } /* otherwise pretend successful re-(on|off)-lining */
 
         res = close(fd);
-        g_assert(res == 0);
+        assert(res == 0);
     }
 
     res = close(dirfd);
-    g_assert(res == 0);
+    assert(res == 0);
 }
 
 GuestLogicalProcessorList *qmp_guest_get_vcpus(Error **errp)
@@ -1579,7 +1579,7 @@ GuestLogicalProcessorList *qmp_guest_get_vcpus(Error **errp)
 
     if (local_err == NULL) {
         /* there's no guest with zero VCPUs */
-        g_assert(head != NULL);
+        assert(head != NULL);
         return head;
     }
 

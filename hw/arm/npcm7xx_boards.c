@@ -132,7 +132,7 @@ static NPCM7xxState *npcm7xx_create_soc(MachineState *machine,
 
 static I2CBus *npcm7xx_i2c_get_bus(NPCM7xxState *soc, uint32_t num)
 {
-    g_assert(num < ARRAY_SIZE(soc->smbus));
+    assert(num < ARRAY_SIZE(soc->smbus));
     return I2C_BUS(qdev_get_child_bus(DEVICE(&soc->smbus[num]), "i2c-bus"));
 }
 
@@ -172,7 +172,7 @@ static void npcm7xx_connect_pwm_fan(NPCM7xxState *soc, SplitIRQ *splitter,
     int fan_input;
     qemu_irq fan_duty_gpio;
 
-    g_assert(fan_no >= 0 && fan_no <= NPCM7XX_MFT_MAX_FAN_INPUT);
+    assert(fan_no >= 0 && fan_no <= NPCM7XX_MFT_MAX_FAN_INPUT);
     /*
      * Fan 0~1 belong to module 0 input 0~1.
      * Fan 2~3 belong to module 1 input 0~1.

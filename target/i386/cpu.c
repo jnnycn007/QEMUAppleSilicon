@@ -323,7 +323,7 @@ static uint32_t max_thread_ids_for_cache(X86CPUTopoInfo *topo_info,
          * Currently there is no use case for THREAD, so use
          * assert directly to facilitate debugging.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return num_ids - 1;
@@ -389,7 +389,7 @@ static uint32_t num_threads_by_topo_level(X86CPUTopoInfo *topo_info,
     case CPU_TOPOLOGY_LEVEL_SOCKET:
         return x86_threads_per_pkg(topo_info);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return 0;
 }
@@ -409,7 +409,7 @@ static uint32_t apicid_offset_by_topo_level(X86CPUTopoInfo *topo_info,
     case CPU_TOPOLOGY_LEVEL_SOCKET:
         return apicid_pkg_offset(topo_info);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return 0;
 }
@@ -429,7 +429,7 @@ static uint32_t cpuid1f_topo_type(enum CpuTopologyLevel topo_level)
         return CPUID_1F_ECX_TOPO_LEVEL_DIE;
     default:
         /* Other types are not supported in QEMU. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return 0;
 }

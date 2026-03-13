@@ -1810,7 +1810,7 @@ static uint16_t nvme_check_zone_state_for_write(NvmeZone *zone)
         trace_pci_nvme_err_zone_is_read_only(zslba);
         return NVME_ZONE_READ_ONLY;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return NVME_INTERNAL_DEV_ERROR;
@@ -1864,7 +1864,7 @@ static uint16_t nvme_check_zone_state_for_read(NvmeZone *zone)
         trace_pci_nvme_err_zone_is_offline(zone->d.zslba);
         return NVME_ZONE_OFFLINE;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return NVME_INTERNAL_DEV_ERROR;
@@ -4639,7 +4639,7 @@ static uint16_t __nvme_io_cmd_nvm(NvmeCtrl *n, NvmeRequest *req)
         return NVME_SUCCESS;
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static uint16_t nvme_io_cmd_nvm(NvmeCtrl *n, NvmeRequest *req)
@@ -4729,7 +4729,7 @@ static uint16_t nvme_io_cmd(NvmeCtrl *n, NvmeRequest *req)
         return nvme_io_cmd_zoned(n, req);
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void nvme_cq_notifier(EventNotifier *e)
@@ -6794,7 +6794,7 @@ static bool nvme_csi_supported(NvmeCtrl *n, uint8_t csi)
         return NVME_CC_CSS(cc) == NVME_CC_CSS_ALL;
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void nvme_detach_ns(NvmeCtrl *n, NvmeNamespace *ns)
@@ -7554,7 +7554,7 @@ static uint16_t nvme_admin_cmd(NvmeCtrl *n, NvmeRequest *req)
     case NVME_ADM_CMD_ACTIVATE_FW:
         return nvme_activate_fw(n, req);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return NVME_INVALID_OPCODE | NVME_DNR;

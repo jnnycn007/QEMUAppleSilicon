@@ -426,7 +426,7 @@ void memory_device_plug(MemoryDeviceState *md, MachineState *ms)
      * it can't fail at this point.
      */
     mr = mdc->get_memory_region(md, &error_abort);
-    g_assert(ms->device_memory);
+    assert(ms->device_memory);
 
     ms->device_memory->used_region_size += memory_region_size(mr);
     ms->device_memory->required_memslots += memslots;
@@ -454,7 +454,7 @@ void memory_device_unplug(MemoryDeviceState *md, MachineState *ms)
      * it can't fail at this point.
      */
     mr = mdc->get_memory_region(md, &error_abort);
-    g_assert(ms->device_memory);
+    assert(ms->device_memory);
 
     memory_region_del_subregion(&ms->device_memory->mr, mr);
 
@@ -528,8 +528,8 @@ static void memory_devices_region_del(MemoryListener *listener,
 
 void machine_memory_devices_init(MachineState *ms, hwaddr base, uint64_t size)
 {
-    g_assert(size);
-    g_assert(!ms->device_memory);
+    assert(size);
+    assert(!ms->device_memory);
     ms->device_memory = g_new0(DeviceMemoryState, 1);
     ms->device_memory->base = base;
 

@@ -139,7 +139,7 @@ static void apple_spmi_update_irq(AppleSPMIState *s)
             status = s->queue_reg[SPMI_INT_STATUS_V1(i) >> 2];
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
             break;
         }
         if (status & s->queue_reg[SPMI_INT_ENAB(i) >> 2]) {
@@ -162,7 +162,7 @@ static void apple_spmi_set_irq(void *opaque, int irq, int level)
         status = &s->queue_reg[SPMI_INT_STATUS_V1(irq >> 5) >> 2];
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
         break;
     }
     if (level) {
@@ -221,7 +221,7 @@ static void apple_spmi_queue_reg_write(void *opaque, hwaddr addr, uint64_t data,
                 return;
             }
             if (s->data == NULL && len) {
-                g_assert_true(opc == SPMI_CMD_EXT_READ ||
+                assert_true(opc == SPMI_CMD_EXT_READ ||
                               opc == SPMI_CMD_EXT_READL);
                 g_autofree uint32_t *data2 = g_malloc0(len + 3);
                 int count = spmi_recv(s->bus, (uint8_t *)data2, len);
@@ -586,14 +586,14 @@ SysBusDevice *apple_spmi_from_node(AppleDTNode *node)
         apple_dt_get_prop_u32_or(node, "reg-vers", s->reg_vers, &error_fatal);
 
     // XXX: There is a register overlapping issue (STS and ENAB) with reg v0
-    g_assert_cmpuint(s->reg_vers, !=, 0);
+    assert_cmpuint(s->reg_vers, !=, 0);
 
     phandle = apple_dt_get_prop_u32(node, "AAPL,phandle", &error_fatal);
 
     s->resp_intr_index = apple_dt_get_prop_u32(node, "interrupts", &error_warn);
 
     // The first interrupt in list (response) should be self-wired
-    g_assert_cmpuint(
+    assert_cmpuint(
         apple_dt_get_prop_u32(node, "interrupt-parent", &error_warn), ==,
         phandle);
 

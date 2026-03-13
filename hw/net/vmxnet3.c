@@ -443,7 +443,7 @@ vmxnet3_setup_tx_offloads(VMXNET3State *s)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return true;
@@ -489,7 +489,7 @@ vmxnet3_on_tx_done_update_stats(VMXNET3State *s, int qidx,
             stats->ucastBytesTxOK += tot_len;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (s->offload_mode == VMXNET3_OM_TSO) {
@@ -513,7 +513,7 @@ vmxnet3_on_tx_done_update_stats(VMXNET3State *s, int qidx,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -548,7 +548,7 @@ vmxnet3_on_rx_done_update_stats(VMXNET3State *s,
             stats->ucastBytesRxOK += tot_len;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (tot_len > s->mtu) {
@@ -557,7 +557,7 @@ vmxnet3_on_rx_done_update_stats(VMXNET3State *s,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1956,7 +1956,7 @@ vmxnet3_rx_filter_may_indicate(VMXNET3State *s, const void *data,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return true;

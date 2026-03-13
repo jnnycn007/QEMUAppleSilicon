@@ -185,7 +185,7 @@ void cpu_class_init_props(DeviceClass *dc)
 void cpu_exec_class_post_init(CPUClass *cc)
 {
     /* Check mandatory SysemuCPUOps handlers */
-    g_assert(cc->sysemu_ops->has_work);
+    assert(cc->sysemu_ops->has_work);
 }
 
 void cpu_exec_initfn(CPUState *cpu)

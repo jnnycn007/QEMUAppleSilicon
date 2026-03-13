@@ -147,13 +147,13 @@ void monitor_register_hmp(const char *name, bool info,
 
     while (table->name != NULL) {
         if (strcmp(table->name, name) == 0) {
-            g_assert(table->cmd == NULL && table->cmd_info_hrt == NULL);
+            assert(table->cmd == NULL && table->cmd_info_hrt == NULL);
             table->cmd = cmd;
             return;
         }
         table++;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void monitor_register_hmp_info_hrt(const char *name,
@@ -163,11 +163,11 @@ void monitor_register_hmp_info_hrt(const char *name,
 
     while (table->name != NULL) {
         if (strcmp(table->name, name) == 0) {
-            g_assert(table->cmd == NULL && table->cmd_info_hrt == NULL);
+            assert(table->cmd == NULL && table->cmd_info_hrt == NULL);
             table->cmd_info_hrt = handler;
             return;
         }
         table++;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }

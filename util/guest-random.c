@@ -79,7 +79,7 @@ uint64_t qemu_guest_random_seed_thread_part1(void)
 
 void qemu_guest_random_seed_thread_part2(uint64_t seed)
 {
-    g_assert(thread_rand == NULL);
+    assert(thread_rand == NULL);
     if (deterministic) {
         thread_rand =
             g_rand_new_with_seed_array((const guint32 *)&seed,

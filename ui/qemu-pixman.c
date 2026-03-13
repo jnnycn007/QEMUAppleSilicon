@@ -50,7 +50,7 @@ PixelFormat qemu_pixelformat_from_pixman(pixman_format_code_t format)
         pf.ashift = 0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     pf.amax = (1 << pf.abits) - 1;

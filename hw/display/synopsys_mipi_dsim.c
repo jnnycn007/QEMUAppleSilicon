@@ -132,7 +132,7 @@ SysBusDevice *synopsys_mipi_dsim_create(AppleDTNode *node)
     sbd = SYS_BUS_DEVICE(dev);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
     memory_region_init_io(&s->iomems[0], OBJECT(dev),
                           &synopsys_mipi_dsim_reg_ops, s,

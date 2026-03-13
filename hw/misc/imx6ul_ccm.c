@@ -383,7 +383,7 @@ static uint64_t imx6ul_ccm_get_periph_clk2_sel_clk(IMX6ULCCMState *dev)
         /* freq is set to 0 as we don't know what it should be */
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_ccm_freq((uint32_t)freq);
@@ -409,7 +409,7 @@ static uint64_t imx6ul_ccm_get_periph_clk_sel_clk(IMX6ULCCMState *dev)
         freq = imx6ul_analog_get_pll2_pfd2_clk(dev) / 2;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_ccm_freq((uint32_t)freq);
@@ -441,7 +441,7 @@ static uint64_t imx6ul_ccm_get_periph_sel_clk(IMX6ULCCMState *dev)
         freq = imx6ul_ccm_get_periph_clk2_clk(dev);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_ccm_freq((uint32_t)freq);
@@ -485,7 +485,7 @@ static uint64_t imx6ul_ccm_get_per_sel_clk(IMX6ULCCMState *dev)
         freq = imx6ul_analog_get_osc_clk(dev);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_ccm_freq((uint32_t)freq);

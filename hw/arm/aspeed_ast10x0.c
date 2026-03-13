@@ -117,7 +117,7 @@ static void aspeed_soc_ast1030_init(Object *obj)
     int i;
 
     if (sscanf(object_get_typename(obj), "%7s", socname) != 1) {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     object_initialize_child(obj, "armv7m", &a->armv7m, TYPE_ARMV7M);

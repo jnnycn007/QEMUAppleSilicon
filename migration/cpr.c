@@ -170,7 +170,7 @@ int cpr_state_save(MigrationChannel *channel, Error **errp)
     trace_cpr_state_save(MigMode_str(mode));
 
     if (mode == MIG_MODE_CPR_TRANSFER) {
-        g_assert(channel);
+        assert(channel);
         f = cpr_transfer_output(channel, errp);
     } else {
         return 0;

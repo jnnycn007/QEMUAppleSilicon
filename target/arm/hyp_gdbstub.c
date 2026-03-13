@@ -157,7 +157,7 @@ int insert_hw_watchpoint(vaddr addr, vaddr len, int type)
         wp.details.flags = BP_MEM_ACCESS;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if (len <= 8) {
         /* we align the address and set the bits in BAS */

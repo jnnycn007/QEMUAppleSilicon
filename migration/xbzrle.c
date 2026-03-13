@@ -179,7 +179,7 @@ int xbzrle_encode_buffer(uint8_t *old_buf, uint8_t *new_buf, int slen,
     long res;
     uint8_t *nzrun_start = NULL;
 
-    g_assert(!(((uintptr_t)old_buf | (uintptr_t)new_buf | slen) %
+    assert(!(((uintptr_t)old_buf | (uintptr_t)new_buf | slen) %
                sizeof(long)));
 
     while (i < slen) {

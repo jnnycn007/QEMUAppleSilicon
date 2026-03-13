@@ -1156,7 +1156,7 @@ static bool esp_cmd_is_valid(ESPState *s, uint8_t cmd)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_esp_invalid_cmd(cmd, s->asc_mode);

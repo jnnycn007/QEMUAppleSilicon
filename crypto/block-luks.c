@@ -1870,7 +1870,7 @@ qcrypto_block_luks_amend_options(QCryptoBlock *block,
                                                        writefunc, opaque,
                                                        opts_luks, force, errp);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

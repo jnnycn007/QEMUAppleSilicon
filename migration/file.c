@@ -56,7 +56,7 @@ static void file_enable_direct_io(int *flags)
     *flags |= O_DIRECT;
 #else
     /* it should have been rejected when setting the parameter */
-    g_assert_not_reached();
+    assert_not_reached();
 #endif
 }
 

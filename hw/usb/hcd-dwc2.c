@@ -1233,7 +1233,7 @@ static void dwc2_device_process_packet(DWC2State *s, USBPacket *p)
                     mps = 8;
                     break;
                 default:
-                    g_assert_not_reached();
+                    assert_not_reached();
                     break;
                 }
             } else {
@@ -1402,7 +1402,7 @@ static void dwc2_device_process_packet(DWC2State *s, USBPacket *p)
                     mps = 8;
                     break;
                 default:
-                    g_assert_not_reached();
+                    assert_not_reached();
                     break;
                 }
             } else {
@@ -1565,7 +1565,7 @@ static void dwc2_device_process_packet(DWC2State *s, USBPacket *p)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
         break;
     }
     dwc2_update_ep_irq(s, ep);

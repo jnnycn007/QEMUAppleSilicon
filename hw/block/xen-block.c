@@ -966,7 +966,7 @@ static XenBlockDrive *xen_block_drive_create(const char *id,
 
     qdict_put(driver_layer, "file", file_layer);
 
-    g_assert(!drive->node_name);
+    assert(!drive->node_name);
     drive->node_name = xen_block_blockdev_add(drive->id, driver_layer,
                                               errp);
 

@@ -5217,7 +5217,7 @@ static int img_bitmap(const img_cmd_t *ccmd, int argc, char **argv)
             op = "merge";
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (err) {

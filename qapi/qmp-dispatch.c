@@ -266,7 +266,7 @@ QDict *coroutine_mixed_fn qmp_dispatch(const QmpCommandList *cmds, QObject *requ
     }
 
     if (cmd->options & QCO_NO_SUCCESS_RESP) {
-        g_assert(!ret);
+        assert(!ret);
         return NULL;
     } else if (!ret) {
         /*

@@ -2362,7 +2362,7 @@ GuestDeviceInfoList *qmp_guest_get_devices(Error **errp)
     device_pci_re = g_regex_new(DEVICE_PCI_RE,
         G_REGEX_ANCHORED | G_REGEX_OPTIMIZE, 0,
         &gerr);
-    g_assert(device_pci_re != NULL);
+    assert(device_pci_re != NULL);
 
     dev_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
     dev_info = SetupDiGetClassDevs(0, 0, 0, DIGCF_PRESENT | DIGCF_ALLCLASSES);

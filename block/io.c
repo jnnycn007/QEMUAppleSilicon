@@ -539,8 +539,8 @@ void bdrv_drain_all_end_quiesce(BlockDriverState *bs)
 {
     GLOBAL_STATE_CODE();
 
-    g_assert(bs->quiesce_counter > 0);
-    g_assert(!bs->refcnt);
+    assert(bs->quiesce_counter > 0);
+    assert(!bs->refcnt);
 
     while (bs->quiesce_counter) {
         bdrv_do_drained_end(bs, NULL);

@@ -27,7 +27,7 @@ static HRESULT call_vss_provider_func(const char *func_name)
 {
     FARPROC WINAPI func;
 
-    g_assert(provider_lib);
+    assert(provider_lib);
 
     func = GetProcAddress(provider_lib, func_name);
     if (!func) {
@@ -159,7 +159,7 @@ void qga_vss_fsfreeze(int *nr_volume, bool freeze,
 
     *nr_volume = 0;
 
-    g_assert(errp);             /* requester.cpp requires it */
+    assert(errp);             /* requester.cpp requires it */
     func = (QGAVSSRequesterFunc)GetProcAddress(provider_lib, func_name);
     if (!func) {
         error_setg_win32(errp, GetLastError(), "failed to load %s from %s",

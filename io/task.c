@@ -179,7 +179,7 @@ void qio_task_run_in_thread(QIOTask *task,
 void qio_task_wait_thread(QIOTask *task)
 {
     qemu_mutex_lock(&task->thread_lock);
-    g_assert(task->thread != NULL);
+    assert(task->thread != NULL);
     while (task->thread->completion == NULL) {
         qemu_cond_wait(&task->thread_cond, &task->thread_lock);
     }

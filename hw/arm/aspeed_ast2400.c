@@ -152,7 +152,7 @@ static void aspeed_ast2400_soc_init(Object *obj)
     char typename[64];
 
     if (sscanf(object_get_typename(obj), "%7s", socname) != 1) {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     for (i = 0; i < sc->num_cpus; i++) {

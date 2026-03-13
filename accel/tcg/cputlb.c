@@ -77,7 +77,7 @@
 
 #define assert_cpu_is_self(cpu) do {                              \
         if (DEBUG_TLB_GATE) {                                     \
-            g_assert(!(cpu)->created || qemu_cpu_is_self(cpu));   \
+            assert(!(cpu)->created || qemu_cpu_is_self(cpu));   \
         }                                                         \
     } while (0)
 
@@ -1453,7 +1453,7 @@ int probe_access_flags(CPUArchState *env, vaddr addr, int size,
     CPUTLBEntryFull *full;
     int flags;
 
-    g_assert(-(addr | TARGET_PAGE_MASK) >= size);
+    assert(-(addr | TARGET_PAGE_MASK) >= size);
 
     flags = probe_access_internal(env_cpu(env), addr, size, access_type,
                                   mmu_idx, nonfault, phost, &full, retaddr);
@@ -1475,7 +1475,7 @@ void *probe_access(CPUArchState *env, vaddr addr, int size,
     void *host;
     int flags;
 
-    g_assert(-(addr | TARGET_PAGE_MASK) >= size);
+    assert(-(addr | TARGET_PAGE_MASK) >= size);
 
     flags = probe_access_internal(env_cpu(env), addr, size, access_type,
                                   mmu_idx, false, &host, &full, retaddr);
@@ -1804,7 +1804,7 @@ static void *atomic_mmu_lookup(CPUState *cpu, vaddr addr, MemOpIdx oi,
          * addresses, and we do have the proper page loaded for
          * write, this shouldn't ever return.
          */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Enforce guest required alignment, if not handled by tlb_fill_align. */
@@ -2026,7 +2026,7 @@ static uint64_t do_ld_parts_beN(MMULookupPageData *p, uint64_t ret_be)
             n = 1;
             break;
         case 0:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         haddr += n;
         size -= n;
@@ -2144,7 +2144,7 @@ static uint64_t do_ld_beN(CPUState *cpu, MMULookupPageData *p,
         return do_ld_bytes_beN(p, ret_be);
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2194,7 +2194,7 @@ static Int128 do_ld16_beN(CPUState *cpu, MMULookupPageData *p,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return int128_make128(b, a);
@@ -2552,7 +2552,7 @@ static uint64_t do_st_leN(CPUState *cpu, MMULookupPageData *p,
         return store_bytes_leN(p->haddr, p->size, val_le);
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2604,7 +2604,7 @@ static uint64_t do_st16_leN(CPUState *cpu, MMULookupPageData *p,
                                int128_gethi(val_le));
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2882,7 +2882,7 @@ uint64_t cpu_ldq_code_mmu(CPUArchState *env, vaddr addr,
  */
 vaddr cpu_pointer_wrap_notreached(CPUState *cs, int idx, vaddr res, vaddr base)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* To be used for strict 32-bit targets. */

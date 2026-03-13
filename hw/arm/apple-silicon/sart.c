@@ -64,7 +64,7 @@ static inline uint32_t sart_get_reg(AppleSARTState *s, uint32_t offset)
 
 static inline hwaddr sart_get_region_addr(AppleSARTState *s, int region)
 {
-    g_assert_cmpuint(region, <, SART_NUM_REGIONS);
+    assert_cmpuint(region, <, SART_NUM_REGIONS);
 
     switch (s->version) {
     case 1:
@@ -75,14 +75,14 @@ static inline hwaddr sart_get_region_addr(AppleSARTState *s, int region)
         return (sart_get_reg(s, 0x40 + region * sizeof(uint32_t)) >> 0) &
                0x3FFFFFFF;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
         break;
     }
 }
 
 static inline uint64_t sart_get_region_size(AppleSARTState *s, int region)
 {
-    g_assert_cmpuint(region, <, SART_NUM_REGIONS);
+    assert_cmpuint(region, <, SART_NUM_REGIONS);
 
     switch (s->version) {
     case 1:
@@ -92,14 +92,14 @@ static inline uint64_t sart_get_region_size(AppleSARTState *s, int region)
     case 3:
         return (sart_get_reg(s, 0x80 + region * 4) >> 0) & 0x3FFFFFFF;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
         break;
     }
 }
 
 static inline uint32_t sart_get_region_flags(AppleSARTState *s, int region)
 {
-    g_assert_cmpuint(region, <, SART_NUM_REGIONS);
+    assert_cmpuint(region, <, SART_NUM_REGIONS);
 
     switch (s->version) {
     case 1:
@@ -109,7 +109,7 @@ static inline uint32_t sart_get_region_flags(AppleSARTState *s, int region)
     case 3:
         return sart_get_reg(s, 0x0 + region * 4);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
         break;
     }
 }
@@ -223,11 +223,11 @@ SysBusDevice *apple_sart_from_node(AppleDTNode *node)
     // iOS 13 => v1?
     s->version =
         apple_dt_get_prop_u32_or(node, "sart-version", 1, &error_fatal);
-    g_assert_cmpuint(s->version, >=, 1);
-    g_assert_cmpuint(s->version, <=, 3);
+    assert_cmpuint(s->version, >=, 1);
+    assert_cmpuint(s->version, <=, 3);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
     memory_region_init_io(&s->iomem, OBJECT(dev), &base_reg_ops, s,

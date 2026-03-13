@@ -51,7 +51,7 @@ static void stm32f4xx_syscfg_set_irq(void *opaque, int irq, int level)
 
     trace_stm32f4xx_syscfg_set_irq(irq / 16, irq % 16, level);
 
-    g_assert(icrreg < SYSCFG_NUM_EXTICR);
+    assert(icrreg < SYSCFG_NUM_EXTICR);
 
     if (extract32(s->syscfg_exticr[icrreg], startbit, 4) == config) {
         qemu_set_irq(s->gpio_out[irq], level);

@@ -132,7 +132,7 @@ static void qemu_file_monitor_watch(void *arg)
             qev = QFILE_MONITOR_EVENT_IGNORED;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         trace_qemu_file_monitor_event(mon, dir->path, name, ev->mask,

@@ -129,7 +129,7 @@ qio_channel_block_seek(QIOChannel *ioc,
         error_setg(errp, "Size of VMstate region is unknown");
         return (off_t)-1;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return bioc->offset;

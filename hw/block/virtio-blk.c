@@ -565,7 +565,7 @@ static void virtio_blk_zone_report_complete(void *opaque, int ret)
             desc.z_type = VIRTIO_BLK_ZT_SWP;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         switch (data->zone_report_data.zones[j].state) {
@@ -594,7 +594,7 @@ static void virtio_blk_zone_report_complete(void *opaque, int ret)
             desc.z_state = VIRTIO_BLK_ZS_NOT_WP;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         /* TODO: it takes O(n^2) time complexity. Optimizations required. */
@@ -1209,7 +1209,7 @@ static void virtio_blk_update_config(VirtIODevice *vdev, uint8_t *config)
             blkcfg.zoned.model = VIRTIO_BLK_Z_HA;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         virtio_stl_p(vdev, &blkcfg.zoned.zone_sectors,

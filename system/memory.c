@@ -371,7 +371,7 @@ static void adjust_endianness(MemoryRegion *mr, uint64_t *data, MemOp op)
             *data = bswap64(*data);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -2041,7 +2041,7 @@ RamDiscardManager *memory_region_get_ram_discard_manager(MemoryRegion *mr)
 int memory_region_set_ram_discard_manager(MemoryRegion *mr,
                                           RamDiscardManager *rdm)
 {
-    g_assert(memory_region_is_ram(mr));
+    assert(memory_region_is_ram(mr));
     if (mr->rdm && rdm) {
         return -EBUSY;
     }
@@ -2055,7 +2055,7 @@ uint64_t ram_discard_manager_get_min_granularity(const RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->get_min_granularity);
+    assert(rdmc->get_min_granularity);
     return rdmc->get_min_granularity(rdm, mr);
 }
 
@@ -2064,7 +2064,7 @@ bool ram_discard_manager_is_populated(const RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->is_populated);
+    assert(rdmc->is_populated);
     return rdmc->is_populated(rdm, section);
 }
 
@@ -2075,7 +2075,7 @@ int ram_discard_manager_replay_populated(const RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->replay_populated);
+    assert(rdmc->replay_populated);
     return rdmc->replay_populated(rdm, section, replay_fn, opaque);
 }
 
@@ -2086,7 +2086,7 @@ int ram_discard_manager_replay_discarded(const RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->replay_discarded);
+    assert(rdmc->replay_discarded);
     return rdmc->replay_discarded(rdm, section, replay_fn, opaque);
 }
 
@@ -2096,7 +2096,7 @@ void ram_discard_manager_register_listener(RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->register_listener);
+    assert(rdmc->register_listener);
     rdmc->register_listener(rdm, rdl, section);
 }
 
@@ -2105,7 +2105,7 @@ void ram_discard_manager_unregister_listener(RamDiscardManager *rdm,
 {
     RamDiscardManagerClass *rdmc = RAM_DISCARD_MANAGER_GET_CLASS(rdm);
 
-    g_assert(rdmc->unregister_listener);
+    assert(rdmc->unregister_listener);
     rdmc->unregister_listener(rdm, rdl);
 }
 
@@ -2815,7 +2815,7 @@ MemoryRegionSection *memory_region_section_new_copy(MemoryRegionSection *s)
     if (tmp->fv) {
         bool ret  = flatview_ref(tmp->fv);
 
-        g_assert(ret);
+        assert(ret);
     }
     return tmp;
 }

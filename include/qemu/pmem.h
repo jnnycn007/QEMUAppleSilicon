@@ -21,13 +21,13 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 {
     /* If 'pmem' option is 'on', we should always have libpmem support,
        or qemu will report a error and exit, never come here. */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static inline void
 pmem_persist(const void *addr, size_t len)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 #endif /* CONFIG_LIBPMEM */

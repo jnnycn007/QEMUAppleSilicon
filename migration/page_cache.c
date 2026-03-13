@@ -91,8 +91,8 @@ void cache_fini(PageCache *cache)
 {
     int64_t i;
 
-    g_assert(cache);
-    g_assert(cache->page_cache);
+    assert(cache);
+    assert(cache->page_cache);
 
     for (i = 0; i < cache->max_num_items; i++) {
         g_free(cache->page_cache[i].it_data);
@@ -106,7 +106,7 @@ void cache_fini(PageCache *cache)
 static size_t cache_get_cache_pos(const PageCache *cache,
                                   uint64_t address)
 {
-    g_assert(cache->max_num_items);
+    assert(cache->max_num_items);
     return (address / cache->page_size) & (cache->max_num_items - 1);
 }
 
@@ -114,8 +114,8 @@ static CacheItem *cache_get_by_addr(const PageCache *cache, uint64_t addr)
 {
     size_t pos;
 
-    g_assert(cache);
-    g_assert(cache->page_cache);
+    assert(cache);
+    assert(cache->page_cache);
 
     pos = cache_get_cache_pos(cache, addr);
 

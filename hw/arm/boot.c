@@ -385,7 +385,7 @@ static void fdt_add_psci_node(void *fdt, ARMCPU *armcpu)
         psci_method = "smc";
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /*
@@ -645,7 +645,7 @@ static void do_cpu_reset(void *opaque)
             case ARM_ENDIANNESS_UNKNOWN:
                 break; /* Board's decision */
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
 
             cpu_set_pc(cs, entry);

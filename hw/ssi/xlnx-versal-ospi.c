@@ -1004,7 +1004,7 @@ static void ospi_stig_fill_membank(XlnxVersalOspi *s)
         s->stig_membank[i] = fifo8_pop(&s->rx_fifo);
     }
 
-    g_assert((idx + 4) < ARRAY_SIZE(s->stig_membank));
+    assert((idx + 4) < ARRAY_SIZE(s->stig_membank));
 
     /* Fill in lower upper regs */
     s->regs[R_FLASH_RD_DATA_LOWER_REG] = ldl_le_p(&s->stig_membank[idx]);
@@ -1614,7 +1614,7 @@ static void ospi_indac_write(void *opaque, uint64_t value, unsigned int size)
 {
     XlnxVersalOspi *s = XILINX_VERSAL_OSPI(opaque);
 
-    g_assert(!s->ind_write_disabled);
+    assert(!s->ind_write_disabled);
 
     if (!ospi_ind_op_completed(s->wr_ind_op)) {
         ospi_tx_sram_write(s, value, size);

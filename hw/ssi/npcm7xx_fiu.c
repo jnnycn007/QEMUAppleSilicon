@@ -108,7 +108,7 @@ static unsigned npcm7xx_fiu_cs_index(NPCM7xxFIUState *fiu,
 {
     int index = flash - fiu->flash;
 
-    g_assert(index >= 0 && index < fiu->cs_count);
+    assert(index >= 0 && index < fiu->cs_count);
 
     return index;
 }

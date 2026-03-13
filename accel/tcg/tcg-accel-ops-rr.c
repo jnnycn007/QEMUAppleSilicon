@@ -311,7 +311,7 @@ static void *rr_cpu_thread_fn(void *arg)
         qatomic_set(&rr_current_cpu, NULL);
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void rr_start_vcpu_thread(CPUState *cpu)
@@ -320,7 +320,7 @@ void rr_start_vcpu_thread(CPUState *cpu)
     static QemuCond *single_tcg_halt_cond;
     static QemuThread *single_tcg_cpu_thread;
 
-    g_assert(tcg_enabled());
+    assert(tcg_enabled());
     tcg_cpu_init_cflags(cpu, false);
 
     if (!single_tcg_cpu_thread) {

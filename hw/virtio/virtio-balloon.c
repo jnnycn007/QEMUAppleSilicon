@@ -331,7 +331,7 @@ static void balloon_stats_set_poll_interval(Object *obj, Visitor *v,
     }
 
     /* create a new timer */
-    g_assert(s->stats_timer == NULL);
+    assert(s->stats_timer == NULL);
     s->stats_timer = timer_new_ms(QEMU_CLOCK_VIRTUAL, balloon_stats_poll_cb, s);
     s->stats_poll_interval = value;
     balloon_stats_change_timer(s, 0);
@@ -444,7 +444,7 @@ static void virtio_balloon_handle_output(VirtIODevice *vdev, VirtQueue *vq)
                 } else if (vq == s->dvq) {
                     balloon_deflate_page(s, section.mr, section.offset_within_region);
                 } else {
-                    g_assert_not_reached();
+                    assert_not_reached();
                 }
             }
             memory_region_unref(section.mr);

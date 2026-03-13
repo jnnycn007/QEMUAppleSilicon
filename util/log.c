@@ -460,7 +460,7 @@ void qemu_set_dfilter_ranges(const char *filter_spec, Error **errp)
             upb = r2val;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         if (lob > upb) {
             error_setg(errp, "Invalid range");

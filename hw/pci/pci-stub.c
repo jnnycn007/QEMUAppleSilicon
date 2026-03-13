@@ -46,12 +46,12 @@ void hmp_pcie_aer_inject_error(Monitor *mon, const QDict *qdict)
 /* kvm-all wants this */
 MSIMessage pci_get_msi_message(PCIDevice *dev, int vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 uint16_t pci_requester_id(PCIDevice *dev)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* Required by ahci.c */
@@ -62,18 +62,18 @@ bool msi_enabled(const PCIDevice *dev)
 
 void msi_notify(PCIDevice *dev, unsigned int vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* Required by target/i386/kvm.c */
 bool msi_is_masked(const PCIDevice *dev, unsigned vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 MSIMessage msi_get_message(PCIDevice *dev, unsigned int vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int msix_enabled(PCIDevice *dev)
@@ -83,10 +83,10 @@ int msix_enabled(PCIDevice *dev)
 
 bool msix_is_masked(PCIDevice *dev, unsigned vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 MSIMessage msix_get_message(PCIDevice *dev, unsigned int vector)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

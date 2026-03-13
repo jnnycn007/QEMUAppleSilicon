@@ -251,7 +251,7 @@ static bool page_is_locked(const PageDesc *pd)
 static void page_lock__debug(PageDesc *pd)
 {
     ht_pages_locked_debug_init();
-    g_assert(!page_is_locked(pd));
+    assert(!page_is_locked(pd));
     g_hash_table_insert(ht_pages_locked_debug, pd, pd);
 }
 
@@ -260,9 +260,9 @@ static void page_unlock__debug(const PageDesc *pd)
     bool removed;
 
     ht_pages_locked_debug_init();
-    g_assert(page_is_locked(pd));
+    assert(page_is_locked(pd));
     removed = g_hash_table_remove(ht_pages_locked_debug, pd);
-    g_assert(removed);
+    assert(removed);
 }
 
 static void do_assert_page_locked(const PageDesc *pd,
@@ -279,7 +279,7 @@ static void do_assert_page_locked(const PageDesc *pd,
 void assert_no_pages_locked(void)
 {
     ht_pages_locked_debug_init();
-    g_assert(g_hash_table_size(ht_pages_locked_debug) == 0);
+    assert(g_hash_table_size(ht_pages_locked_debug) == 0);
 }
 
 #else /* !CONFIG_DEBUG_TCG */
@@ -413,7 +413,7 @@ static void page_entry_destroy(gpointer p)
 {
     struct page_entry *pe = p;
 
-    g_assert(pe->locked);
+    assert(pe->locked);
     page_unlock(pe->pd);
     g_free(pe);
 }
@@ -423,7 +423,7 @@ static bool page_entry_trylock(struct page_entry *pe)
 {
     bool busy = page_trylock(pe->pd);
     if (!busy) {
-        g_assert(!pe->locked);
+        assert(!pe->locked);
         pe->locked = true;
     }
     return busy;
@@ -432,7 +432,7 @@ static bool page_entry_trylock(struct page_entry *pe)
 static void do_page_entry_lock(struct page_entry *pe)
 {
     page_lock(pe->pd);
-    g_assert(!pe->locked);
+    assert(!pe->locked);
     pe->locked = true;
 }
 
@@ -521,7 +521,7 @@ static struct page_collection *page_collection_lock(tb_page_addr_t start,
 
     start >>= TARGET_PAGE_BITS;
     last >>= TARGET_PAGE_BITS;
-    g_assert(start <= last);
+    assert(start <= last);
 
     set->tree = q_tree_new_full(tb_page_addr_cmp, NULL, NULL,
                                 page_entry_destroy);
@@ -651,7 +651,7 @@ static void tb_page_remove(PageDesc *pd, TranslationBlock *tb)
         }
         pprev = &tb1->page_next[n1];
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void tb_remove(TranslationBlock *tb)
@@ -740,7 +740,7 @@ static inline void tb_remove_from_jmp_list(TranslationBlock *orig, int n_orig)
          * tb_jump_unlink(dest). Seeing here another destination would be a bug,
          * because we set the LSB above.
          */
-        g_assert(ptr_locked == 1 && dest->cflags & CF_INVALID);
+        assert(ptr_locked == 1 && dest->cflags & CF_INVALID);
         return;
     }
     /*
@@ -765,7 +765,7 @@ static inline void tb_remove_from_jmp_list(TranslationBlock *orig, int n_orig)
         }
         pprev = &tb->jmp_list_next[n];
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /*

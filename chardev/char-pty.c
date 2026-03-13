@@ -124,7 +124,7 @@ static int pty_chr_write(Chardev *chr, const uint8_t *buf, int len)
     pfd.events = G_IO_OUT;
     pfd.revents = 0;
     rc = RETRY_ON_EINTR(g_poll(&pfd, 1, 0));
-    g_assert(rc >= 0);
+    assert(rc >= 0);
     if (!(pfd.revents & G_IO_HUP) && (pfd.revents & G_IO_OUT)) {
         return io_channel_send(s->ioc, buf, len);
     }

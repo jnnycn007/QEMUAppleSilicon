@@ -123,7 +123,7 @@ static void isl69259_exit_reset(Object *obj, ResetType type)
 {
     ISLState *s = ISL69260(obj);
     static const uint8_t ic_device_id[] = {0x04, 0x00, 0x81, 0xD2, 0x49, 0x3c};
-    g_assert(sizeof(ic_device_id) <= sizeof(s->ic_device_id));
+    assert(sizeof(ic_device_id) <= sizeof(s->ic_device_id));
 
     isl_pmbus_vr_exit_reset(obj, type);
 

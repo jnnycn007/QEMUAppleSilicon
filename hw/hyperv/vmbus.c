@@ -1875,7 +1875,7 @@ static void send_create_gpadl(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static bool complete_create_gpadl(VMBus *vmbus)
@@ -1890,7 +1890,7 @@ static bool complete_create_gpadl(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void handle_gpadl_teardown(VMBus *vmbus,
@@ -1931,7 +1931,7 @@ static void send_teardown_gpadl(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static bool complete_teardown_gpadl(VMBus *vmbus)
@@ -1946,7 +1946,7 @@ static bool complete_teardown_gpadl(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void handle_open_channel(VMBus *vmbus, vmbus_message_open_channel *msg,
@@ -1995,7 +1995,7 @@ static void send_open_channel(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static bool complete_open_channel(VMBus *vmbus)
@@ -2019,7 +2019,7 @@ static bool complete_open_channel(VMBus *vmbus)
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void vdev_reset_on_close(VMBusDevice *vdev)

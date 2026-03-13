@@ -404,7 +404,7 @@ static inline unsigned long leul_to_cpu(unsigned long v)
             stq_ ## END ## _p(ptr, v);                                  \
             break;                                                      \
         default:                                                        \
-            g_assert_not_reached();                                     \
+            assert_not_reached();                                     \
         }                                                               \
     }                                                                   \
     static inline uint64_t ldn_## END ## _p(const void *ptr, int sz)    \
@@ -419,7 +419,7 @@ static inline unsigned long leul_to_cpu(unsigned long v)
         case 8:                                                         \
             return ldq_ ## END ## _p(ptr);                              \
         default:                                                        \
-            g_assert_not_reached();                                     \
+            assert_not_reached();                                     \
         }                                                               \
     }
 

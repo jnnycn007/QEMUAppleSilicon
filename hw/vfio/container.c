@@ -136,7 +136,7 @@ static int vfio_legacy_dma_unmap_one(const VFIOContainerBase *bcontainer,
     int ret;
     Error *local_err = NULL;
 
-    g_assert(!cpr_is_incoming());
+    assert(!cpr_is_incoming());
 
     if (iotlb && vfio_container_dirty_tracking_is_started(bcontainer)) {
         if (!vfio_container_devices_dirty_tracking_is_supported(bcontainer) &&
@@ -387,7 +387,7 @@ static const char *vfio_get_iommu_class_name(int iommu_type)
         return TYPE_VFIO_IOMMU_SPAPR;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     };
 }
 
@@ -1233,7 +1233,7 @@ hiod_legacy_vfio_get_iova_ranges(HostIOMMUDevice *hiod)
 {
     VFIODevice *vdev = hiod->agent;
 
-    g_assert(vdev);
+    assert(vdev);
     return vfio_container_get_iova_ranges(vdev->bcontainer);
 }
 
@@ -1242,7 +1242,7 @@ hiod_legacy_vfio_get_page_size_mask(HostIOMMUDevice *hiod)
 {
     VFIODevice *vdev = hiod->agent;
 
-    g_assert(vdev);
+    assert(vdev);
     return vfio_container_get_page_size_mask(vdev->bcontainer);
 }
 

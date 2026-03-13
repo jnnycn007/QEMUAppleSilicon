@@ -424,7 +424,7 @@ qcow2_get_subcluster_range_type(BlockDriverState *bs, uint64_t l2_entry,
         return ctz32(val) - sc_from;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1237,7 +1237,7 @@ calculate_l2_meta(BlockDriverState *bs, uint64_t host_cluster_offset,
             cow_start_from = sc_index << s->subcluster_bits;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         switch (type) {
@@ -1249,7 +1249,7 @@ calculate_l2_meta(BlockDriverState *bs, uint64_t host_cluster_offset,
             cow_start_from = sc_index << s->subcluster_bits;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -1282,7 +1282,7 @@ calculate_l2_meta(BlockDriverState *bs, uint64_t host_cluster_offset,
             cow_end_to = ROUND_UP(cow_end_from, s->subcluster_size);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         switch (type) {
@@ -1294,7 +1294,7 @@ calculate_l2_meta(BlockDriverState *bs, uint64_t host_cluster_offset,
             cow_end_to = ROUND_UP(cow_end_from, s->subcluster_size);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -2134,7 +2134,7 @@ zero_l2_subclusters(BlockDriverState *bs, uint64_t offset,
     case QCOW2_CLUSTER_UNALLOCATED:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     old_l2_bitmap = l2_bitmap = get_l2_bitmap(s, l2_slice, l2_index);

@@ -605,7 +605,7 @@ static uint32_t armsse_sys_config_value(ARMSSE *s, const ARMSSEInfo *info)
         sys_config = deposit32(sys_config, 16, 3, 3); /* CPU0 = Cortex-M55 */
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return sys_config;
 }
@@ -777,7 +777,7 @@ static void armsse_init(Object *obj)
                                     &s->unimp[devinfo->index],
                                     TYPE_UNIMPLEMENTED_DEVICE);
         } else {
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -1330,7 +1330,7 @@ static void armsse_realize(DeviceState *dev, Error **errp)
             }
             mr = sysbus_mmio_get_region(sbd, 0);
         } else {
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         switch (devinfo->irq) {
@@ -1346,7 +1346,7 @@ static void armsse_realize(DeviceState *dev, Error **errp)
                                    devinfo->irq - NMI_0);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (irq) {

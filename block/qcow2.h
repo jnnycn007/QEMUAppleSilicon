@@ -776,7 +776,7 @@ QCow2SubclusterType qcow2_get_subcluster_type(BlockDriverState *bs,
                 return QCOW2_SUBCLUSTER_UNALLOCATED_PLAIN;
             }
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         switch (type) {
@@ -791,7 +791,7 @@ QCow2SubclusterType qcow2_get_subcluster_type(BlockDriverState *bs,
         case QCOW2_CLUSTER_UNALLOCATED:
             return QCOW2_SUBCLUSTER_UNALLOCATED_PLAIN;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }

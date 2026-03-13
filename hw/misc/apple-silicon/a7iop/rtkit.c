@@ -139,20 +139,20 @@ static void apple_rtkit_send_msg(AppleRTKit *s, uint8_t ep, uint64_t data)
 
 void apple_rtkit_send_control_msg(AppleRTKit *s, uint8_t ep, uint64_t data)
 {
-    g_assert_cmpuint(ep, <, EP_USER_START);
+    assert_cmpuint(ep, <, EP_USER_START);
     apple_rtkit_send_msg(s, ep, data);
 }
 
 void apple_rtkit_send_user_msg(AppleRTKit *s, uint8_t ep, uint64_t data)
 {
-    g_assert_cmpuint(ep, <, 256 - EP_USER_START);
+    assert_cmpuint(ep, <, 256 - EP_USER_START);
     apple_rtkit_send_msg(s, ep + EP_USER_START, data);
 }
 
 static void apple_rtkit_register_ep(AppleRTKit *s, uint8_t ep, void *opaque,
                                     AppleRTKitEPHandler *handler, bool user)
 {
-    g_assert_null(AppleRTKitEPTable_get(s->endpoints, ep));
+    assert_null(AppleRTKitEPTable_get(s->endpoints, ep));
 
     AppleRTKitEPTable_set_at(s->endpoints, ep,
                              (AppleRTKitEPData){
@@ -165,14 +165,14 @@ static void apple_rtkit_register_ep(AppleRTKit *s, uint8_t ep, void *opaque,
 void apple_rtkit_register_control_ep(AppleRTKit *s, uint8_t ep, void *opaque,
                                      AppleRTKitEPHandler *handler)
 {
-    g_assert_cmpuint(ep, <, EP_USER_START);
+    assert_cmpuint(ep, <, EP_USER_START);
     apple_rtkit_register_ep(s, ep, opaque, handler, false);
 }
 
 void apple_rtkit_register_user_ep(AppleRTKit *s, uint8_t ep, void *opaque,
                                   AppleRTKitEPHandler *handler)
 {
-    g_assert_cmpuint(ep, <, 256 - EP_USER_START);
+    assert_cmpuint(ep, <, 256 - EP_USER_START);
     apple_rtkit_register_ep(s, ep + EP_USER_START, opaque, handler, true);
 }
 
@@ -183,13 +183,13 @@ static void apple_rtkit_unregister_ep(AppleRTKit *s, uint8_t ep)
 
 void apple_rtkit_unregister_control_ep(AppleRTKit *s, uint8_t ep)
 {
-    g_assert_cmpuint(ep, <, EP_USER_START);
+    assert_cmpuint(ep, <, EP_USER_START);
     apple_rtkit_unregister_ep(s, ep);
 }
 
 void apple_rtkit_unregister_user_ep(AppleRTKit *s, uint8_t ep)
 {
-    g_assert_cmpuint(ep, <, 256 - EP_USER_START);
+    assert_cmpuint(ep, <, 256 - EP_USER_START);
     apple_rtkit_unregister_ep(s, ep + EP_USER_START);
 }
 
@@ -238,7 +238,7 @@ static void apple_rtkit_mgmt_rollcall_v11(AppleRTKit *s)
     uint32_t mask = 0;
     uint32_t last_block = 0;
 
-    g_assert_true(QTAILQ_EMPTY(&s->rollcall));
+    assert_true(QTAILQ_EMPTY(&s->rollcall));
 
     for (AppleRTKitEPTable_it(it, s->endpoints); !AppleRTKitEPTable_end_p(it);
          AppleRTKitEPTable_next(it)) {
@@ -286,7 +286,7 @@ static void apple_rtkit_mgmt_handle_msg(void *opaque, uint8_t ep,
 
     switch (msg->type) {
     case MSG_HELLO_ACK:
-        g_assert_cmphex(s->ep0_status, ==, EP0_WAIT_HELLO);
+        assert_cmphex(s->ep0_status, ==, EP0_WAIT_HELLO);
 
         // We must resend hello on iOS <=13 with a lower version range.
         // FIXME: This doesn't work consistently;
@@ -339,7 +339,7 @@ static void apple_rtkit_mgmt_handle_msg(void *opaque, uint8_t ep,
         }
         break;
     case MSG_TYPE_ROLLCALL:
-        g_assert_cmphex(s->ep0_status, ==, EP0_WAIT_ROLLCALL);
+        assert_cmphex(s->ep0_status, ==, EP0_WAIT_ROLLCALL);
 
         if (QTAILQ_EMPTY(&s->rollcall)) {
             m.type = MSG_TYPE_POWER_ACK;

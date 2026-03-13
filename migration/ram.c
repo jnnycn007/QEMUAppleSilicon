@@ -1755,17 +1755,17 @@ bool ram_write_tracking_available(void)
 
 bool ram_write_tracking_compatible(void)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 int ram_write_tracking_start(void)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void ram_write_tracking_stop(void)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 #endif /* defined(__linux__) */
 

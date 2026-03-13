@@ -880,7 +880,7 @@ bool write_kvmstate_to_list(ARMCPU *cpu)
             ret = kvm_get_one_reg(cs, regidx, cpu->cpreg_values + i);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         if (ret) {
             ok = false;
@@ -965,7 +965,7 @@ bool write_list_to_kvmstate(ARMCPU *cpu, int level)
             ret = kvm_set_one_reg(cs, regidx, cpu->cpreg_values + i);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         if (ret) {
             gchar *reg_str = kvm_print_register_name(regidx);
@@ -2553,7 +2553,7 @@ void arm_cpu_kvm_set_irq(void *arm_cpu, int irq, int level)
         linestate_bit = CPU_INTERRUPT_FIQ;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (level) {

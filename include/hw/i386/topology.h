@@ -67,7 +67,7 @@ typedef struct X86CPUTopoInfo {
 /* Return the bit width needed for 'count' IDs */
 static unsigned apicid_bitwidth_for_count(unsigned count)
 {
-    g_assert(count >= 1);
+    assert(count >= 1);
     count -= 1;
     return count ? 32 - clz32(count) : 0;
 }

@@ -570,7 +570,7 @@ static void usb_tcp_remote_realize(USBDevice *dev, Error **errp)
         usb_tcp_remote_bind_ipv6(s, errp);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (s->socket < 0) {

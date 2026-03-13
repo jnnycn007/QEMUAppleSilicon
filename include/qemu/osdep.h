@@ -127,7 +127,6 @@ QEMU_EXTERN_C int daemon(int, int);
 #include <getopt.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <assert.h>
 /* setjmp must be declared before system/os-win32.h
  * because it is redefined there. */
 #include <setjmp.h>
@@ -237,18 +236,62 @@ extern "C" {
 #define no_coroutine_fn
 #endif
 
-
-/*
- * For mingw, as of v6.0.0, the function implementing the assert macro is
- * not marked as noreturn, so the compiler cannot delete code following an
- * assert(false) as unused.  We rely on this within the code base to delete
- * code that is unreachable when features are disabled.
- * All supported versions of Glib's g_assert() satisfy this requirement.
- */
-#ifdef __MINGW32__
-#undef assert
-#define assert(x)  g_assert(x)
+#ifdef NDEBUG
+#define assert(_expr) (void)0
+#define assert_false(_expr) (void)0
+#define assert_true(_expr) (void)0
+#define assert_null(_expr) (void)0
+#define assert_nonnull(_expr) (void)0
+#define assert_cmp(_expr, _op, _fmt, _expected) (void)0
+#define assert_cmphex(_expr, _op, _expected) (void)0
+#define assert_cmpuint(_expr, _op, _expected) (void)0
+#define assert_cmpint(_expr, _op, _expected) (void)0
+#define assert_not_reached() __builtin_unreachable()
+#else
+#define assert(_expr)                                               \
+    do {                                                            \
+        if (!(_expr)) {                                             \
+            fprintf(stderr, "[%s@%s:%d] Assertion failed: `%s`!\n", \
+                    __FUNCTION__, __FILE__, __LINE__, #_expr);      \
+            abort();                                                \
+            __builtin_unreachable();                                \
+        }                                                           \
+    } while (0)
+#define assert_false(_expr) assert((_expr) == false)
+#define assert_true(_expr) assert((_expr) == true)
+#define assert_null(_expr) assert((_expr) == NULL)
+#define assert_nonnull(_expr) assert((_expr) != NULL)
+#define assert_cmp(_expr, _op, _fmt, _expected)                               \
+    do {                                                                      \
+        typeof(_expr) _expr_val = _expr;                                      \
+        typeof(_expected) _expected_val = _expected;                          \
+        if (!(_expr_val _op _expected_val)) {                                 \
+            fprintf(stderr, "[%s@%s:%d] Assertion failed: `%s %s %s`!\n",     \
+                    __FUNCTION__, __FILE__, __LINE__, #_expr, #_op,           \
+                    #_expected);                                              \
+            fprintf(stderr, "            left: " _fmt ",\n", _expr_val);      \
+            fprintf(stderr, "            right: " _fmt ".\n", _expected_val); \
+            abort();                                                          \
+            __builtin_unreachable();                                          \
+        }                                                                     \
+    } while (0)
+#define assert_cmphex(_expr, _op, _expected)               \
+    assert_cmp((unsigned long long)(_expr), _op, "0x%llX", \
+               (unsigned long long)(_expected))
+#define assert_cmpuint(_expr, _op, _expected)              \
+    assert_cmp((unsigned long long)(_expr), _op, "0x%llu", \
+               (unsigned long long)(_expected))
+#define assert_cmpint(_expr, _op, _expected) \
+    assert_cmp((long long)(_expr), _op, "0x%lld", (long long)(_expected))
+#define assert_not_reached()                                        \
+    do {                                                            \
+        fprintf(stderr, "[%s@%s:%d] Code should NOT be reached!\n", \
+                __FUNCTION__, __FILE__, __LINE__);                  \
+        abort();                                                    \
+        __builtin_unreachable();                                    \
+    } while (0)
 #endif
+
 
 /**
  * qemu_build_not_reached()
@@ -264,7 +307,7 @@ void QEMU_ERROR("code path is reachable")
 #if defined(__OPTIMIZE__) && !defined(__NO_INLINE__)
 #define qemu_build_not_reached()  qemu_build_not_reached_always()
 #else
-#define qemu_build_not_reached()  g_assert_not_reached()
+#define qemu_build_not_reached()  assert_not_reached()
 #endif
 
 /**

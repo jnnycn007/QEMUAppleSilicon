@@ -58,7 +58,7 @@ static bool is_interrupt_enabled(AppleA7IOPMailbox *s, uint32_t status)
         (s->glb_cfg & KIC_GLB_CFG_EXT_INT_EN) != 0) {
         uint32_t interrupt = status & 0x7F;
         int interrupt_group = interrupt / 32;
-        // g_assert_cmpuint(interrupt_group, <, 4);
+        // assert_cmpuint(interrupt_group, <, 4);
         uint32_t interrupt_enabled =
             s->interrupts_enabled[interrupt_group] & BIT(interrupt % 32);
         if (interrupt_enabled) {
@@ -221,7 +221,7 @@ bool apple_a7iop_mailbox_is_empty(AppleA7IOPMailbox *s)
 static void apple_a7iop_mailbox_send(AppleA7IOPMailbox *s,
                                      AppleA7IOPMessage *msg)
 {
-    g_assert_nonnull(msg);
+    assert_nonnull(msg);
 
     QEMU_LOCK_GUARD(&s->lock);
 
@@ -466,7 +466,7 @@ uint32_t apple_a7iop_mailbox_read_interrupt_status(AppleA7IOPMailbox *s)
         if ((interrupt_status & 0xf0000) == 0x10000) {
             uint32_t interrupt = interrupt_status & 0x7F;
             int interrupt_group = interrupt / 32;
-            // g_assert_cmpuint(interrupt_group, <, 4);
+            // assert_cmpuint(interrupt_group, <, 4);
             a7iop_mbox->interrupts_enabled[interrupt_group] &=
                 ~(BIT(interrupt % 32));
         } else if (interrupt_status == IRQ_IOP_NONEMPTY) {
@@ -606,7 +606,7 @@ static void apple_a7iop_mailbox_reset(DeviceState *dev)
 
     QEMU_LOCK_GUARD(&s->lock);
 
-    g_assert_false(s->iop_mailbox == s->ap_mailbox);
+    assert_false(s->iop_mailbox == s->ap_mailbox);
 
     s->count = 0;
     s->iop_dir_en = true;

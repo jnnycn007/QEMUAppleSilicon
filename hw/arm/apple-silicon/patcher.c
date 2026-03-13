@@ -45,7 +45,7 @@ bool ck_patcher_find_callback_ctx(CKPatcherRange *range, const char *name,
     if (align == 0) {
         align = 1;
     } else {
-        g_assert_cmpuint(len % align, ==, 0);
+        assert_cmpuint(len % align, ==, 0);
     }
 
     if (range->length < len) {
@@ -70,7 +70,7 @@ bool ck_patcher_find_callback_ctx(CKPatcherRange *range, const char *name,
         }
     } else {
         for (i = 0; i < len; ++i) {
-            g_assert_cmphex(pattern[i] & mask[i], ==, pattern[i]);
+            assert_cmphex(pattern[i] & mask[i], ==, pattern[i]);
         }
 
         for (i = 0; i < range->length; i += align) {
@@ -136,7 +136,7 @@ bool ck_patcher_find_replace(CKPatcherRange *range, const char *name,
 {
     CKPatcherFindReplaceContext ctx;
 
-    g_assert_cmphex(replace_off + replace_len, <=, len);
+    assert_cmphex(replace_off + replace_len, <=, len);
 
     ctx.replacement = replacement;
     ctx.mask = replacement_mask;
@@ -150,7 +150,7 @@ bool ck_patcher_find_replace(CKPatcherRange *range, const char *name,
 void *ck_patcher_find_next_insn(void *buffer, uint32_t num, uint32_t insn,
                                 uint32_t mask, uint32_t skip)
 {
-    g_assert_cmphex(insn & mask, ==, insn);
+    assert_cmphex(insn & mask, ==, insn);
 
     for (uint32_t i = 0; i < num; ++i) {
         uint8_t *cur = buffer + (i * sizeof(uint32_t));
@@ -168,7 +168,7 @@ void *ck_patcher_find_next_insn(void *buffer, uint32_t num, uint32_t insn,
 void *ck_patcher_find_prev_insn(void *buffer, uint32_t num, uint32_t insn,
                                 uint32_t mask, uint32_t skip)
 {
-    g_assert_cmphex(insn & mask, ==, insn);
+    assert_cmphex(insn & mask, ==, insn);
 
     for (uint32_t i = 0; i < num; ++i) {
         void *cur = buffer - (i * sizeof(uint32_t));

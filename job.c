@@ -292,7 +292,7 @@ bool job_is_ready_locked(Job *job)
     case JOB_STATUS_STANDBY:
         return true;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return false;
 }
@@ -320,7 +320,7 @@ bool job_is_completed_locked(Job *job)
     case JOB_STATUS_NULL:
         return true;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return false;
 }

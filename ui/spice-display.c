@@ -576,7 +576,7 @@ static void interface_release_resource(QXLInstance *sin,
         g_free(cursor);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

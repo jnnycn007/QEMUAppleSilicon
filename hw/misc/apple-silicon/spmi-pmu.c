@@ -192,7 +192,7 @@ DeviceState *apple_spmi_pmu_from_node(AppleDTNode *node)
     pmu = APPLE_SPMI_PMU(dev);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     spmi_set_slave_sid(SPMI_SLAVE(dev), *(uint32_t *)prop->data);
 
     pmu->reg_rtc = apple_dt_get_prop_u32(node, "info-rtc", &error_fatal);

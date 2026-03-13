@@ -70,7 +70,7 @@ void surface_gl_create_texture(QemuGLShader *gls,
         surface->gltype = GL_UNSIGNED_SHORT_5_6_5;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     glGenTextures(1, &surface->texture);

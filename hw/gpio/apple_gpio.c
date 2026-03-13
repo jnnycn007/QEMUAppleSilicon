@@ -421,8 +421,8 @@ DeviceState *apple_gpio_new(const char *name, uint64_t mmio_size,
     SysBusDevice *sbd;
     AppleGPIOState *s;
 
-    g_assert_nonnull(name);
-    g_assert_cmpuint(pin_count, <, GPIO_MAX_PIN_NR);
+    assert_nonnull(name);
+    assert_cmpuint(pin_count, <, GPIO_MAX_PIN_NR);
 
     dev = qdev_new(TYPE_APPLE_GPIO);
     sbd = SYS_BUS_DEVICE(dev);
@@ -462,7 +462,7 @@ DeviceState *apple_gpio_from_node(AppleDTNode *node)
     AppleDTProp *reg;
 
     reg = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(reg);
+    assert_nonnull(reg);
 
     return apple_gpio_new(
         apple_dt_get_prop_str(node, "name", &error_fatal),

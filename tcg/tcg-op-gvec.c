@@ -422,7 +422,7 @@ uint64_t (dup_const)(unsigned vece, uint64_t c)
     case MO_64:
         return c;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -441,7 +441,7 @@ void tcg_gen_dup_i32(unsigned vece, TCGv_i32 out, TCGv_i32 in)
         tcg_gen_mov_i32(out, in);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -463,7 +463,7 @@ void tcg_gen_dup_i64(unsigned vece, TCGv_i64 out, TCGv_i64 in)
         tcg_gen_mov_i64(out, in);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -549,7 +549,7 @@ static void do_dup_store(TCGType type, TCGv_ptr dbase, uint32_t dofs,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (oprsz < maxsz) {
@@ -1290,7 +1290,7 @@ void tcg_gen_gvec_2_var(TCGv_ptr dbase, uint32_t dofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1365,7 +1365,7 @@ void tcg_gen_gvec_2i(uint32_t dofs, uint32_t aofs, uint32_t oprsz,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1424,7 +1424,7 @@ void tcg_gen_gvec_2s(uint32_t dofs, uint32_t aofs, uint32_t oprsz,
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_temp_free_vec(t_vec);
         tcg_swap_vecop_list(hold_list);
@@ -1512,7 +1512,7 @@ void tcg_gen_gvec_3_var(TCGv_ptr dbase, uint32_t dofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1588,7 +1588,7 @@ void tcg_gen_gvec_3i(uint32_t dofs, uint32_t aofs, uint32_t bofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1658,7 +1658,7 @@ void tcg_gen_gvec_4(uint32_t dofs, uint32_t aofs, uint32_t bofs, uint32_t cofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1728,7 +1728,7 @@ void tcg_gen_gvec_4i(uint32_t dofs, uint32_t aofs, uint32_t bofs, uint32_t cofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -1893,7 +1893,7 @@ void tcg_gen_gvec_dup_mem(unsigned vece, uint32_t dofs, uint32_t aofs,
             expand_clr(tcg_env, dofs + oprsz, maxsz - oprsz);
         }
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -3271,7 +3271,7 @@ do_gvec_shifts(unsigned vece, uint32_t dofs, uint32_t aofs, TCGv_i32 shift,
                            TCG_TYPE_V64, shift, g->fniv_s);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_swap_vecop_list(hold_list);
         goto clear_tail;
@@ -3314,7 +3314,7 @@ do_gvec_shifts(unsigned vece, uint32_t dofs, uint32_t aofs, TCGv_i32 shift,
                           v_shift, false, g->fniv_v);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_temp_free_vec(v_shift);
         tcg_swap_vecop_list(hold_list);
@@ -3923,7 +3923,7 @@ void tcg_gen_gvec_cmp(TCGCond cond, unsigned vece, uint32_t dofs,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_swap_vecop_list(hold_list);
 
@@ -4027,7 +4027,7 @@ void tcg_gen_gvec_cmps(TCGCond cond, unsigned vece, uint32_t dofs,
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         tcg_temp_free_vec(t_vec);
         tcg_swap_vecop_list(hold_list);

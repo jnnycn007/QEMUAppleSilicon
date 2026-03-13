@@ -731,7 +731,7 @@ SysBusDevice *apple_aes_create(AppleDTNode *node, uint32_t board_id)
     s->board_id = board_id;
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 

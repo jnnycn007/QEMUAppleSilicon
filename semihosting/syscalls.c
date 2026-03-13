@@ -705,7 +705,7 @@ void semihost_sys_close(CPUState *cs, gdb_syscall_complete_cb complete, int fd)
         complete(cs, 0, 0);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     dealloc_guestfd(fd);
 }
@@ -735,7 +735,7 @@ void semihost_sys_read_gf(CPUState *cs, gdb_syscall_complete_cb complete,
         console_read(cs, complete, gf, buf, len);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -777,7 +777,7 @@ void semihost_sys_write_gf(CPUState *cs, gdb_syscall_complete_cb complete,
         complete(cs, -1, EBADF);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -816,7 +816,7 @@ void semihost_sys_lseek(CPUState *cs, gdb_syscall_complete_cb complete,
         complete(cs, -1, ESPIPE);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -842,7 +842,7 @@ void semihost_sys_isatty(CPUState *cs, gdb_syscall_complete_cb complete, int fd)
         complete(cs, 1, 0);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -868,7 +868,7 @@ void semihost_sys_flen(CPUState *cs, gdb_syscall_complete_cb fstat_cb,
         break;
     case GuestFDConsole:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -893,7 +893,7 @@ void semihost_sys_fstat(CPUState *cs, gdb_syscall_complete_cb complete,
         break;
     case GuestFDStatic:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -970,6 +970,6 @@ void semihost_sys_poll_one(CPUState *cs, gdb_syscall_complete_cb complete,
         break;
     case GuestFDStatic:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }

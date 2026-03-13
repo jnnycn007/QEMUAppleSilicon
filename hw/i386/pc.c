@@ -1360,7 +1360,7 @@ static void pc_hv_balloon_pre_plug(HotplugHandler *hotplug_dev,
                                    DeviceState *dev, Error **errp)
 {
     /* The vmbus handler has no hotplug handler; we should never end up here. */
-    g_assert(!dev->hotplugged);
+    assert(!dev->hotplugged);
     memory_device_pre_plug(MEMORY_DEVICE(dev), MACHINE(hotplug_dev), errp);
 }
 

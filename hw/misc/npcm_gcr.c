@@ -215,12 +215,12 @@ static uint64_t npcm_gcr_read(void *opaque, hwaddr offset, unsigned size)
         break;
 
     case 8:
-        g_assert(!(reg & 1));
+        assert(!(reg & 1));
         value = deposit64(s->regs[reg], 32, 32, s->regs[reg + 1]);
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     trace_npcm_gcr_read(offset, value);
@@ -271,13 +271,13 @@ static void npcm_gcr_write(void *opaque, hwaddr offset,
         break;
 
     case 8:
-        g_assert(!(reg & 1));
+        assert(!(reg & 1));
         s->regs[reg] = value;
         s->regs[reg + 1] = extract64(v, 32, 32);
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -323,8 +323,8 @@ static void npcm7xx_gcr_enter_reset(Object *obj, ResetType type)
     NPCMGCRState *s = NPCM_GCR(obj);
     NPCMGCRClass *c = NPCM_GCR_GET_CLASS(obj);
 
-    g_assert(sizeof(s->regs) >= sizeof(c->cold_reset_values));
-    g_assert(sizeof(s->regs) >= c->nr_regs * sizeof(uint32_t));
+    assert(sizeof(s->regs) >= sizeof(c->cold_reset_values));
+    assert(sizeof(s->regs) >= c->nr_regs * sizeof(uint32_t));
     memcpy(s->regs, c->cold_reset_values, c->nr_regs * sizeof(uint32_t));
     /* These 3 registers are at the same location in both 7xx and 8xx. */
     s->regs[NPCM7XX_GCR_PWRON] = s->reset_pwron;

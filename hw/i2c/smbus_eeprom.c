@@ -215,7 +215,7 @@ uint8_t *spd_data_generate(enum sdram_type type, ram_addr_t ram_size)
         max_log2 = 14;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     size = ram_size >> 20; /* work in terms of megabytes */
     sz_log2 = 31 - clz32(size);

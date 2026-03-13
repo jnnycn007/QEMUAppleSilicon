@@ -467,7 +467,7 @@ void qht_init(struct qht *ht, qht_cmp_func_t cmp, size_t n_elems,
     struct qht_map *map;
     size_t n_buckets = qht_elems_to_buckets(n_elems);
 
-    g_assert(cmp);
+    assert(cmp);
     ht->cmp = cmp;
     ht->mode = mode;
     qemu_mutex_init(&ht->lock);
@@ -847,7 +847,7 @@ static inline void qht_bucket_iter(struct qht_bucket *head,
                 }
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
         }
         b = b->next;
@@ -938,7 +938,7 @@ static void qht_do_resize_reset(struct qht *ht, struct qht_map *new, bool reset)
         return;
     }
 
-    g_assert(new->n_buckets != old->n_buckets);
+    assert(new->n_buckets != old->n_buckets);
     data.ht = ht;
     data.new = new;
     qht_map_iter__all_locked(old, &iter, &data);

@@ -661,8 +661,8 @@ static void npcm_gmac_mdio_access(NPCMGMACState *gmac, uint16_t v)
         pa = NPCM_GMAC_MII_ADDR_PA(v);
         gr = NPCM_GMAC_MII_ADDR_GR(v);
         /* Both pa and gr are 5 bits, so they are less than 32. */
-        g_assert(pa < NPCM_GMAC_MAX_PHYS);
-        g_assert(gr < NPCM_GMAC_MAX_PHY_REGS);
+        assert(pa < NPCM_GMAC_MAX_PHYS);
+        assert(gr < NPCM_GMAC_MAX_PHY_REGS);
 
 
         if (v & NPCM_GMAC_MII_ADDR_WRITE) {

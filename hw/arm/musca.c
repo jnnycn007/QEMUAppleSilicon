@@ -253,7 +253,7 @@ static MemoryRegion *make_mpc(MuscaMachineState *mms, void *opaque,
         downstream = sysbus_mmio_get_region(SYS_BUS_DEVICE(uds), 0);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     object_initialize_child(OBJECT(mms), mpcname, mpc, TYPE_TZ_MPC);
@@ -515,7 +515,7 @@ static void musca_init(MachineState *machine)
         num_ppcs = ARRAY_SIZE(b1_ppcs);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     assert(num_ppcs <= MUSCA_PPC_MAX);
 

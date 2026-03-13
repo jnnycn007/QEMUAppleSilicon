@@ -181,7 +181,7 @@ static void goldfish_tty_receive(void *opaque, const uint8_t *buffer, int size)
 
     trace_goldfish_tty_receive(s, size);
 
-    g_assert(size <= fifo8_num_free(&s->rx_fifo));
+    assert(size <= fifo8_num_free(&s->rx_fifo));
 
     fifo8_push_all(&s->rx_fifo, buffer, size);
 

@@ -61,7 +61,7 @@ static uint32_t aspeed_rtc_get_counter(AspeedRtcState *rtc, int r)
         return ((cent & 0x1f) << 16) | ((year & 0x7f) << 8) |
             ((now.tm_mon + 1) & 0xf);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

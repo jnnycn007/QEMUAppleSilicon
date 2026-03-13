@@ -82,7 +82,7 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
         }
         return !(env->daif & PSTATE_A);
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /*
@@ -110,7 +110,7 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
                 unmasked = true;
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
         } else {
             /*
@@ -152,7 +152,7 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
                 scr = false;
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
 
             if ((scr || hcr) && !secure) {

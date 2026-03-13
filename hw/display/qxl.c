@@ -748,7 +748,7 @@ static void interface_release_resource(QXLInstance *sin,
         /* host group -> vga mode update request */
         QXLCommandExt *cmdext = (void *)(intptr_t)(ext.info->id);
         SimpleSpiceUpdate *update;
-        g_assert(cmdext->cmd.type == QXL_CMD_DRAW);
+        assert(cmdext->cmd.type == QXL_CMD_DRAW);
         update = container_of(cmdext, SimpleSpiceUpdate, ext);
         qemu_spice_destroy_update(&qxl->ssd, update);
         return;

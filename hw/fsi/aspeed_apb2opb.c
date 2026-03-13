@@ -127,7 +127,7 @@ static MemTxResult fsi_aspeed_apb2opb_rw(AddressSpace *as, hwaddr addr,
             address_space_stb(as, addr, *data, attrs, &res);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         switch (size) {
@@ -141,7 +141,7 @@ static MemTxResult fsi_aspeed_apb2opb_rw(AddressSpace *as, hwaddr addr,
             *data = address_space_ldub(as, addr, attrs, &res);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     return res;

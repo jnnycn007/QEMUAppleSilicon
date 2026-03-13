@@ -118,7 +118,7 @@ static int cmsdk_dualtimermod_divisor(CMSDKAPBDualTimerModule *m)
     case 3: /* UNDEFINED, we treat like 2 (and complained when it was set) */
         return 256;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -160,7 +160,7 @@ static void cmsdk_dualtimermod_write_control(CMSDKAPBDualTimerModule *m,
             divisor = 256;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         ptimer_set_period_from_clock(m->timer, m->parent->timclk, divisor);
     }

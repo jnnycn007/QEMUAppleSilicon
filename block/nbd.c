@@ -391,7 +391,7 @@ static void coroutine_fn GRAPH_RDLOCK nbd_reconnect_attempt(BDRVNBDState *s)
          * It's the first reconnect attempt after switching to
          * NBD_CLIENT_CONNECTING_WAIT
          */
-        g_assert(s->reconnect_delay);
+        assert(s->reconnect_delay);
         reconnect_delay_timer_init(s,
             qemu_clock_get_ns(QEMU_CLOCK_REALTIME) +
             s->reconnect_delay * NANOSECONDS_PER_SECOND);

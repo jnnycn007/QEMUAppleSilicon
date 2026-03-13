@@ -139,7 +139,7 @@ static bool report_as_gpc_exception(ARMCPU *cpu, int current_el,
         ret = (cpu->env.cp15.scr_el3 & SCR_GPF) && current_el != 3;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     assert(cpu_isar_feature(aa64_rme, cpu));
@@ -217,7 +217,7 @@ void arm_deliver_fault(ARMCPU *cpu, vaddr addr,
             env->cp15.mfar_el3 |= R_MFAR_NSE_MASK | R_MFAR_NS_MASK;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         exc = EXCP_GPC;

@@ -261,7 +261,7 @@ static void npcm7xx_mft_capture(NPCM7xxMFTState *s)
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -303,7 +303,7 @@ static void npcm7xx_mft_capture(NPCM7xxMFTState *s)
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 

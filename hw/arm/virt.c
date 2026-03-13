@@ -817,7 +817,7 @@ static void create_gic(VirtMachineState *vms, MemoryRegion *mem)
         revision = 4;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (kvm_enabled() && vms->virt &&
@@ -1683,7 +1683,7 @@ static void create_pcie(VirtMachineState *vms)
             vms->legacy_smmuv3_present = true;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -2854,7 +2854,7 @@ static char *virt_get_iommu(Object *obj, Error **errp)
     case VIRT_IOMMU_SMMUV3:
         return g_strdup("smmuv3");
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

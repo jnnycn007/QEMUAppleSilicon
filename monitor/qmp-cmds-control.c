@@ -209,7 +209,7 @@ SchemaInfoList *qmp_query_qmp_schema(Error **errp)
 
     /* test_visitor_in_qmp_introspect() ensures this can't fail */
     visit_type_SchemaInfoList(v, NULL, &schema, &error_abort);
-    g_assert(schema);
+    assert(schema);
 
     qobject_unref(obj);
     visit_free(v);

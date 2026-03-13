@@ -267,7 +267,7 @@ static void apple_boot_process_dt_node(AppleDTNode *node, AppleDTNode *parent)
 
     prop = apple_dt_get_prop(node, "compatible");
     if (prop != NULL) {
-        g_assert_nonnull(prop->data);
+        assert_nonnull(prop->data);
         found = false;
         for (count = sizeof(KEEP_COMP) / sizeof(KEEP_COMP[0]), i = 0; i < count;
              i++) {
@@ -278,7 +278,7 @@ static void apple_boot_process_dt_node(AppleDTNode *node, AppleDTNode *parent)
             }
         }
         if (!found) {
-            g_assert_nonnull(parent);
+            assert_nonnull(parent);
             DINFO(
                 "Removing node `%s` because its compatible property `%s` "
                 "is not whitelisted",
@@ -291,12 +291,12 @@ static void apple_boot_process_dt_node(AppleDTNode *node, AppleDTNode *parent)
 
     prop = apple_dt_get_prop(node, "name");
     if (prop != NULL) {
-        g_assert_nonnull(prop->data);
+        assert_nonnull(prop->data);
         for (count = sizeof(REM_NAMES) / sizeof(REM_NAMES[0]), i = 0; i < count;
              i++) {
             uint64_t size = MIN(prop->len, sstrlen(REM_NAMES[i]));
             if (memcmp(prop->data, REM_NAMES[i], size) == 0) {
-                g_assert_nonnull(parent);
+                assert_nonnull(parent);
                 DINFO("Removing node `%s` because its name is blacklisted",
                       (char *)prop->data);
                 apple_dt_del_node(parent, node);
@@ -307,12 +307,12 @@ static void apple_boot_process_dt_node(AppleDTNode *node, AppleDTNode *parent)
 
     prop = apple_dt_get_prop(node, "device_type");
     if (prop != NULL) {
-        g_assert_nonnull(prop->data);
+        assert_nonnull(prop->data);
         for (count = sizeof(REM_DEV_TYPES) / sizeof(REM_DEV_TYPES[0]), i = 0;
              i < count; i++) {
             uint64_t size = MIN(prop->len, sstrlen(REM_DEV_TYPES[i]));
             if (memcmp(prop->data, REM_DEV_TYPES[i], size) == 0) {
-                g_assert_nonnull(parent);
+                assert_nonnull(parent);
                 DINFO("Removing node `%s` because its device type "
                       "property `%s` is blacklisted",
                       apple_dt_get_prop_str_or(node, "name", "(null)",
@@ -522,7 +522,7 @@ static void apple_boot_init_mem_ranges(AppleDTNode *root)
     AppleDTNode *child;
 
     child = apple_dt_get_node(root, "chosen/memory-map");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     apple_dt_set_prop(child, "RAMDisk", 16, NULL);
     apple_dt_set_prop(child, "TrustCache", 16, NULL);
@@ -541,19 +541,19 @@ void apple_boot_populate_dt(AppleDTNode *root, AppleBootInfo *info,
     uint8_t *hash = NULL;
     size_t hash_len = 0;
 
-    g_assert_cmphex(info->nvram_size, <=, XNU_MAX_NVRAM_SIZE);
+    assert_cmphex(info->nvram_size, <=, XNU_MAX_NVRAM_SIZE);
 
     apple_dt_set_prop_null(root, "no-suspend");
 
     child = apple_dt_get_node(root, "chosen");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     prop = apple_dt_get_prop(child, "random-seed");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     qemu_guest_getrandom_nofail(prop->data, prop->len);
 
     prop = apple_dt_get_prop(child, "boot-nonce");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     boot_nonce_data = prop->data;
     boot_nonce_len = prop->len;
     qemu_guest_getrandom_nofail(boot_nonce_data, boot_nonce_len);
@@ -592,7 +592,7 @@ void apple_boot_populate_dt(AppleDTNode *root, AppleBootInfo *info,
     apple_dt_set_prop_u32(child, "boot-command", auto_boot ? 1 : 7);
 
     child = apple_dt_get_node(root, "defaults");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     // Enable FastSim for iOS 26
     apple_dt_set_prop_u32(child, "insecure_hpr", 1);
@@ -609,7 +609,7 @@ void apple_boot_populate_dt(AppleDTNode *root, AppleBootInfo *info,
     }
 
     child = apple_dt_get_node(root, "product");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
     apple_dt_set_prop_u32(child, "allow-hactivation", 1);
 
     apple_boot_init_mem_ranges(root);
@@ -627,16 +627,16 @@ static void set_memory_range(AppleDTNode *root, const char *name, uint64_t addr,
     AppleDTProp *prop;
 
     child = apple_dt_get_node(root, "chosen/memory-map");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     if (addr == 0) {
-        g_assert_cmphex(size, ==, 0);
+        assert_cmphex(size, ==, 0);
         apple_dt_del_prop_named(child, name);
         return;
     }
 
     prop = apple_dt_get_prop(child, name);
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     stq_le_p(prop->data, addr);
     stq_le_p(prop->data + sizeof(uint64_t), size);
@@ -662,7 +662,7 @@ void apple_boot_finalise_dt(AppleDTNode *root, AddressSpace *as,
 
     if (info->ticket_data != NULL && info->ticket_length != 0) {
         child = apple_dt_get_node(root, "chosen");
-        g_assert_nonnull(child);
+        assert_nonnull(child);
 
         crypto_hash_method = apple_dt_get_prop_str_or(
             child, "crypto-hash-method", "sha1", &error_fatal);
@@ -671,15 +671,15 @@ void apple_boot_finalise_dt(AppleDTNode *root, AddressSpace *as,
         } else if (strcmp(crypto_hash_method, "sha1") == 0) {
             alg = QCRYPTO_HASH_ALGO_SHA1;
         } else {
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         prop = apple_dt_get_prop(child, "boot-manifest-hash");
-        g_assert_nonnull(prop);
+        assert_nonnull(prop);
 
         if (qcrypto_hash_bytes(alg, info->ticket_data, info->ticket_length,
                                &hash, &hash_len, &error_fatal) >= 0) {
-            g_assert_cmpuint(hash_len, ==, prop->len);
+            assert_cmpuint(hash_len, ==, prop->len);
             memcpy(prop->data, hash, hash_len);
             g_free(hash);
             hash = NULL;
@@ -762,7 +762,7 @@ uint8_t *apple_boot_load_trustcache_file(const char *filename, uint64_t *size)
     // 24 is header size
     expected_file_size = 24 + trustcache_entry_count * trustcache_entry_size;
 
-    g_assert_cmpuint(file_size, ==, expected_file_size);
+    assert_cmpuint(file_size, ==, expected_file_size);
 
     *size = trustcache_size;
     return (uint8_t *)trustcache_data;
@@ -975,14 +975,14 @@ void apple_boot_get_kc_bounds(MachoHeader64 *header, vaddr *text_base,
         }
     }
 
-    g_assert_cmphex(text_base_cur, !=, 0);
-    g_assert_cmphex(text_base_cur, !=, -1ULL);
-    g_assert_cmphex(kc_base_cur, !=, 0);
-    g_assert_cmphex(kc_base_cur, !=, -1ULL);
-    g_assert_cmphex(kc_end_cur, !=, 0);
-    g_assert_cmphex(ro_lower_cur, !=, 0);
-    g_assert_cmphex(ro_lower_cur, !=, -1ULL);
-    g_assert_cmphex(ro_upper_cur, !=, 0);
+    assert_cmphex(text_base_cur, !=, 0);
+    assert_cmphex(text_base_cur, !=, -1ULL);
+    assert_cmphex(kc_base_cur, !=, 0);
+    assert_cmphex(kc_base_cur, !=, -1ULL);
+    assert_cmphex(kc_end_cur, !=, 0);
+    assert_cmphex(ro_lower_cur, !=, 0);
+    assert_cmphex(ro_lower_cur, !=, -1ULL);
+    assert_cmphex(ro_upper_cur, !=, 0);
 
     if (text_base != NULL) {
         *text_base = text_base_cur;
@@ -1039,10 +1039,10 @@ MachoHeader64 *apple_boot_parse_macho(uint8_t *data, uint32_t len)
     int i;
 
     header = (MachoHeader64 *)data;
-    g_assert_cmphex(header->magic, ==, MACH_MAGIC_64);
+    assert_cmphex(header->magic, ==, MACH_MAGIC_64);
 
     apple_boot_get_kc_bounds(header, &text_base, &kc_base, &kc_end, NULL, NULL);
-    g_assert_cmphex(kc_base, <, kc_end);
+    assert_cmphex(kc_base, <, kc_end);
 
     phys_base = g_malloc0(kc_end - kc_base);
 
@@ -1058,7 +1058,7 @@ MachoHeader64 *apple_boot_parse_macho(uint8_t *data, uint32_t len)
             segCmd->vmsize == 0) {
             continue;
         }
-        g_assert_cmphex(segCmd->fileoff, <, len);
+        assert_cmphex(segCmd->fileoff, <, len);
         memcpy(phys_base + (segCmd->vmaddr - kc_base), data + segCmd->fileoff,
                segCmd->filesize);
     }
@@ -1401,7 +1401,7 @@ vaddr apple_boot_load_macho(MachoHeader64 *header, AddressSpace *as,
                 if (strcmp(segCmd->segname, "__TEXT") == 0) {
                     header2 = load_from;
                     MachoSegmentCommand64 *seg;
-                    g_assert_cmphex(header2->magic, ==, MACH_MAGIC_64);
+                    assert_cmphex(header2->magic, ==, MACH_MAGIC_64);
                     for (seg = apple_boot_get_first_seg(header2); seg != NULL;
                          seg = apple_boot_get_next_seg(header2, seg)) {
                         MachoSection64 *sp;
@@ -1429,7 +1429,7 @@ vaddr apple_boot_load_macho(MachoHeader64 *header, AddressSpace *as,
                 if (strcmp(segCmd->segname, "__TEXT") == 0) {
                     header2 = load_from;
                     MachoSegmentCommand64 *seg;
-                    g_assert_cmphex(header2->magic, ==, MACH_MAGIC_64);
+                    assert_cmphex(header2->magic, ==, MACH_MAGIC_64);
                     for (seg = apple_boot_get_first_seg(header2); seg != NULL;
                          seg = apple_boot_get_next_seg(header2, seg)) {
                         MachoSection64 *sp;

@@ -11,10 +11,10 @@
 
 uint32_t hvf_arm_get_default_ipa_bit_size(void)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 uint32_t hvf_arm_get_max_ipa_bit_size(void)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

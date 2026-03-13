@@ -58,7 +58,7 @@ static void build_append_padded_str(GArray *array, const char *str,
     size_t i;
     size_t len = strlen(str);
 
-    g_assert(len <= maxlen);
+    assert(len <= maxlen);
     g_array_append_vals(array, str, len);
     for (i = maxlen - len; i > 0; i--) {
         g_array_append_val(array, pad);
@@ -533,7 +533,7 @@ void aml_append(Aml *parent_ctx, Aml *child)
     case AML_NO_OPCODE:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     build_append_array(parent_ctx->buf, buf);
     build_free_array(buf);
@@ -1335,7 +1335,7 @@ Aml *aml_eisaid(const char *str)
     Aml *var = aml_alloc();
     uint32_t id;
 
-    g_assert(strlen(str) == 7);
+    assert(strlen(str) == 7);
     id = (str[0] - 0x40) << 26 |
     (str[1] - 0x40) << 21 |
     (str[2] - 0x40) << 16 |
@@ -1713,7 +1713,7 @@ void acpi_table_begin(AcpiTable *desc, GArray *array)
      * ACPI spec 1.0b
      * 5.2.3 System Description Table Header
      */
-    g_assert(strlen(desc->sig) == 4);
+    assert(strlen(desc->sig) == 4);
     g_array_append_vals(array, desc->sig, 4); /* Signature */
     /*
      * reserve space for Length field, which will be patched by
@@ -1803,15 +1803,15 @@ build_rsdp(GArray *tbl, BIOSLinker *linker, AcpiRsdpData *rsdp_data)
     switch (rsdp_data->revision) {
     case 0:
         /* With ACPI 1.0, we must have an RSDT pointer */
-        g_assert(rsdp_data->rsdt_tbl_offset);
+        assert(rsdp_data->rsdt_tbl_offset);
         break;
     case 2:
         /* With ACPI 2.0+, we must have an XSDT pointer */
-        g_assert(rsdp_data->xsdt_tbl_offset);
+        assert(rsdp_data->xsdt_tbl_offset);
         break;
     default:
         /* Only revisions 0 (ACPI 1.0) and 2 (ACPI 2.0+) are valid for RSDP */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     bios_linker_loader_alloc(linker, ACPI_BUILD_RSDP_FILE, tbl, 16,
@@ -2399,7 +2399,7 @@ void build_tpm2(GArray *table_data, BIOSLinker *linker, GArray *tcpalog,
         control_area_start_address = TPM_CRB_ADDR_CTRL;
         start_method = TPM2_START_METHOD_CRB;
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
     /* Address of Control Area */
     build_append_int_noprefix(table_data, control_area_start_address, 8);

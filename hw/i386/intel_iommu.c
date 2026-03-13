@@ -2356,7 +2356,7 @@ static void vtd_context_device_invalidate(IntelIOMMUState *s,
         mask = 7;   /* Mask bit 2:0 in the SID field */
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     mask = ~mask;
 

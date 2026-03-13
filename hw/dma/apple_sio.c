@@ -281,7 +281,7 @@ uint64_t apple_sio_dma_read(AppleSIODMAEndpoint *ep, void *buffer, uint64_t len)
 
     QEMU_LOCK_GUARD(&ep->mutex);
 
-    g_assert_cmpuint(ep->direction, ==, DMA_DIRECTION_TO_DEVICE);
+    assert_cmpuint(ep->direction, ==, DMA_DIRECTION_TO_DEVICE);
 
     s = container_of(ep, AppleSIOState, eps[ep->id]);
 
@@ -312,7 +312,7 @@ uint64_t apple_sio_dma_write(AppleSIODMAEndpoint *ep, void *buffer,
 
     QEMU_LOCK_GUARD(&ep->mutex);
 
-    g_assert_cmpuint(ep->direction, ==, DMA_DIRECTION_FROM_DEVICE);
+    assert_cmpuint(ep->direction, ==, DMA_DIRECTION_FROM_DEVICE);
 
     s = container_of(ep, AppleSIOState, eps[ep->id]);
 
@@ -440,7 +440,7 @@ static void apple_sio_dma(AppleSIOState *s, AppleSIODMAEndpoint *ep,
         // Firestorm$Inferno/18A5351d/sio.bndb@00003bc4
         // Firestorm$Inferno/18A5351d/kernelcache.research.iphone12b.bndb@fffffff0085d2b80
         // -- end internal references --
-        g_assert_cmphex(m.param, ==, 0);
+        assert_cmphex(m.param, ==, 0);
 
         segment_addr = s->segment_base + (m.data * 0xC);
         if (dma_memory_read(&s->dma_as, segment_addr + 0x3C, &segment_count,
@@ -592,7 +592,7 @@ static void apple_sio_realize(DeviceState *dev, Error **errp)
     obj = object_property_get_link(OBJECT(dev), "dma-mr", &error_abort);
 
     s->dma_mr = MEMORY_REGION(obj);
-    g_assert_nonnull(s->dma_mr);
+    assert_nonnull(s->dma_mr);
     address_space_init(&s->dma_as, s->dma_mr, "sio.dma-as");
 
     for (int i = 0; i < SIO_NUM_EPS; ++i) {
@@ -801,10 +801,10 @@ SysBusDevice *apple_sio_from_node(AppleDTNode *node, AppleA7IOPVersion version,
     s->protocol_version = protocol_version;
 
     child = apple_dt_get_node(node, "iop-sio-nub");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 

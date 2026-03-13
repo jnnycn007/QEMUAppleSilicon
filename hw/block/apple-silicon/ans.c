@@ -198,7 +198,7 @@ static void apple_ans_start(void *opaque)
     config = pci_default_read_config(pci_dev, PCI_COMMAND, 4);
     config |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
     pci_default_write_config(pci_dev, PCI_COMMAND, config, 4);
-    g_assert_true(pci_dev->bus_master_enable_region.enabled);
+    assert_true(pci_dev->bus_master_enable_region.enabled);
     s->started = true;
 }
 
@@ -229,7 +229,7 @@ SysBusDevice *apple_ans_from_node(AppleDTNode *node, AppleA7IOPVersion version,
     sbd = SYS_BUS_DEVICE(dev);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     reg = (uint64_t *)prop->data;
 
@@ -251,7 +251,7 @@ SysBusDevice *apple_ans_from_node(AppleDTNode *node, AppleA7IOPVersion version,
     qdev_init_gpio_in_named(dev, apple_ans_set_irq, "interrupt_pci", 1);
 
     child = apple_dt_get_node(node, "iop-ans-nub");
-    g_assert_nonnull(child);
+    assert_nonnull(child);
 
     apple_dt_set_prop_u32(child, "pre-loaded", 1);
     apple_dt_set_prop_u32(child, "running", 1);
@@ -290,7 +290,7 @@ static void apple_ans_realize(DeviceState *dev, Error **errp)
     AppleANSState *s = APPLE_ANS(dev);
     PCIDevice *pci_dev = PCI_DEVICE(s->nvme);
     qdev_realize(DEVICE(s->nvme), BUS(s->pci_bus), &error_fatal);
-    g_assert_true(pci_is_express(pci_dev));
+    assert_true(pci_is_express(pci_dev));
     pcie_endpoint_cap_init(pci_dev, 0);
     pcie_cap_deverr_init(pci_dev);
 

@@ -126,7 +126,7 @@ void override_max_devs(BlockInterfaceType type, int max_devs)
             fprintf(stderr, "Cannot override units-per-bus property of"
                     " the %s interface, because a drive of that type has"
                     " already been added.\n", if_name[type]);
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -1406,7 +1406,7 @@ static void external_snapshot_action(TransactionAction *action,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* start processing */
@@ -2148,7 +2148,7 @@ static void abort_action(Transaction *tran, Error **errp)
 
 static void abort_commit(void *opaque)
 {
-    g_assert_not_reached(); /* this action never succeeds */
+    assert_not_reached(); /* this action never succeeds */
 }
 
 static void transaction_action(TransactionAction *act, JobTxn *block_job_txn,
@@ -2207,7 +2207,7 @@ static void transaction_action(TransactionAction *act, JobTxn *block_job_txn,
      */
     case TRANSACTION_ACTION_KIND__MAX:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     };
 }
 

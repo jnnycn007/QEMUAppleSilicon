@@ -539,7 +539,7 @@ VirtioDeviceFeatures *qmp_decode_features(uint16_t device_id, uint64_t bitmap)
     case VIRTIO_ID_AUDIO_POLICY:
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     features->has_unknown_dev_features = bitmap != 0;

@@ -118,7 +118,7 @@ uint8_t round_down_to_parange_index(uint8_t bit_size)
             return i;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 uint8_t round_down_to_parange_bit_size(uint8_t bit_size)
@@ -215,7 +215,7 @@ static ARMMMUIdx ptw_idx_for_stage_2(CPUARMState *env, ARMMMUIdx stage2idx)
         }
         return s2walk_secure ? ARMMMUIdx_Phys_S : ARMMMUIdx_Phys_NS;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -320,7 +320,7 @@ static bool regime_translation_disabled(CPUARMState *env, ARMMMUIdx mmu_idx,
         return true;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return (regime_sctlr(env, mmu_idx) & SCTLR_M) == 0;
@@ -638,7 +638,7 @@ static bool S1_ptw_translate(CPUARMState *env, S1Translate *ptw,
         pte_attrs = full->extra.arm.pte_attrs;
         ptw->out_space = full->attrs.space;
 #else
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     }
 
@@ -879,7 +879,7 @@ static uint64_t arm_casq_ptw(CPUARMState *env, uint64_t old_val,
     return cur_val;
 #else
     /* AArch32 does not have FEAT_HADFS; non-TCG guests only use debug-mode. */
-    g_assert_not_reached();
+    assert_not_reached();
 #endif
 }
 
@@ -960,7 +960,7 @@ static int ap_to_rw_prot_is_user(CPUARMState *env, ARMMMUIdx mmu_idx,
         }
         return PAGE_READ;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -995,7 +995,7 @@ static int simple_ap_to_rw_prot_is_user(int ap, bool is_user)
     case 3:
         return PAGE_READ;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1050,7 +1050,7 @@ pte_to_sprr_prot_is_guarded(CPUARMState *env, int ap, int xn, int pxn, bool guar
             prot = PAGE_READ | PAGE_WRITE;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         switch (attr & 3) {
@@ -1074,7 +1074,7 @@ pte_to_sprr_prot_is_guarded(CPUARMState *env, int ap, int xn, int pxn, bool guar
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -1201,7 +1201,7 @@ static bool get_phys_addr_v5(CPUARMState *env, S1Translate *ptw,
             break;
         default:
             /* Never happens, but compiler isn't smart enough to tell.  */
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     result->f.prot = ap_to_rw_prot(env, ptw->in_mmu_idx, ap, domain_prot);
@@ -1326,7 +1326,7 @@ static bool get_phys_addr_v6(CPUARMState *env, S1Translate *ptw,
             break;
         default:
             /* Never happens, but compiler isn't smart enough to tell.  */
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     out_space = ptw->in_space;
@@ -1422,7 +1422,7 @@ static int get_S2prot(CPUARMState *env, int s2ap, int xn, bool s1_is_el0)
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         if (!extract32(xn, 1, 1)) {
@@ -1502,7 +1502,7 @@ static int get_S1prot(CPUARMState *env, ARMMMUIdx mmu_idx, bool is_aa64,
             case ARMMMUIdx_GE2:
             case ARMMMUIdx_GE20_2:
             case ARMMMUIdx_GE20_2_PAN:
-                g_assert_not_reached();
+                assert_not_reached();
             default:
                 break;
             }
@@ -1514,7 +1514,7 @@ static int get_S1prot(CPUARMState *env, ARMMMUIdx mmu_idx, bool is_aa64,
             break;
         default:
             /* Input NonSecure must have output NonSecure. */
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -1707,7 +1707,7 @@ static int check_s2_mmu_setup(ARMCPU *cpu, bool is_aa64, uint64_t tcr,
             startlevel = 3 - sl0;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     } else {
         /*
@@ -1752,7 +1752,7 @@ static bool lpae_block_desc_valid(ARMCPU *cpu, bool ds,
     case Gran64K:
         return (level == 1 && arm_pamax(cpu) == 52) || level == 2;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2182,16 +2182,16 @@ static bool get_phys_addr_lpae(CPUARMState *env, S1Translate *ptw,
             case ARMMMUIdx_GE2:
             case ARMMMUIdx_GE20_2:
             case ARMMMUIdx_GE20_2_PAN:
-                g_assert_not_reached();
+                assert_not_reached();
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
             break;
         case ARMSS_NonSecure:
             /* R_QRMFF: For NonSecure state, the NS bit is RES0. */
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         xn = extract64(attrs, 54, 1);
         pxn = extract64(attrs, 53, 1);
@@ -2463,7 +2463,7 @@ static void get_phys_addr_pmsav7_default(CPUARMState *env, ARMMMUIdx mmu_idx,
             *prot = PAGE_READ | PAGE_WRITE;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -3798,7 +3798,7 @@ arm_mmu_idx_to_security_space(CPUARMState *env, ARMMMUIdx mmu_idx)
         ss = ARMSS_Realm;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return ss;

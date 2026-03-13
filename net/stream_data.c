@@ -164,7 +164,7 @@ int net_stream_data_client_connected(QIOTask *task, NetStreamData *d)
     }
 
     addr = qio_channel_socket_get_remote_address(sioc, NULL);
-    g_assert(addr != NULL);
+    assert(addr != NULL);
 
     if (!qemu_set_blocking(sioc->fd, false, &err)) {
         qemu_set_info_str(&d->nc, "error: %s", error_get_pretty(err));

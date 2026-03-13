@@ -333,9 +333,9 @@ SysBusDevice *adp_v2_from_node(AppleDTNode *node, MemoryRegion *dma_mr,
     uint64_t *reg;
     MemoryRegion *mr;
 
-    g_assert_nonnull(node);
-    g_assert_nonnull(dma_mr);
-    g_assert_nonnull(video_args);
+    assert_nonnull(node);
+    assert_nonnull(dma_mr);
+    assert_nonnull(video_args);
 
     dev = qdev_new(TYPE_APPLE_DISPLAY_PIPE_V2);
     sbd = SYS_BUS_DEVICE(dev);
@@ -349,7 +349,7 @@ SysBusDevice *adp_v2_from_node(AppleDTNode *node, MemoryRegion *dma_mr,
 
     s->dma_mr = dma_mr;
 
-    g_assert_nonnull(
+    assert_nonnull(
         object_property_add_const_link(OBJECT(s), "dma_mr", OBJECT(dma_mr)));
     address_space_init(&s->dma_as, dma_mr, "disp0.dma");
 
@@ -360,7 +360,7 @@ SysBusDevice *adp_v2_from_node(AppleDTNode *node, MemoryRegion *dma_mr,
     apple_dt_set_prop_u32(node, "dot-pitch", 326);
 
     prop = apple_dt_get_prop(node, "reg");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
     mr = g_new0(MemoryRegion, 5);
     memory_region_init_io(mr, OBJECT(s), &frontend_reg_ops, s, "adp.frontend",
@@ -392,7 +392,7 @@ SysBusDevice *adp_v2_from_node(AppleDTNode *node, MemoryRegion *dma_mr,
     sysbus_init_mmio(sbd, mr + 4);
 
     prop = apple_dt_get_prop(node, "interrupts");
-    g_assert_nonnull(prop);
+    assert_nonnull(prop);
 
     for (size_t i = 0; i < prop->len / sizeof(uint32_t); i++) {
         sysbus_init_irq(sbd, &s->irqs[i]);

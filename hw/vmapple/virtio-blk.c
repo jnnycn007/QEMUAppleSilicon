@@ -75,7 +75,7 @@ static void vmapple_virtio_blk_get_config(VirtIODevice *vdev, uint8_t *config)
 
     vvbk->get_config(vdev, config);
 
-    g_assert(dev->parent_obj.config_size >= endof(struct virtio_blk_config, zoned));
+    assert(dev->parent_obj.config_size >= endof(struct virtio_blk_config, zoned));
 
     /* Apple abuses the field for max_secure_erase_sectors as type id */
     stl_he_p(&blkcfg->max_secure_erase_sectors, dev->apple_type);

@@ -82,7 +82,7 @@ uint64_t vfp_expand_imm(int size, uint8_t imm8)
             (extract32(imm8, 0, 6) << 6);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return imm;
 }
@@ -612,7 +612,7 @@ bool mve_skip_vmov(DisasContext *s, int vn, int index, int size)
     case ECI_A0A1A2B0:
         return ofs < 12;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -841,7 +841,7 @@ static bool trans_VMSR_VMRS(DisasContext *s, arg_VMSR_VMRS *a)
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (a->rt == 15) {
@@ -880,7 +880,7 @@ static bool trans_VMSR_VMRS(DisasContext *s, arg_VMSR_VMRS *a)
             store_cpu_field(tmp, vfp.xregs[a->reg]);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -3135,7 +3135,7 @@ static bool trans_VCVT_fix_hp(DisasContext *s, arg_VCVT_fix_sp *a)
         gen_helper_vfp_toulh_round_to_zero(vd, vd, shift, fpst);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     vfp_store_reg32(vd, a->vd);
@@ -3191,7 +3191,7 @@ static bool trans_VCVT_fix_sp(DisasContext *s, arg_VCVT_fix_sp *a)
         gen_helper_vfp_touls_round_to_zero(vd, vd, shift, fpst);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     vfp_store_reg32(vd, a->vd);
@@ -3253,7 +3253,7 @@ static bool trans_VCVT_fix_dp(DisasContext *s, arg_VCVT_fix_dp *a)
         gen_helper_vfp_tould_round_to_zero(vd, vd, shift, fpst);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     vfp_store_reg64(vd, a->vd);

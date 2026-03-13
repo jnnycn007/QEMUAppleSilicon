@@ -1153,7 +1153,7 @@ static uint8_t gic_dist_readb(void *opaque, hwaddr offset, MemTxAttrs attrs)
             }
         }
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return res;
 bad_reg:
@@ -1582,7 +1582,7 @@ static inline uint32_t gic_apr_ns_view(GICState *s, int cpu, int regno)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     return 0;
 }
@@ -1613,7 +1613,7 @@ static inline void gic_apr_write_ns_view(GICState *s, int cpu, int regno,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 

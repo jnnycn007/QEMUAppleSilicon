@@ -39,7 +39,7 @@ static bool is_connected(uint32_t config, uint32_t level)
         state = level == 0;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return state;

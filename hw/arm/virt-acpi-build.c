@@ -1001,7 +1001,7 @@ static void build_fadt_rev6(GArray *table_data, BIOSLinker *linker,
         fadt.arm_boot_arch = ACPI_FADT_ARM_PSCI_COMPLIANT;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     build_fadt(table_data, linker, &fadt, vms->oem_id, vms->oem_table_id);

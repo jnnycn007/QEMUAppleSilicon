@@ -216,7 +216,7 @@ static efi_status check_update(uefi_vars_state *uv, uefi_variable *old_var,
         status = uefi_vars_policy_check(uv, new_var, old_var == NULL);
     } else {
         /* delete */
-        g_assert(old_var);
+        assert(old_var);
         status = uefi_vars_policy_check(uv, old_var, false);
     }
     if (status != EFI_SUCCESS) {
@@ -449,8 +449,8 @@ static size_t uefi_vars_mm_set_variable(uefi_vars_state *uv, mm_header *mhdr,
         return uefi_vars_mm_error(mhdr, mvar, EFI_BAD_BUFFER_SIZE);
     }
 
-    g_assert(va->name_size < G_MAXUINT32);
-    g_assert(va->data_size < G_MAXUINT32);
+    assert(va->name_size < G_MAXUINT32);
+    assert(va->data_size < G_MAXUINT32);
 
     if (!uefi_str_is_valid(name, va->name_size, true)) {
         return uefi_vars_mm_error(mhdr, mvar, EFI_INVALID_PARAMETER);

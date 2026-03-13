@@ -51,7 +51,7 @@ static void neon_load_element(TCGv_i32 var, int reg, int ele, MemOp mop)
         tcg_gen_ld_i32(var, tcg_env, offset);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -73,7 +73,7 @@ static void neon_load_element64(TCGv_i64 var, int reg, int ele, MemOp mop)
         tcg_gen_ld_i64(var, tcg_env, offset);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -92,7 +92,7 @@ static void neon_store_element(int reg, int ele, MemOp size, TCGv_i32 var)
         tcg_gen_st_i32(var, tcg_env, offset);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -114,7 +114,7 @@ static void neon_store_element64(int reg, int ele, MemOp size, TCGv_i64 var)
         tcg_gen_st_i64(var, tcg_env, offset);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -613,7 +613,7 @@ static bool trans_VLD_all_lanes(DisasContext *s, arg_VLD_all_lanes *a)
             }
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -703,7 +703,7 @@ static bool trans_VLDST_single(DisasContext *s, arg_VLDST_single *a)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     if ((vd + a->stride * (nregs - 1)) > 31) {
         /*
@@ -747,7 +747,7 @@ static bool trans_VLDST_single(DisasContext *s, arg_VLDST_single *a)
             break;
         default:
             /* For VLD3, the alignment field is zero and rejected above. */
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         mop = (mop & ~MO_AMASK) | align_op;

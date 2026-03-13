@@ -151,24 +151,24 @@ static void tcg_out_vec_op(TCGContext *s, TCGOpcode opc,
 static inline bool tcg_out_dup_vec(TCGContext *s, TCGType type, unsigned vece,
                                    TCGReg dst, TCGReg src)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 static inline bool tcg_out_dupm_vec(TCGContext *s, TCGType type, unsigned vece,
                                     TCGReg dst, TCGReg base, intptr_t offset)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 static inline void tcg_out_dupi_vec(TCGContext *s, TCGType type, unsigned vece,
                                     TCGReg dst, int64_t arg)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 static inline void tcg_out_vec_op(TCGContext *s, TCGOpcode opc,
                                   unsigned vecl, unsigned vece,
                                   const TCGArg args[TCG_MAX_OP_ARGS],
                                   const int const_args[TCG_MAX_OP_ARGS])
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 int tcg_can_emit_vec_op(TCGOpcode o, TCGType t, unsigned ve)
 {
@@ -501,7 +501,7 @@ static void tcg_out_movext(TCGContext *s, TCGType dst_type, TCGReg dst,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -629,7 +629,7 @@ static void tcg_out_movext3(TCGContext *s, const TCGMovExtend *i1,
             tcg_out_movext1_new_src(s, i1, scratch);
         }
     } else {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -1280,7 +1280,7 @@ void tcg_register_thread(void)
 
     /* Claim an entry in tcg_ctxs */
     n = qatomic_fetch_inc(&tcg_cur_ctxs);
-    g_assert(n < tcg_max_ctxs);
+    assert(n < tcg_max_ctxs);
 
     if (n > 0) {
         tcg_region_initial_alloc(s);
@@ -1451,7 +1451,7 @@ static ffi_type *typecode_to_ffi(int argmask)
     case dh_typecode_i128:
         return &ffi_type_i128;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static ffi_cif *init_ffi_layout(TCGHelperInfo *info)
@@ -1644,7 +1644,7 @@ static void init_call_layout(TCGHelperInfo *info)
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /*
@@ -1671,7 +1671,7 @@ static void init_call_layout(TCGHelperInfo *info)
             type = TCG_TYPE_I128;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         switch (type) {
@@ -1726,7 +1726,7 @@ static void init_call_layout(TCGHelperInfo *info)
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     info->nr_in = cum.info_in_idx;
@@ -2022,7 +2022,7 @@ static TCGTemp *tcg_global_mem_new_internal(TCGv_ptr base, intptr_t offset,
         indirect_reg = 1;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (TCG_TARGET_REG_BITS == 32 && type == TCG_TYPE_I64) {
@@ -2117,7 +2117,7 @@ TCGTemp *tcg_temp_new_internal(TCGType type, TCGTempKind kind)
         n = 128 / TCG_TARGET_REG_BITS;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     ts = tcg_temp_alloc(s);
@@ -2200,7 +2200,7 @@ TCGv_vec tcg_temp_new_vec(TCGType type)
         assert(TCG_TARGET_HAS_v256);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 #endif
 
@@ -2235,7 +2235,7 @@ void tcg_temp_free_internal(TCGTemp *ts)
         break;
     default:
         /* It never made sense to free TEMP_FIXED or TEMP_GLOBAL. */
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2555,7 +2555,7 @@ bool tcg_op_supported(TCGOpcode op, TCGType type, unsigned flags)
         return true;
 
     case INDEX_op_last_generic:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -2610,7 +2610,7 @@ static void tcg_gen_callN(void *func, TCGHelperInfo *info,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     TCGOP_CALLI(op) = n = info->nr_in;
@@ -2642,7 +2642,7 @@ static void tcg_gen_callN(void *func, TCGHelperInfo *info,
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
     op->args[pi++] = (uintptr_t)func;
@@ -2739,7 +2739,7 @@ static void tcg_reg_alloc_start(TCGContext *s)
             ts->mem_allocated = 0;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         ts->val_type = val;
     }
@@ -2780,7 +2780,7 @@ static char *tcg_get_arg_str_ptr(TCGContext *s, char *buf, int buf_size,
                      64 << (ts->type - TCG_TYPE_V64), ts->val);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
     }
@@ -3047,7 +3047,7 @@ void tcg_dump_ops(TCGContext *s, FILE *f, bool have_prefs)
                         b_op = "seq";
                         break;
                     default:
-                        g_assert_not_reached();
+                        assert_not_reached();
                     }
 
                     switch (membar & TCG_MO_ALL) {
@@ -3100,7 +3100,7 @@ void tcg_dump_ops(TCGContext *s, FILE *f, bool have_prefs)
                         m_op = "all";
                         break;
                     default:
-                        g_assert_not_reached();
+                        assert_not_reached();
                     }
 
                     col += ne_fprintf(f, "%s%s:%s", (k ? "," : ""), b_op, m_op);
@@ -3340,7 +3340,7 @@ static void process_constraint_sets(void)
                 case 'p':
                 case 'm':
                     /* Typo in TCGConstraintSet constraint. */
-                    g_assert_not_reached();
+                    assert_not_reached();
                 }
             } while (*++ct_str != '\0');
         }
@@ -3415,7 +3415,7 @@ static void process_constraint_sets(void)
                     }
                     break;
                 default:
-                    g_assert_not_reached();
+                    assert_not_reached();
                 }
             }
         }
@@ -3468,7 +3468,7 @@ static void remove_label_use(TCGOp *op, int idx)
             return;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 void tcg_op_remove(TCGContext *s, TCGOp *op)
@@ -3585,7 +3585,7 @@ static void move_label_uses(TCGLabel *to, TCGLabel *from)
             op->args[5] = label_arg(to);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -3776,7 +3776,7 @@ static void la_bb_end(TCGContext *s, int ng, int nt)
             la_dead_pref(ts);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -3823,7 +3823,7 @@ static void la_bb_sync(TCGContext *s, int ng, int nt)
         case TEMP_CONST:
             continue;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         la_reset_pref(ts);
     }
@@ -4556,7 +4556,7 @@ static void temp_allocate_frame(TCGContext *s, TCGTemp *ts)
         align = 16;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /*
@@ -4650,7 +4650,7 @@ static void temp_free_or_dead(TCGContext *s, TCGTemp *ts, int free_or_dead)
         new_type = TEMP_VAL_CONST;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     set_temp_val_nonreg(s, ts, new_type);
 }
@@ -4696,7 +4696,7 @@ static void temp_sync(TCGContext *s, TCGTemp *ts, TCGRegSet allocated_regs,
 
         case TEMP_VAL_DEAD:
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         ts->mem_coherent = 1;
     }
@@ -4783,7 +4783,7 @@ static TCGReg tcg_reg_alloc(TCGContext *s, TCGRegSet required_regs,
         }
     }
 
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static TCGReg tcg_reg_alloc_pair(TCGContext *s, TCGRegSet required_regs,
@@ -4829,7 +4829,7 @@ static TCGReg tcg_reg_alloc_pair(TCGContext *s, TCGRegSet required_regs,
             }
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 /* Make sure the temporary is in a register.  If needed, allocate the register
@@ -4879,7 +4879,7 @@ static void temp_load(TCGContext *s, TCGTemp *ts, TCGRegSet desired_regs,
         break;
     case TEMP_VAL_DEAD:
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     set_temp_val_reg(s, ts, reg);
 }
@@ -4942,7 +4942,7 @@ static void tcg_reg_alloc_bb_end(TCGContext *s, TCGRegSet allocated_regs)
             tcg_debug_assert(ts->val_type == TEMP_VAL_CONST);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -4973,7 +4973,7 @@ static void tcg_reg_alloc_cbranch(TCGContext *s, TCGRegSet allocated_regs)
         case TEMP_CONST:
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 }
@@ -5192,7 +5192,7 @@ static void tcg_reg_alloc_dup(TCGContext *s, const TCGOp *op)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* We now have a vector input register, so dup must succeed. */
@@ -5456,7 +5456,7 @@ static void tcg_reg_alloc_op(TCGContext *s, const TCGOp *op)
             break;
 
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         if (copyto_new_reg) {
@@ -5555,7 +5555,7 @@ static void tcg_reg_alloc_op(TCGContext *s, const TCGOp *op)
                 break;
 
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
             tcg_regset_set_reg(o_allocated_regs, reg);
             set_temp_val_reg(s, ts, reg);
@@ -5884,7 +5884,7 @@ static void tcg_reg_alloc_op(TCGContext *s, const TCGOp *op)
 #else
     case INDEX_op_brcond2_i32:
     case INDEX_op_setcond2_i32:
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
 
     case INDEX_op_goto_ptr:
@@ -6110,7 +6110,7 @@ static void tcg_reg_alloc_call(TCGContext *s, TCGOp *op)
             load_arg_stk(s, loc->ref_slot, ts, allocated_regs);
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
     }
 
@@ -6194,7 +6194,7 @@ static void tcg_reg_alloc_call(TCGContext *s, TCGOp *op)
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Flush or discard output registers as needed. */
@@ -6281,7 +6281,7 @@ static TCGAtomAlign atom_and_align_for_opc(TCGContext *s, MemOp opc,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     return (TCGAtomAlign){ .atom = atmax, .align = align };
@@ -6395,7 +6395,7 @@ static void tcg_out_helper_load_slots(TCGContext *s,
         tcg_out_movext1(s, mov);
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
@@ -6454,7 +6454,7 @@ static void tcg_out_helper_load_common_args(TCGContext *s,
         type = TCG_TYPE_REG;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
     tcg_out_helper_load_imm(s, loc->arg_slot, type, imm, parm);
     next_arg++;
@@ -6505,7 +6505,7 @@ static unsigned tcg_out_helper_add_mov(TCGMovExtend *mov,
             src_ext = MO_SL;
             break;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
 
         mov[0].dst = loc->arg_slot;
@@ -6561,7 +6561,7 @@ static void tcg_out_ld_helper_args(TCGContext *s, const TCGLabelQemuLdst *ldst,
         info = &info_helper_ld128_mmu;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Defer env argument. */
@@ -6614,7 +6614,7 @@ static void tcg_out_ld_helper_args(TCGContext *s, const TCGLabelQemuLdst *ldst,
         }
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     tcg_out_helper_load_common_args(s, ldst, parm, info, next_arg);
@@ -6681,12 +6681,12 @@ static void tcg_out_ld_helper_ret(TCGContext *s, const TCGLabelQemuLdst *ldst,
                        TCG_REG_CALL_STACK, ofs_slot0 + 8 * !HOST_BIG_ENDIAN);
             return;
         default:
-            g_assert_not_reached();
+            assert_not_reached();
         }
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     mov[0].dst = ldst->datalo_reg;
@@ -6732,7 +6732,7 @@ static void tcg_out_st_helper_args(TCGContext *s, const TCGLabelQemuLdst *ldst,
         data_type = TCG_TYPE_I128;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     /* Defer env argument. */
@@ -6801,7 +6801,7 @@ static void tcg_out_st_helper_args(TCGContext *s, const TCGLabelQemuLdst *ldst,
         break;
 
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     if (TCG_TARGET_REG_BITS == 32) {
@@ -7088,7 +7088,7 @@ static int find_string(const char *strtab, const char *str)
         }
         p += strlen(p) + 1;
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void tcg_register_jit_int(const void *buf_ptr, size_t buf_size,
@@ -7308,6 +7308,6 @@ void tcg_register_jit(const void *buf, size_t buf_size)
 #if !TCG_TARGET_MAYBE_vec
 void tcg_expand_vec_op(TCGOpcode o, TCGType t, unsigned e, TCGArg a0, ...)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }
 #endif

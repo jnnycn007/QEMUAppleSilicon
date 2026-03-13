@@ -78,7 +78,7 @@ AppleDTNode *apple_dt_node_new(AppleDTNode *parent, const char *name)
 
     // Only the root node can have no name.
     if (parent != NULL) {
-        g_assert_false(parent->finalised);
+        assert_false(parent->finalised);
         if (name == NULL || apple_dt_get_node(parent, name) != NULL) {
             return NULL;
         }
@@ -151,7 +151,7 @@ static AppleDTNode *apple_dt_deserialise_node(void **blob)
             apple_dt_destroy_node(node);
             return NULL;
         }
-        g_assert_true(g_hash_table_insert(node->props, key, prop));
+        g_hash_table_insert(node->props, key, prop);
     }
 
     for (i = 0; i < children_count; i++) {
@@ -173,9 +173,9 @@ AppleDTNode *apple_dt_deserialise(void *blob)
 
 void apple_dt_del_node(AppleDTNode *parent, AppleDTNode *node)
 {
-    g_assert_false(parent == node);
-    g_assert_false(parent->finalised);
-    g_assert_false(node->finalised);
+    assert_false(parent == node);
+    assert_false(parent->finalised);
+    assert_false(node->finalised);
 
     parent->children = g_list_remove(parent->children, node);
     apple_dt_destroy_node(node);
@@ -205,17 +205,17 @@ AppleDTProp *apple_dt_set_prop(AppleDTNode *node, const char *name,
 {
     AppleDTProp *prop;
 
-    g_assert_cmpint(strlen(name), <, APPLE_DT_PROP_NAME_LEN);
+    assert_cmpint(strlen(name), <, APPLE_DT_PROP_NAME_LEN);
 
     prop = apple_dt_get_prop(node, name);
 
     if (prop == NULL) {
-        g_assert_false(node->finalised);
+        assert_false(node->finalised);
 
         prop = g_new0(AppleDTProp, 1);
         g_hash_table_insert(node->props, g_strdup(name), prop);
     } else {
-        g_assert_false(node->finalised && prop->len != len);
+        assert_false(node->finalised && prop->len != len);
 
         g_free(prop->data);
         *prop = (AppleDTProp){ 0 };
@@ -471,7 +471,7 @@ void apple_dt_connect_function_prop_out_in(DeviceState *target_device,
     uint32_t *ints;
     uint32_t pin;
 
-    g_assert_nonnull(function_prop);
+    assert_nonnull(function_prop);
 
     ints = (uint32_t *)function_prop->data;
     pin = ints[2];
@@ -499,7 +499,7 @@ void apple_dt_connect_function_prop_in_out(DeviceState *target_device,
     uint32_t *ints;
     uint32_t pin;
 
-    g_assert_nonnull(function_prop);
+    assert_nonnull(function_prop);
 
     ints = (uint32_t *)function_prop->data;
     pin = ints[2];
@@ -575,7 +575,7 @@ static void apple_dt_serialise_node(AppleDTNode *node, void **buf)
     AppleDTProp *prop;
     uint32_t placeholder_len;
 
-    g_assert_true(node->finalised);
+    assert_true(node->finalised);
 
     prop_count_buf = *buf;
     *buf += sizeof(uint32_t);
@@ -647,7 +647,7 @@ uint64_t apple_dt_finalise(AppleDTNode *node)
     uint64_t len;
     GList *child_iter;
 
-    g_assert_false(node->finalised);
+    assert_false(node->finalised);
 
     node->finalised = true;
 

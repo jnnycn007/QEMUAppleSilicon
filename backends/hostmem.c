@@ -325,7 +325,7 @@ bool host_memory_backend_is_mapped(HostMemoryBackend *backend)
 size_t host_memory_backend_pagesize(HostMemoryBackend *memdev)
 {
     size_t pagesize = qemu_ram_pagesize(memdev->mr.ram_block);
-    g_assert(pagesize >= qemu_real_host_page_size());
+    assert(pagesize >= qemu_real_host_page_size());
     return pagesize;
 }
 

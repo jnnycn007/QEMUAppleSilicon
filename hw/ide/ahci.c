@@ -198,7 +198,7 @@ static void ahci_check_irq(AHCIState *s)
 static void ahci_trigger_irq(AHCIState *s, AHCIDevice *d,
                              enum AHCIPortIRQ irqbit)
 {
-    g_assert((unsigned)irqbit < 32);
+    assert((unsigned)irqbit < 32);
     uint32_t irq = 1U << irqbit;
     uint32_t irqstat = d->port_regs.irq_stat | irq;
 
@@ -420,7 +420,7 @@ static uint64_t ahci_mem_read(void *opaque, hwaddr addr, unsigned size)
     if (ofst + size <= 4) {
         val = lo >> (ofst * 8);
     } else {
-        g_assert(size > 1);
+        assert(size > 1);
 
         /* If the 64bit read is unaligned, we will produce undefined
          * results. AHCI does not support unaligned 64bit reads. */
@@ -1058,7 +1058,7 @@ static void execute_ncq_command(NCQTransferState *ncq_tfs)
     IDEState *ide_state = &ad->port.ifs[0];
     int port = ad->port_no;
 
-    g_assert(is_ncq(ncq_tfs->cmd));
+    assert(is_ncq(ncq_tfs->cmd));
     ncq_tfs->halt = false;
 
     switch (ncq_tfs->cmd) {
@@ -1099,7 +1099,7 @@ static void process_ncq_command(AHCIState *s, int port, const uint8_t *cmd_fis,
     NCQTransferState *ncq_tfs = &ad->ncq_tfs[tag];
     size_t size;
 
-    g_assert(is_ncq(ncq_fis->command));
+    assert(is_ncq(ncq_fis->command));
     if (ncq_tfs->used) {
         /* error - already in use */
         qemu_log_mask(LOG_GUEST_ERROR, "%s: tag %d already used\n",

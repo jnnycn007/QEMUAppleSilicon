@@ -580,7 +580,7 @@ static void mps3r_set_default_ram_info(MPS3RMachineClass *mmc)
             return;
         }
     }
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static void mps3r_class_init(ObjectClass *oc, const void *data)

@@ -111,7 +111,7 @@ const void *tcg_splitwx_to_rx(void *rw)
 {
     /* Pass NULL pointers unchanged. */
     if (rw) {
-        g_assert(in_code_gen_buffer(rw));
+        assert(in_code_gen_buffer(rw));
         rw += tcg_splitwx_diff;
     }
     return rw;
@@ -123,7 +123,7 @@ void *tcg_splitwx_to_rw(const void *rx)
     if (rx) {
         rx -= tcg_splitwx_diff;
         /* Assert that we end with a pointer in the rw region. */
-        g_assert(in_code_gen_buffer(rx));
+        assert(in_code_gen_buffer(rx));
     }
     return (void *)rx;
 }
@@ -157,7 +157,7 @@ static gint tb_tc_cmp(gconstpointer ap, gconstpointer bp, gpointer userdata)
             return -1;
         }
         /* a->ptr == b->ptr should happen only on deletions */
-        g_assert(a->size == b->size);
+        assert(a->size == b->size);
         return 0;
     }
     /*
@@ -224,7 +224,7 @@ void tcg_tb_insert(TranslationBlock *tb)
 {
     struct tcg_region_tree *rt = tc_ptr_to_region_tree(tb->tc.ptr);
 
-    g_assert(rt != NULL);
+    assert(rt != NULL);
     qemu_mutex_lock(&rt->lock);
     q_tree_insert(rt->tree, &tb->tc, tb);
     qemu_mutex_unlock(&rt->lock);
@@ -234,7 +234,7 @@ void tcg_tb_remove(TranslationBlock *tb)
 {
     struct tcg_region_tree *rt = tc_ptr_to_region_tree(tb->tc.ptr);
 
-    g_assert(rt != NULL);
+    assert(rt != NULL);
     qemu_mutex_lock(&rt->lock);
     q_tree_remove(rt->tree, &tb->tc);
     qemu_mutex_unlock(&rt->lock);
@@ -393,7 +393,7 @@ bool tcg_region_alloc(TCGContext *s)
 static void tcg_region_initial_alloc__locked(TCGContext *s)
 {
     bool err = tcg_region_alloc__locked(s);
-    g_assert(!err);
+    assert(!err);
 }
 
 void tcg_region_initial_alloc(TCGContext *s)
@@ -736,7 +736,7 @@ void tcg_region_init(size_t tb_size, int splitwx, unsigned max_threads)
     region_size = QEMU_ALIGN_DOWN(region_size, page_size);
 
     /* A region must have at least 2 pages; one code, one guard */
-    g_assert(region_size >= 2 * page_size);
+    assert(region_size >= 2 * page_size);
     region.stride = region_size;
 
     /* Reserve space for guard pages. */
@@ -780,7 +780,7 @@ void tcg_region_init(size_t tb_size, int splitwx, unsigned max_threads)
 #ifdef CONFIG_POSIX
                 rc = mprotect(start, end - start, need_prot);
 #else
-                g_assert_not_reached();
+                assert_not_reached();
 #endif
             }
             if (rc) {
@@ -806,7 +806,7 @@ void tcg_region_init(size_t tb_size, int splitwx, unsigned max_threads)
 void tcg_region_prologue_set(TCGContext *s)
 {
     /* Deduct the prologue from the first region.  */
-    g_assert(region.start_aligned == s->code_gen_buffer);
+    assert(region.start_aligned == s->code_gen_buffer);
     region.after_prologue = s->code_ptr;
 
     /* Recompute boundaries of the first region. */
@@ -838,7 +838,7 @@ size_t tcg_code_size(void)
         size_t size;
 
         size = qatomic_read(&s->code_gen_ptr) - s->code_gen_buffer;
-        g_assert(size <= s->code_gen_buffer_size);
+        assert(size <= s->code_gen_buffer_size);
         total += size;
     }
     qemu_mutex_unlock(&region.lock);

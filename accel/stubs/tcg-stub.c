@@ -15,5 +15,5 @@
 
 G_NORETURN void cpu_loop_exit(CPUState *cpu)
 {
-    g_assert_not_reached();
+    assert_not_reached();
 }

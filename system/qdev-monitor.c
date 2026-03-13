@@ -495,7 +495,7 @@ static BusState *qbus_find(const char *path, Error **errp)
 
         /* find device */
         if (sscanf(path+pos, "%127[^/]%n", elem, &len) != 1) {
-            g_assert_not_reached();
+            assert_not_reached();
             elem[0] = len = 0;
         }
         pos += len;
@@ -530,7 +530,7 @@ static BusState *qbus_find(const char *path, Error **errp)
 
         /* find bus */
         if (sscanf(path+pos, "%127[^/]%n", elem, &len) != 1) {
-            g_assert_not_reached();
+            assert_not_reached();
             elem[0] = len = 0;
         }
         pos += len;
@@ -867,7 +867,7 @@ void qdev_unplug(DeviceState *dev, Error **errp)
     hotplug_ctrl = qdev_get_hotplug_handler(dev);
     /* hotpluggable device MUST have HotplugHandler, if it doesn't
      * then something is very wrong with it */
-    g_assert(hotplug_ctrl);
+    assert(hotplug_ctrl);
 
     /* If device supports async unplug just request it to be done,
      * otherwise just remove it synchronously */

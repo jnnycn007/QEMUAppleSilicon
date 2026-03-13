@@ -317,7 +317,7 @@ static qemu_irq aspeed_soc_ast2700_get_irq_index(AspeedSoCState *s, int dev,
      * Invalid OR gate index, device IRQ should be between 128 to 136
      * and 192 to 201.
      */
-    g_assert_not_reached();
+    assert_not_reached();
 }
 
 static uint64_t aspeed_ram_capacity_read(void *opaque, hwaddr addr,
@@ -418,7 +418,7 @@ static void aspeed_soc_ast2700_init(Object *obj)
     char typename[64];
 
     if (sscanf(object_get_typename(obj), "%7s", socname) != 1) {
-        g_assert_not_reached();
+        assert_not_reached();
     }
 
     for (i = 0; i < sc->num_cpus; i++) {

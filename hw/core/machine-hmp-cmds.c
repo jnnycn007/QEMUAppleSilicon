@@ -333,7 +333,7 @@ void hmp_info_memory_devices(Monitor *mon, const QDict *qdict)
                 }
                 break;
             default:
-                g_assert_not_reached();
+                assert_not_reached();
             }
         }
     }

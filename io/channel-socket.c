@@ -649,7 +649,7 @@ static ssize_t qio_channel_socket_writev(QIOChannel *ioc,
          * We expect QIOChannel class entry point to have
          * blocked this code path already
          */
-        g_assert_not_reached();
+        assert_not_reached();
 #endif
     }
 

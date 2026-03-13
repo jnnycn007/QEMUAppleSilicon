@@ -30,7 +30,7 @@ static gboolean ga_channel_listen_accept(GIOChannel *channel,
     bool accepted = false;
     Error *err = NULL;
 
-    g_assert(channel != NULL);
+    assert(channel != NULL);
 
     client_fd = qemu_accept(g_io_channel_unix_get_fd(channel), NULL, NULL);
     if (client_fd == -1) {
@@ -68,7 +68,7 @@ static void ga_channel_listen_add(GAChannel *c, int listen_fd, bool create)
 
 static void ga_channel_listen_close(GAChannel *c)
 {
-    g_assert(c->listen_channel);
+    assert(c->listen_channel);
     g_io_channel_shutdown(c->listen_channel, true, NULL);
     g_io_channel_unref(c->listen_channel);
     c->listen_channel = NULL;
@@ -79,7 +79,7 @@ static void ga_channel_listen_close(GAChannel *c)
  */
 static void ga_channel_client_close(GAChannel *c)
 {
-    g_assert(c->client_channel);
+    assert(c->client_channel);
     g_io_channel_shutdown(c->client_channel, true, NULL);
     g_io_channel_unref(c->client_channel);
     c->client_channel = NULL;
@@ -94,7 +94,7 @@ static gboolean ga_channel_client_event(GIOChannel *channel,
     GAChannel *c = data;
     gboolean client_cont;
 
-    g_assert(c);
+    assert(c);
     if (c->event_cb) {
         client_cont = c->event_cb(condition, c->user_data);
         if (!client_cont) {
@@ -110,9 +110,9 @@ static int ga_channel_client_add(GAChannel *c, int fd)
     GIOChannel *client_channel;
     GError *err = NULL;
 
-    g_assert(c && !c->client_channel);
+    assert(c && !c->client_channel);
     client_channel = g_io_channel_unix_new(fd);
-    g_assert(client_channel);
+    assert(client_channel);
     g_io_channel_set_encoding(client_channel, NULL, &err);
     if (err != NULL) {
         g_warning("error setting channel encoding to binary");

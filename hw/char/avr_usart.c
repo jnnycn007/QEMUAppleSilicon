@@ -86,7 +86,7 @@ static void update_char_mask(AVRUsartState *usart)
         usart->char_mask = 0b11111111;
         break;
     default:
-        g_assert_not_reached();
+        assert_not_reached();
     }
 }
 
