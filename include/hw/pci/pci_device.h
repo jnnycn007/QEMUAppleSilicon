@@ -189,22 +189,22 @@ static inline int pci_intx(PCIDevice *pci_dev)
     return pci_get_byte(pci_dev->config + PCI_INTERRUPT_PIN) - 1;
 }
 
-static inline int pci_is_cxl(const PCIDevice *d)
+static inline bool pci_is_cxl(const PCIDevice *d)
 {
-    return d->cap_present & QEMU_PCIE_CAP_CXL;
+    return (d->cap_present & QEMU_PCIE_CAP_CXL) != 0;
 }
 
-static inline int pci_is_express(const PCIDevice *d)
+static inline bool pci_is_express(const PCIDevice *d)
 {
-    return d->cap_present & QEMU_PCI_CAP_EXPRESS;
+    return (d->cap_present & QEMU_PCI_CAP_EXPRESS) != 0;
 }
 
-static inline int pci_is_express_downstream_port(const PCIDevice *d)
+static inline bool pci_is_express_downstream_port(const PCIDevice *d)
 {
     uint8_t type;
 
     if (!pci_is_express(d) || !d->exp.exp_cap) {
-        return 0;
+        return false;
     }
 
     type = pcie_cap_get_type(d);
@@ -212,7 +212,7 @@ static inline int pci_is_express_downstream_port(const PCIDevice *d)
     return type == PCI_EXP_TYPE_DOWNSTREAM || type == PCI_EXP_TYPE_ROOT_PORT;
 }
 
-static inline int pci_is_vf(const PCIDevice *d)
+static inline bool pci_is_vf(const PCIDevice *d)
 {
     return d->sriov_pf || d->exp.sriov_vf.pf != NULL;
 }
