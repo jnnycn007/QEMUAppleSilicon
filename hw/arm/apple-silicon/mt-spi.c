@@ -40,11 +40,39 @@ typedef struct AppleMTSPIBuffer {
     uint32_t read_pos;
 } AppleMTSPIBuffer;
 
+static const VMStateDescription vmstate_apple_mt_spi_buffer = {
+    .name = "AppleMTSPIBuffer",
+    .version_id = 0,
+    .minimum_version_id = 0,
+    .fields =
+        (const VMStateField[]){
+            VMSTATE_UINT32(capacity, AppleMTSPIBuffer),
+            VMSTATE_VBUFFER_ALLOC_UINT32(data, AppleMTSPIBuffer, 0, NULL,
+                                         capacity),
+            VMSTATE_UINT32(len, AppleMTSPIBuffer),
+            VMSTATE_UINT32(read_pos, AppleMTSPIBuffer),
+            VMSTATE_END_OF_LIST(),
+        },
+};
+
 typedef struct AppleMTSPILLPacket {
     AppleMTSPIBuffer buf;
     uint8_t type;
     QTAILQ_ENTRY(AppleMTSPILLPacket) next;
 } AppleMTSPILLPacket;
+
+static const VMStateDescription vmstate_apple_mt_spi_ll_packet = {
+    .name = "AppleMTSPILLPacket",
+    .version_id = 0,
+    .minimum_version_id = 0,
+    .fields =
+        (const VMStateField[]){
+            VMSTATE_STRUCT(buf, AppleMTSPILLPacket, 0,
+                           vmstate_apple_mt_spi_buffer, AppleMTSPIBuffer),
+            VMSTATE_UINT8(type, AppleMTSPILLPacket),
+            VMSTATE_END_OF_LIST(),
+        },
+};
 
 struct AppleMTSPIState {
     SSIPeripheral parent_obj;
@@ -70,6 +98,38 @@ struct AppleMTSPIState {
     int32_t prev_btn_state;
     uint32_t display_width;
     uint32_t display_height;
+};
+
+static const VMStateDescription vmstate_apple_mt_spi = {
+    .name = "AppleMTSPIState",
+    .version_id = 0,
+    .minimum_version_id = 0,
+    .fields =
+        (const VMStateField[]){
+            VMSTATE_SSI_PERIPHERAL(parent_obj, AppleMTSPIState),
+            VMSTATE_STRUCT(tx, AppleMTSPIState, 0, vmstate_apple_mt_spi_buffer,
+                           AppleMTSPIBuffer),
+            VMSTATE_STRUCT(rx, AppleMTSPIState, 0, vmstate_apple_mt_spi_buffer,
+                           AppleMTSPIBuffer),
+            VMSTATE_STRUCT(pending_hbpp, AppleMTSPIState, 0,
+                           vmstate_apple_mt_spi_buffer, AppleMTSPIBuffer),
+            VMSTATE_QTAILQ_V(pending_fw, AppleMTSPIState, 0,
+                             vmstate_apple_mt_spi_ll_packet, AppleMTSPILLPacket,
+                             next),
+            VMSTATE_UINT8(frame, AppleMTSPIState),
+            VMSTATE_TIMER_PTR(timer, AppleMTSPIState),
+            VMSTATE_TIMER_PTR(end_timer, AppleMTSPIState),
+            VMSTATE_INT16(x, AppleMTSPIState),
+            VMSTATE_INT16(y, AppleMTSPIState),
+            VMSTATE_INT16(prev_x, AppleMTSPIState),
+            VMSTATE_INT16(prev_y, AppleMTSPIState),
+            VMSTATE_UINT64(prev_ts, AppleMTSPIState),
+            VMSTATE_INT32(btn_state, AppleMTSPIState),
+            VMSTATE_INT32(prev_btn_state, AppleMTSPIState),
+            VMSTATE_UINT32(display_width, AppleMTSPIState),
+            VMSTATE_UINT32(display_height, AppleMTSPIState),
+            VMSTATE_END_OF_LIST(),
+        },
 };
 
 // HBPP Command:
@@ -954,66 +1014,6 @@ static void apple_mt_spi_realize(SSIPeripheral *dev, Error **errp)
 static const Property apple_mt_spi_props[] = {
     DEFINE_PROP_UINT32("display_width", AppleMTSPIState, display_width, 0),
     DEFINE_PROP_UINT32("display_height", AppleMTSPIState, display_height, 0),
-};
-
-static const VMStateDescription vmstate_apple_mt_spi_buffer = {
-    .name = "AppleMTSPIBuffer",
-    .version_id = 0,
-    .minimum_version_id = 0,
-    .fields =
-        (const VMStateField[]){
-            VMSTATE_UINT32(capacity, AppleMTSPIBuffer),
-            VMSTATE_VBUFFER_ALLOC_UINT32(data, AppleMTSPIBuffer, 0, NULL,
-                                         capacity),
-            VMSTATE_UINT32(len, AppleMTSPIBuffer),
-            VMSTATE_UINT32(read_pos, AppleMTSPIBuffer),
-            VMSTATE_END_OF_LIST(),
-        },
-};
-
-static const VMStateDescription vmstate_apple_mt_spi_ll_packet = {
-    .name = "AppleMTSPILLPacket",
-    .version_id = 0,
-    .minimum_version_id = 0,
-    .fields =
-        (const VMStateField[]){
-            VMSTATE_STRUCT(buf, AppleMTSPILLPacket, 0,
-                           vmstate_apple_mt_spi_buffer, AppleMTSPIBuffer),
-            VMSTATE_UINT8(type, AppleMTSPILLPacket),
-            VMSTATE_END_OF_LIST(),
-        },
-};
-
-static const VMStateDescription vmstate_apple_mt_spi = {
-    .name = "AppleMTSPIState",
-    .version_id = 0,
-    .minimum_version_id = 0,
-    .fields =
-        (const VMStateField[]){
-            VMSTATE_SSI_PERIPHERAL(parent_obj, AppleMTSPIState),
-            VMSTATE_STRUCT(tx, AppleMTSPIState, 0, vmstate_apple_mt_spi_buffer,
-                           AppleMTSPIBuffer),
-            VMSTATE_STRUCT(rx, AppleMTSPIState, 0, vmstate_apple_mt_spi_buffer,
-                           AppleMTSPIBuffer),
-            VMSTATE_STRUCT(pending_hbpp, AppleMTSPIState, 0,
-                           vmstate_apple_mt_spi_buffer, AppleMTSPIBuffer),
-            VMSTATE_QTAILQ_V(pending_fw, AppleMTSPIState, 0,
-                             vmstate_apple_mt_spi_ll_packet, AppleMTSPILLPacket,
-                             next),
-            VMSTATE_UINT8(frame, AppleMTSPIState),
-            VMSTATE_TIMER_PTR(timer, AppleMTSPIState),
-            VMSTATE_TIMER_PTR(end_timer, AppleMTSPIState),
-            VMSTATE_INT16(x, AppleMTSPIState),
-            VMSTATE_INT16(y, AppleMTSPIState),
-            VMSTATE_INT16(prev_x, AppleMTSPIState),
-            VMSTATE_INT16(prev_y, AppleMTSPIState),
-            VMSTATE_UINT64(prev_ts, AppleMTSPIState),
-            VMSTATE_INT32(btn_state, AppleMTSPIState),
-            VMSTATE_INT32(prev_btn_state, AppleMTSPIState),
-            VMSTATE_UINT32(display_width, AppleMTSPIState),
-            VMSTATE_UINT32(display_height, AppleMTSPIState),
-            VMSTATE_END_OF_LIST(),
-        },
 };
 
 static void apple_mt_spi_reset_enter(Object *obj, ResetType type)
