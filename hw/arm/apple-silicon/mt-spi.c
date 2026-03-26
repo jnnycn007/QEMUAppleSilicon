@@ -303,47 +303,6 @@ static inline uint32_t apple_mt_spi_buf_read_dword(const AppleMTSPIBuffer *buf,
            (apple_mt_spi_buf_read_word(buf, off + sizeof(uint16_t)) << 16);
 }
 
-static void apple_mt_spi_reset_unlocked(AppleMTSPIState *s, ResetType type)
-{
-    AppleMTSPILLPacket *packet;
-    AppleMTSPILLPacket *packet_next;
-
-    qemu_irq_raise(s->irq);
-
-    timer_del(s->timer);
-    timer_del(s->end_timer);
-
-    s->btn_state = 0;
-    s->prev_btn_state = 0;
-    s->prev_x = 0;
-    s->prev_y = 0;
-    s->x = 0;
-    s->y = 0;
-    s->prev_ts = 0;
-    s->frame = 0;
-
-    apple_mt_spi_buf_free(&s->tx);
-    apple_mt_spi_buf_free(&s->rx);
-    apple_mt_spi_buf_free(&s->pending_hbpp);
-
-    QTAILQ_FOREACH_SAFE (packet, &s->pending_fw, next, packet_next) {
-        QTAILQ_REMOVE(&s->pending_fw, packet, next);
-        apple_mt_spi_buf_free(&packet->buf);
-        g_free(packet);
-    }
-}
-
-static void apple_mt_spi_reset_hold(Object *obj, ResetType type)
-{
-    AppleMTSPIState *s;
-
-    s = APPLE_MT_SPI(obj);
-
-    QEMU_LOCK_GUARD(&s->lock);
-
-    apple_mt_spi_reset_unlocked(s, type);
-}
-
 static void apple_mt_spi_push_pending_hbpp_word(AppleMTSPIState *s,
                                                 uint16_t val)
 {
@@ -422,7 +381,6 @@ static void apple_mt_spi_handle_hbpp(AppleMTSPIState *s)
     switch (packet_type) {
     case HBPP_PACKET_RESET:
         if (apple_mt_spi_buf_is_full(&s->rx)) {
-            apple_mt_spi_reset_unlocked(s, RESET_TYPE_COLD);
             apple_mt_spi_push_pending_hbpp_word(s, HBPP_PACKET_REQ_BOOT);
         }
         break;
@@ -1058,12 +1016,55 @@ static const VMStateDescription vmstate_apple_mt_spi = {
         },
 };
 
+static void apple_mt_spi_reset_enter(Object *obj, ResetType type)
+{
+    AppleMTSPIState *s;
+    AppleMTSPILLPacket *packet;
+    AppleMTSPILLPacket *packet_next;
+
+    s = APPLE_MT_SPI(obj);
+
+    timer_del(s->timer);
+    timer_del(s->end_timer);
+
+    s->btn_state = 0;
+    s->prev_btn_state = 0;
+    s->prev_x = 0;
+    s->prev_y = 0;
+    s->x = 0;
+    s->y = 0;
+    s->prev_ts = 0;
+    s->frame = 0;
+
+    apple_mt_spi_buf_free(&s->tx);
+    apple_mt_spi_buf_free(&s->rx);
+    apple_mt_spi_buf_free(&s->pending_hbpp);
+
+    QTAILQ_FOREACH_SAFE (packet, &s->pending_fw, next, packet_next) {
+        QTAILQ_REMOVE(&s->pending_fw, packet, next);
+        apple_mt_spi_buf_free(&packet->buf);
+        g_free(packet);
+    }
+}
+
+static void apple_mt_spi_reset_hold(Object *obj, ResetType type)
+{
+    AppleMTSPIState *s;
+
+    s = APPLE_MT_SPI(obj);
+
+    QEMU_LOCK_GUARD(&s->lock);
+
+    qemu_irq_raise(s->irq);
+}
+
 static void apple_mt_spi_class_init(ObjectClass *klass, const void *data)
 {
     ResettableClass *rc = RESETTABLE_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
     SSIPeripheralClass *k = SSI_PERIPHERAL_CLASS(klass);
 
+    rc->phases.enter = apple_mt_spi_reset_enter;
     rc->phases.hold = apple_mt_spi_reset_hold;
 
     dc->user_creatable = false;
