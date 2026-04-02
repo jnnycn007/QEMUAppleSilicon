@@ -1870,7 +1870,7 @@ static int add_blockers(Error **reasonp, Error **errp, int modes)
 
 int migrate_add_blocker(Error **reasonp, Error **errp)
 {
-    return migrate_add_blocker_modes(reasonp, errp, MIG_MODE_ALL);
+    return migrate_add_blocker_modes(reasonp, errp, MIG_MODE_ALL, -1);
 }
 
 int migrate_add_blocker_normal(Error **reasonp, Error **errp)
