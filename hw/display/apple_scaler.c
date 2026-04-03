@@ -281,8 +281,6 @@ static void apple_scaler_bh(void *opaque)
 
     QEMU_LOCK_GUARD(&scaler->lock);
 
-    scaler->running = true;
-
     src_format = apple_scaler_convert_hw_format(scaler->config[SOURCE],
                                                 scaler->swizzle[SOURCE]);
     dst_format = apple_scaler_convert_hw_format(scaler->config[DEST],
@@ -355,8 +353,7 @@ static void apple_scaler_reg_write(void *opaque, hwaddr addr, uint64_t data,
                                    unsigned size)
 {
     AppleScalerState *scaler = opaque;
-
-    QEMU_LOCK_GUARD(&scaler->lock);
+    uint32_t *reg;
 
     // SCALER_INFO("0x" HWADDR_FMT_plx " <- 0x" HWADDR_FMT_plx, addr, data);
 
@@ -364,62 +361,69 @@ static void apple_scaler_reg_write(void *opaque, hwaddr addr, uint64_t data,
     case R_GLBL_IRQSTS:
         scaler->irq_sts &= ~(uint32_t)data;
         apple_scaler_update_irqs(scaler);
-        break;
+        return;
     case R_GLBL_CTRL:
         if (REG_FIELD_EX32(data, GLBL_CTRL, RESET)) {
             apple_scaler_reset_locked(scaler);
         }
-        break;
+        return;
     case R_SRC_CFG:
-        scaler->config[SOURCE] = (uint32_t)data;
+        reg = &scaler->config[SOURCE];
         break;
     case R_SRC_CFG_LUMA_BASE:
-        scaler->base[SOURCE][LUMA] = (uint32_t)data;
+        reg = &scaler->base[SOURCE][LUMA];
         break;
     case R_SRC_CFG_CHROMA_BASE:
-        scaler->base[SOURCE][CHROMA] = (uint32_t)data;
+        reg = &scaler->base[SOURCE][CHROMA];
         break;
     case R_SRC_CFG_LUMA_STRIDE:
-        scaler->stride[SOURCE][LUMA] = (uint32_t)data;
+        reg = &scaler->stride[SOURCE][LUMA];
         break;
     case R_SRC_CFG_CHROMA_STRIDE:
-        scaler->stride[SOURCE][CHROMA] = (uint32_t)data;
+        reg = &scaler->stride[SOURCE][CHROMA];
         break;
     case R_SRC_CFG_SWIZZLE:
-        scaler->swizzle[SOURCE] = (uint32_t)data;
+        reg = &scaler->swizzle[SOURCE];
         break;
     case R_SRC_CFG_SIZE:
-        scaler->size[SOURCE] = (uint32_t)data;
+        reg = &scaler->size[SOURCE];
         break;
     case R_DST_CFG:
-        scaler->config[DEST] = (uint32_t)data;
+        reg = &scaler->config[DEST];
         break;
     case R_DST_CFG_LUMA_BASE:
-        scaler->base[DEST][LUMA] = (uint32_t)data;
+        reg = &scaler->base[DEST][LUMA];
         break;
     case R_DST_CFG_CHROMA_BASE:
-        scaler->base[DEST][CHROMA] = (uint32_t)data;
+        reg = &scaler->base[DEST][CHROMA];
         break;
     case R_DST_CFG_LUMA_STRIDE:
-        scaler->stride[DEST][LUMA] = (uint32_t)data;
+        reg = &scaler->stride[DEST][LUMA];
         break;
     case R_DST_CFG_CHROMA_STRIDE:
-        scaler->stride[DEST][CHROMA] = (uint32_t)data;
+        reg = &scaler->stride[DEST][CHROMA];
         break;
     case R_DST_CFG_SWIZZLE:
-        scaler->swizzle[DEST] = (uint32_t)data;
+        reg = &scaler->swizzle[DEST];
         break;
     case R_DST_CFG_SIZE:
-        scaler->size[DEST] = (uint32_t)data;
+        reg = &scaler->size[DEST];
         break;
     case R_CTRL_COMMAND:
-        if (REG_FIELD_EX32(data, CTRL_COMMAND, RUN)) {
+        if (REG_FIELD_EX32(data, CTRL_COMMAND, RUN) &&
+            !qatomic_read(&scaler->running)) {
+            qatomic_set(&scaler->running, true);
+
             qemu_bh_schedule(scaler->bh);
         }
-        break;
+        return;
     default: {
-        break;
+        return;
     }
+    }
+
+    if (!qatomic_read(&scaler->running)) {
+        *reg = (uint32_t)data;
     }
 }
 
@@ -428,15 +432,13 @@ static uint64_t apple_scaler_reg_read(void *opaque, hwaddr addr, unsigned size)
     AppleScalerState *scaler = opaque;
     uint32_t ret;
 
-    QEMU_LOCK_GUARD(&scaler->lock);
-
     switch (addr >> 2) {
     case R_GLBL_VER:
         // SOC 0x8 -> 0x90082/0x9009B/0x900A7
         ret = 0x9009B;
         break;
     case R_GLBL_STS:
-        ret = scaler->running ? R_GLBL_STS_RUNNING_MASK : 0;
+        ret = qatomic_read(&scaler->running) ? R_GLBL_STS_RUNNING_MASK : 0;
         break;
     case R_GLBL_IRQSTS:
         ret = scaler->irq_sts;
@@ -593,8 +595,7 @@ SysBusDevice *apple_scaler_create(AppleDTNode *node, MemoryRegion *dma_mr)
         sysbus_init_irq(sbd, &scaler->irqs[i]);
     }
 
-    scaler->bh = aio_bh_new_guarded(qemu_get_aio_context(), apple_scaler_bh,
-                                    scaler, &dev->mem_reentrancy_guard);
+    scaler->bh = aio_bh_new(qemu_get_aio_context(), apple_scaler_bh, scaler);
 
     return sbd;
 }
