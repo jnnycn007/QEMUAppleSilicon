@@ -154,25 +154,25 @@ typedef struct AppleScalerState {
     bool running;
 } AppleScalerState;
 
-static void apple_scaler_update_irqs(AppleScalerState *s)
+static void apple_scaler_update_irqs(AppleScalerState *scaler)
 {
-    qemu_set_irq(s->irqs[0], s->irq_sts != 0);
+    qemu_set_irq(scaler->irqs[0], scaler->irq_sts != 0);
 }
 
-static void apple_scaler_reset_locked(AppleScalerState *s)
+static void apple_scaler_reset_locked(AppleScalerState *scaler)
 {
-    qemu_bh_cancel(s->bh);
+    qemu_bh_cancel(scaler->bh);
 
-    memset(s->config, 0, sizeof(s->config));
-    memset(s->base, 0, sizeof(s->base));
-    memset(s->stride, 0, sizeof(s->stride));
-    memset(s->swizzle, 0, sizeof(s->swizzle));
-    memset(s->size, 0, sizeof(s->size));
-    s->frame_count = 0;
-    s->irq_sts = 0;
-    s->running = false;
+    memset(scaler->config, 0, sizeof(scaler->config));
+    memset(scaler->base, 0, sizeof(scaler->base));
+    memset(scaler->stride, 0, sizeof(scaler->stride));
+    memset(scaler->swizzle, 0, sizeof(scaler->swizzle));
+    memset(scaler->size, 0, sizeof(scaler->size));
+    scaler->frame_count = 0;
+    scaler->irq_sts = 0;
+    scaler->running = false;
 
-    apple_scaler_update_irqs(s);
+    apple_scaler_update_irqs(scaler);
 }
 
 typedef enum {
@@ -252,17 +252,17 @@ static void apple_scaler_export_file(bool src, uint32_t width, uint32_t height,
 }
 #endif
 
-static void apple_scaler_signal_frame_done(AppleScalerState *s)
+static void apple_scaler_signal_frame_done(AppleScalerState *scaler)
 {
-    s->frame_count += 1;
-    s->irq_sts = 1; // ??
-    s->running = false;
-    apple_scaler_update_irqs(s);
+    scaler->frame_count += 1;
+    scaler->irq_sts = 1; // ??
+    scaler->running = false;
+    apple_scaler_update_irqs(scaler);
 }
 
 static void apple_scaler_bh(void *opaque)
 {
-    AppleScalerState *s = opaque;
+    AppleScalerState *scaler = opaque;
     AppleScalerFormat src_format;
     uint32_t src_width;
     uint32_t src_height;
@@ -279,32 +279,32 @@ static void apple_scaler_bh(void *opaque)
     pixman_image_t *dst_image;
     pixman_transform_t transform = { 0 };
 
-    QEMU_LOCK_GUARD(&s->lock);
+    QEMU_LOCK_GUARD(&scaler->lock);
 
-    s->running = true;
+    scaler->running = true;
 
-    src_format =
-        apple_scaler_convert_hw_format(s->config[SOURCE], s->swizzle[SOURCE]);
-    dst_format =
-        apple_scaler_convert_hw_format(s->config[DEST], s->swizzle[DEST]);
+    src_format = apple_scaler_convert_hw_format(scaler->config[SOURCE],
+                                                scaler->swizzle[SOURCE]);
+    dst_format = apple_scaler_convert_hw_format(scaler->config[DEST],
+                                                scaler->swizzle[DEST]);
 
     // Only RGBA, BGRA supported for now.
     if ((src_format != APPLE_SCALER_FORMAT_BGRA &&
          src_format != APPLE_SCALER_FORMAT_RGBA) ||
         (dst_format != APPLE_SCALER_FORMAT_BGRA &&
          dst_format != APPLE_SCALER_FORMAT_RGBA)) {
-        apple_scaler_signal_frame_done(s);
+        apple_scaler_signal_frame_done(scaler);
         return;
     }
 
-    src_width = REG_FIELD_EX32(s->size[SOURCE], SRCDST_CFG_SIZE, WIDTH);
-    src_height = REG_FIELD_EX32(s->size[SOURCE], SRCDST_CFG_SIZE, HEIGHT);
-    src_stride = s->stride[SOURCE][LUMA];
+    src_width = REG_FIELD_EX32(scaler->size[SOURCE], SRCDST_CFG_SIZE, WIDTH);
+    src_height = REG_FIELD_EX32(scaler->size[SOURCE], SRCDST_CFG_SIZE, HEIGHT);
+    src_stride = scaler->stride[SOURCE][LUMA];
     SCALER_INFO("src w/h %ux%u stride 0x%X", src_width, src_height, src_stride);
     src_buf_size = src_height * src_stride;
     src_buf = g_malloc(src_buf_size);
-    dma_memory_read(&s->dma_as, s->base[SOURCE][LUMA], src_buf, src_buf_size,
-                    MEMTXATTRS_UNSPECIFIED);
+    dma_memory_read(&scaler->dma_as, scaler->base[SOURCE][LUMA], src_buf,
+                    src_buf_size, MEMTXATTRS_UNSPECIFIED);
     src_image =
         pixman_image_create_bits(apple_scaler_format_to_pixman(src_format),
                                  src_width, src_height, src_buf, src_stride);
@@ -314,9 +314,9 @@ static void apple_scaler_bh(void *opaque)
                              src_buf_size);
 #endif
 
-    dst_width = REG_FIELD_EX32(s->size[DEST], SRCDST_CFG_SIZE, WIDTH);
-    dst_height = REG_FIELD_EX32(s->size[DEST], SRCDST_CFG_SIZE, HEIGHT);
-    dst_stride = s->stride[DEST][LUMA];
+    dst_width = REG_FIELD_EX32(scaler->size[DEST], SRCDST_CFG_SIZE, WIDTH);
+    dst_height = REG_FIELD_EX32(scaler->size[DEST], SRCDST_CFG_SIZE, HEIGHT);
+    dst_stride = scaler->stride[DEST][LUMA];
     SCALER_INFO("dst w/h %ux%u stride 0x%X", dst_width, dst_height, dst_stride);
     dst_buf_size = dst_height * dst_stride;
     dst_buf = g_malloc(dst_buf_size);
@@ -343,78 +343,78 @@ static void apple_scaler_bh(void *opaque)
     pixman_image_unref(src_image);
     g_free(src_buf);
 
-    dma_memory_write(&s->dma_as, s->base[DEST][LUMA], dst_buf, dst_buf_size,
-                     MEMTXATTRS_UNSPECIFIED);
+    dma_memory_write(&scaler->dma_as, scaler->base[DEST][LUMA], dst_buf,
+                     dst_buf_size, MEMTXATTRS_UNSPECIFIED);
 
     g_free(dst_buf);
 
-    apple_scaler_signal_frame_done(s);
+    apple_scaler_signal_frame_done(scaler);
 }
 
 static void apple_scaler_reg_write(void *opaque, hwaddr addr, uint64_t data,
                                    unsigned size)
 {
-    AppleScalerState *s = opaque;
+    AppleScalerState *scaler = opaque;
 
-    QEMU_LOCK_GUARD(&s->lock);
+    QEMU_LOCK_GUARD(&scaler->lock);
 
     // SCALER_INFO("0x" HWADDR_FMT_plx " <- 0x" HWADDR_FMT_plx, addr, data);
 
     switch (addr >> 2) {
     case R_GLBL_IRQSTS:
-        s->irq_sts &= ~(uint32_t)data;
-        apple_scaler_update_irqs(s);
+        scaler->irq_sts &= ~(uint32_t)data;
+        apple_scaler_update_irqs(scaler);
         break;
     case R_GLBL_CTRL:
         if (REG_FIELD_EX32(data, GLBL_CTRL, RESET)) {
-            apple_scaler_reset_locked(s);
+            apple_scaler_reset_locked(scaler);
         }
         break;
     case R_SRC_CFG:
-        s->config[SOURCE] = (uint32_t)data;
+        scaler->config[SOURCE] = (uint32_t)data;
         break;
     case R_SRC_CFG_LUMA_BASE:
-        s->base[SOURCE][LUMA] = (uint32_t)data;
+        scaler->base[SOURCE][LUMA] = (uint32_t)data;
         break;
     case R_SRC_CFG_CHROMA_BASE:
-        s->base[SOURCE][CHROMA] = (uint32_t)data;
+        scaler->base[SOURCE][CHROMA] = (uint32_t)data;
         break;
     case R_SRC_CFG_LUMA_STRIDE:
-        s->stride[SOURCE][LUMA] = (uint32_t)data;
+        scaler->stride[SOURCE][LUMA] = (uint32_t)data;
         break;
     case R_SRC_CFG_CHROMA_STRIDE:
-        s->stride[SOURCE][CHROMA] = (uint32_t)data;
+        scaler->stride[SOURCE][CHROMA] = (uint32_t)data;
         break;
     case R_SRC_CFG_SWIZZLE:
-        s->swizzle[SOURCE] = (uint32_t)data;
+        scaler->swizzle[SOURCE] = (uint32_t)data;
         break;
     case R_SRC_CFG_SIZE:
-        s->size[SOURCE] = (uint32_t)data;
+        scaler->size[SOURCE] = (uint32_t)data;
         break;
     case R_DST_CFG:
-        s->config[DEST] = (uint32_t)data;
+        scaler->config[DEST] = (uint32_t)data;
         break;
     case R_DST_CFG_LUMA_BASE:
-        s->base[DEST][LUMA] = (uint32_t)data;
+        scaler->base[DEST][LUMA] = (uint32_t)data;
         break;
     case R_DST_CFG_CHROMA_BASE:
-        s->base[DEST][CHROMA] = (uint32_t)data;
+        scaler->base[DEST][CHROMA] = (uint32_t)data;
         break;
     case R_DST_CFG_LUMA_STRIDE:
-        s->stride[DEST][LUMA] = (uint32_t)data;
+        scaler->stride[DEST][LUMA] = (uint32_t)data;
         break;
     case R_DST_CFG_CHROMA_STRIDE:
-        s->stride[DEST][CHROMA] = (uint32_t)data;
+        scaler->stride[DEST][CHROMA] = (uint32_t)data;
         break;
     case R_DST_CFG_SWIZZLE:
-        s->swizzle[DEST] = (uint32_t)data;
+        scaler->swizzle[DEST] = (uint32_t)data;
         break;
     case R_DST_CFG_SIZE:
-        s->size[DEST] = (uint32_t)data;
+        scaler->size[DEST] = (uint32_t)data;
         break;
     case R_CTRL_COMMAND:
         if (REG_FIELD_EX32(data, CTRL_COMMAND, RUN)) {
-            qemu_bh_schedule(s->bh);
+            qemu_bh_schedule(scaler->bh);
         }
         break;
     default: {
@@ -425,10 +425,10 @@ static void apple_scaler_reg_write(void *opaque, hwaddr addr, uint64_t data,
 
 static uint64_t apple_scaler_reg_read(void *opaque, hwaddr addr, unsigned size)
 {
-    AppleScalerState *s = opaque;
+    AppleScalerState *scaler = opaque;
     uint32_t ret;
 
-    QEMU_LOCK_GUARD(&s->lock);
+    QEMU_LOCK_GUARD(&scaler->lock);
 
     switch (addr >> 2) {
     case R_GLBL_VER:
@@ -436,13 +436,13 @@ static uint64_t apple_scaler_reg_read(void *opaque, hwaddr addr, unsigned size)
         ret = 0x9009B;
         break;
     case R_GLBL_STS:
-        ret = s->running ? R_GLBL_STS_RUNNING_MASK : 0;
+        ret = scaler->running ? R_GLBL_STS_RUNNING_MASK : 0;
         break;
     case R_GLBL_IRQSTS:
-        ret = s->irq_sts;
+        ret = scaler->irq_sts;
         break;
     case R_GLBL_FRAMECNT:
-        ret = s->frame_count;
+        ret = scaler->frame_count;
         break;
     default:
         ret = 0;
@@ -468,9 +468,9 @@ static const MemoryRegionOps apple_scaler_reg_ops = {
 static void apple_scaler_unk_reg_write(void *opaque, hwaddr addr, uint64_t data,
                                        unsigned size)
 {
-    // AppleScalerState *s = opaque;
+    // AppleScalerState *scaler = opaque;
 
-    // QEMU_LOCK_GUARD(&s->lock);
+    // QEMU_LOCK_GUARD(&scaler->lock);
 
     SCALER_INFO("0x" HWADDR_FMT_plx " <- 0x" HWADDR_FMT_plx, addr, data);
 
@@ -484,10 +484,10 @@ static void apple_scaler_unk_reg_write(void *opaque, hwaddr addr, uint64_t data,
 static uint64_t apple_scaler_unk_reg_read(void *opaque, hwaddr addr,
                                           unsigned size)
 {
-    // AppleScalerState *s = opaque;
+    // AppleScalerState *scaler = opaque;
     uint64_t ret;
 
-    // QEMU_LOCK_GUARD(&s->lock);
+    // QEMU_LOCK_GUARD(&scaler->lock);
 
     switch (addr) {
     default:
@@ -513,18 +513,18 @@ static const MemoryRegionOps apple_scaler_unk_reg_ops = {
 
 static void apple_scaler_reset_hold(Object *obj, ResetType type)
 {
-    AppleScalerState *s = APPLE_SCALER(obj);
+    AppleScalerState *scaler = APPLE_SCALER(obj);
 
-    QEMU_LOCK_GUARD(&s->lock);
+    QEMU_LOCK_GUARD(&scaler->lock);
 
-    apple_scaler_reset_locked(s);
+    apple_scaler_reset_locked(scaler);
 }
 
 static void apple_scaler_realize(DeviceState *dev, Error **errp)
 {
-    AppleScalerState *s = APPLE_SCALER(dev);
+    AppleScalerState *scaler = APPLE_SCALER(dev);
 
-    QEMU_LOCK_GUARD(&s->lock);
+    QEMU_LOCK_GUARD(&scaler->lock);
 }
 
 static void apple_scaler_class_init(ObjectClass *klass, const void *data)
@@ -557,7 +557,7 @@ SysBusDevice *apple_scaler_create(AppleDTNode *node, MemoryRegion *dma_mr)
 {
     DeviceState *dev;
     SysBusDevice *sbd;
-    AppleScalerState *s;
+    AppleScalerState *scaler;
     AppleDTProp *prop;
     uint64_t *reg;
     int i;
@@ -567,31 +567,34 @@ SysBusDevice *apple_scaler_create(AppleDTNode *node, MemoryRegion *dma_mr)
 
     dev = qdev_new(TYPE_APPLE_SCALER);
     sbd = SYS_BUS_DEVICE(dev);
-    s = APPLE_SCALER(sbd);
+    scaler = APPLE_SCALER(sbd);
 
-    qemu_mutex_init(&s->lock);
+    qemu_mutex_init(&scaler->lock);
 
-    s->dma_mr = dma_mr;
+    scaler->dma_mr = dma_mr;
     assert_nonnull(s->dma_mr);
-    object_property_add_const_link(OBJECT(sbd), "dma_mr", OBJECT(s->dma_mr));
-    address_space_init(&s->dma_as, s->dma_mr, "scaler0.dma");
+    object_property_add_const_link(OBJECT(scaler), "dma_mr",
+                                   OBJECT(scaler->dma_mr));
+    address_space_init(&scaler->dma_as, scaler->dma_mr, "scaler0.dma");
 
     prop = apple_dt_get_prop(node, "reg");
     assert_nonnull(prop);
     reg = (uint64_t *)prop->data;
-    memory_region_init_io(&s->regs[0], OBJECT(sbd), &apple_scaler_reg_ops, sbd,
-                          "scaler0.regs0", reg[1]);
-    memory_region_init_io(&s->regs[1], OBJECT(sbd), &apple_scaler_unk_reg_ops,
-                          sbd, "scaler0.regs1", reg[3]);
-    sysbus_init_mmio(sbd, &s->regs[0]);
-    sysbus_init_mmio(sbd, &s->regs[1]);
+    memory_region_init_io(&scaler->regs[0], OBJECT(scaler),
+                          &apple_scaler_reg_ops, scaler, "scaler0.regs0",
+                          reg[1]);
+    memory_region_init_io(&scaler->regs[1], OBJECT(scaler),
+                          &apple_scaler_unk_reg_ops, scaler, "scaler0.regs1",
+                          reg[3]);
+    sysbus_init_mmio(sbd, &scaler->regs[0]);
+    sysbus_init_mmio(sbd, &scaler->regs[1]);
 
     for (i = 0; i < 2; i++) {
-        sysbus_init_irq(sbd, &s->irqs[i]);
+        sysbus_init_irq(sbd, &scaler->irqs[i]);
     }
 
-    s->bh = aio_bh_new_guarded(qemu_get_aio_context(), apple_scaler_bh, s,
-                               &dev->mem_reentrancy_guard);
+    scaler->bh = aio_bh_new_guarded(qemu_get_aio_context(), apple_scaler_bh,
+                                    scaler, &dev->mem_reentrancy_guard);
 
     return sbd;
 }
