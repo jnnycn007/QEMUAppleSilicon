@@ -71,7 +71,7 @@ typedef Object *(ObjectPropertyResolve)(Object *obj,
  * @name: the name of the property
  * @opaque: the opaque registered with the property
  *
- * Called when a property is removed from a object.
+ * Called when a property is removed from an object.
  */
 typedef void (ObjectPropertyRelease)(Object *obj,
                                      const char *name,
@@ -186,7 +186,7 @@ struct TypeImpl
  * always begins at byte 0 of that structure, as long as any sub-object places
  * its parent as the first member, we can cast directly to a #Object.
  *
- * As a result, #Object contains a reference to the objects type as its
+ * As a result, #Object contains a reference to the object's type as its
  * first member.  This allows identification of the real type of the object at
  * run time.
  */
@@ -548,7 +548,7 @@ struct TypeInfo
  * OBJECT_CLASS:
  * @class: A derivative of #ObjectClass.
  *
- * Converts a class to an #ObjectClass.  Since all objects are #Objects,
+ * Converts a class to an #ObjectClass.  Since all classes are #ObjectClasses,
  * this function will always succeed.
  */
 #define OBJECT_CLASS(class) \
@@ -693,26 +693,6 @@ struct InterfaceClass
 };
 
 #define TYPE_INTERFACE "interface"
-
-/**
- * INTERFACE_CLASS:
- * @klass: class to cast from
- * Returns: An #InterfaceClass or raise an error if cast is invalid
- */
-#define INTERFACE_CLASS(klass) \
-    OBJECT_CLASS_CHECK(InterfaceClass, klass, TYPE_INTERFACE)
-
-/**
- * INTERFACE_CHECK:
- * @interface: the type to return
- * @obj: the object to convert to an interface
- * @name: the interface type name
- *
- * Returns: @obj casted to @interface if cast is valid, otherwise raise error.
- */
-#define INTERFACE_CHECK(interface, obj, name) \
-    ((interface *)object_dynamic_cast_assert(OBJECT((obj)), (name), \
-                                             __FILE__, __LINE__, __func__))
 
 /**
  * object_new_with_class:
@@ -1173,7 +1153,7 @@ GSList *object_class_get_list_sorted(const char *implements_type,
  * object_ref:
  * @obj: the object
  *
- * Increase the reference count of a object.  A object cannot be freed as long
+ * Increase the reference count of an object.  An object cannot be freed as long
  * as its reference count is greater than zero.
  * Returns: @obj
  */
@@ -1183,7 +1163,7 @@ Object *object_ref(void *obj);
  * object_unref:
  * @obj: the object
  *
- * Decrease the reference count of a object.  A object cannot be freed as long
+ * Decrease the reference count of an object.  An object cannot be freed as long
  * as its reference count is greater than zero.
  */
 void object_unref(void *obj);
@@ -1424,7 +1404,7 @@ void object_unparent(Object *obj);
  *   Output visitor and the data will be written with @name as the name.
  * @errp: returns an error if this function fails
  *
- * Reads a property from a object.
+ * Reads a property from an object.
  *
  * Returns: %true on success, %false on failure.
  */
@@ -1590,7 +1570,7 @@ int object_property_get_enum(Object *obj, const char *name,
  *   name and then written as the property value.
  * @errp: returns an error if this function fails
  *
- * Writes a property to a object.
+ * Writes a property to an object.
  *
  * Returns: %true on success, %false on failure.
  */
@@ -1689,7 +1669,7 @@ const char *object_get_canonical_path_component(const Object *obj);
  * object_get_canonical_path:
  * @obj: the object
  *
- * Returns: The canonical path for a object, newly allocated.  This is
+ * Returns: The canonical path for an object, newly allocated.  This is
  * the path within the composition tree starting from the root.  Use
  * g_free() to free it.
  */
