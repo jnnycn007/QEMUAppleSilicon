@@ -572,7 +572,7 @@ SysBusDevice *apple_scaler_create(AppleDTNode *node, MemoryRegion *dma_mr)
     qemu_mutex_init(&scaler->lock);
 
     scaler->dma_mr = dma_mr;
-    assert_nonnull(s->dma_mr);
+    assert_nonnull(scaler->dma_mr);
     object_property_add_const_link(OBJECT(scaler), "dma_mr",
                                    OBJECT(scaler->dma_mr));
     address_space_init(&scaler->dma_as, scaler->dma_mr, "scaler0.dma");
