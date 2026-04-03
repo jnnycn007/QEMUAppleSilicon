@@ -954,6 +954,7 @@ void object_initialize_child_internal(Object *parent, const char *propname,
  */
 Object *object_dynamic_cast(Object *obj, const char *typename);
 
+#ifdef CONFIG_QOM_CAST_DEBUG
 /**
  * object_dynamic_cast_assert:
  * @obj: The object to cast.
@@ -968,7 +969,6 @@ Object *object_dynamic_cast(Object *obj, const char *typename);
  * This function is not meant to be called directly, but only through
  * the wrapper macro OBJECT_CHECK.
  */
-#ifdef CONFIG_QOM_CAST_DEBUG
 Object *object_dynamic_cast_assert(Object *obj, const char *typename,
                                    const char *file, int line, const char *func);
 #else
