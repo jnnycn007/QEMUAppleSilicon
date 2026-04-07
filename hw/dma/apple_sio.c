@@ -286,12 +286,13 @@ uint64_t apple_sio_dma_read(AppleSIODMAEndpoint *ep, void *buffer, uint64_t len)
         if (buf == NULL || !apple_sio_dma_map_buf(ep, buf)) {
             break;
         }
-        iovec_len = qemu_iovec_to_buf(&buf->iov, buf->completed, buffer, len);
+        iovec_len = qemu_iovec_to_buf(&buf->iov, buf->completed,
+                                      buffer + actual_len, len - actual_len);
+        actual_len += iovec_len;
         buf->completed += iovec_len;
         if (buf->completed >= buf->iov.size) {
             apple_sio_dma_writeback(s, ep, buf);
         }
-        actual_len += iovec_len;
     }
 
     return actual_len;
@@ -316,12 +317,13 @@ uint64_t apple_sio_dma_write(AppleSIODMAEndpoint *ep, void *buffer,
         if (buf == NULL || !apple_sio_dma_map_buf(ep, buf)) {
             break;
         }
-        iovec_len = qemu_iovec_from_buf(&buf->iov, buf->completed, buffer, len);
+        iovec_len = qemu_iovec_from_buf(&buf->iov, buf->completed,
+                                        buffer + actual_len, len - actual_len);
+        actual_len += iovec_len;
         buf->completed += iovec_len;
         if (buf->completed >= buf->iov.size) {
             apple_sio_dma_writeback(s, ep, buf);
         }
-        actual_len += iovec_len;
     }
 
     return actual_len;
