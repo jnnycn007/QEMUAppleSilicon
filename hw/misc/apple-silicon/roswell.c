@@ -70,7 +70,7 @@ static void apple_roswell_reset_command(AppleRoswellState *roswell)
 static uint8_t apple_roswell_pop_resp(AppleRoswellState *roswell)
 {
     if (roswell->command == ROSWELL_COMMAND_INVALID) {
-        qemu_log_mask(LOG_GUEST_ERROR, "no command set!!\n");
+        qemu_log_mask(LOG_GUEST_ERROR, "%s: no command set!!\n", __func__);
         return 0x00;
     }
 
@@ -131,7 +131,8 @@ static int apple_roswell_tx(I2CSlave *s, uint8_t data)
         roswell->command = ROSWELL_COMMAND_EXTENDED;
         break;
     default:
-        qemu_log_mask(LOG_GUEST_ERROR, "unknown command 0x%X\n", data);
+        qemu_log_mask(LOG_GUEST_ERROR, "%s: unknown command 0x%X\n", __func__,
+                      data);
         return -1;
     }
 
