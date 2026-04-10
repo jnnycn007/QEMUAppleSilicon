@@ -35,7 +35,7 @@ struct AppleSPMIPMUState {
     uint32_t reg_alarm;
     uint32_t reg_alarm_ctrl;
     uint32_t reg_alarm_event;
-    uint8_t reg[0xFFFF];
+    uint8_t reg[0x10000];
     uint16_t addr;
 };
 
@@ -228,7 +228,7 @@ static const VMStateDescription vmstate_apple_spmi_pmu = {
     .fields =
         (const VMStateField[]){
             VMSTATE_UINT16(addr, AppleSPMIPMUState),
-            VMSTATE_UINT8_ARRAY(reg, AppleSPMIPMUState, 0xFFFF),
+            VMSTATE_UINT8_ARRAY(reg, AppleSPMIPMUState, 0x10000),
             VMSTATE_TIMER_PTR(timer, AppleSPMIPMUState),
             VMSTATE_END_OF_LIST(),
         }
