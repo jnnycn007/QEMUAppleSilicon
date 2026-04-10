@@ -77,12 +77,15 @@ static void apple_spmi_pmu_set_tick_offset(AppleSPMIPMUState *pmu,
 
 static uint64_t apple_rtc_ns_to_tick(AppleSPMIPMUState *pmu, uint64_t now)
 {
-    uint64_t secs = now / NANOSECONDS_PER_SECOND;
-    uint64_t frac_ns = now % NANOSECONDS_PER_SECOND;
-    uint64_t frac_ticks = (frac_ns * RTC_TICK_FREQ) / NANOSECONDS_PER_SECOND;
-    return ((secs << 15) | (frac_ticks & 0x7FFF)) -
-           apple_spmi_pmu_get_tick_offset(pmu);
+    const uint64_t secs = now / NANOSECONDS_PER_SECOND;
+    const uint64_t frac_ns = now % NANOSECONDS_PER_SECOND;
+    const uint64_t frac_ticks =
+        (frac_ns * RTC_TICK_FREQ + NANOSECONDS_PER_SECOND / 2) /
+        NANOSECONDS_PER_SECOND;
+    const uint64_t ticks = ((secs << 15) | (frac_ticks & 0x7FFF));
+    return ticks - apple_spmi_pmu_get_tick_offset(pmu);
 }
+
 static uint64_t apple_rtc_get_current_tick(AppleSPMIPMUState *pmu)
 {
     return apple_rtc_ns_to_tick(pmu, qemu_clock_get_ns(rtc_clock));
