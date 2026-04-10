@@ -399,9 +399,7 @@ static void apple_scaler_reg_write(void *opaque, hwaddr addr, uint64_t data,
         break;
     case R_CTRL_COMMAND:
         if (REG_FIELD_EX32(data, CTRL_COMMAND, RUN) &&
-            !qatomic_read(&scaler->running)) {
-            qatomic_set(&scaler->running, true);
-
+            !qatomic_cmpxchg(&scaler->running, false, true)) {
             qemu_bh_schedule(scaler->bh);
         }
         return;
