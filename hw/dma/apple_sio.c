@@ -56,24 +56,24 @@ typedef struct {
     uint32_t len;
 } QEMU_PACKED SIODMASegment;
 
-typedef struct SIODMAMapRequest {
+typedef struct SIODMABuffer {
     SIODMASegment *segments;
     QEMUSGList sgl;
     QEMUIOVector iov;
+    uint8_t tag;
+    bool mapped;
     uint32_t segment_count;
     uint64_t completed;
     uint64_t start_timestamp;
-    uint32_t tag;
-    bool mapped;
-    QTAILQ_ENTRY(SIODMAMapRequest) next;
+    QTAILQ_ENTRY(SIODMABuffer) next;
 } SIODMABuffer;
 
 struct AppleSIODMAEndpoint {
     SIODMAConfig config;
     DMADirection direction;
     QemuMutex mutex;
-    uint32_t id;
-    QTAILQ_HEAD(, SIODMAMapRequest) buffers;
+    uint8_t id;
+    QTAILQ_HEAD(, SIODMABuffer) buffers;
 };
 
 struct AppleSIOClass {
@@ -723,7 +723,7 @@ static const VMStateDescription vmstate_sio_dma_map_buf = {
             VMSTATE_UINT32(segment_count, SIODMABuffer),
             VMSTATE_UINT64(completed, SIODMABuffer),
             VMSTATE_UINT64(start_timestamp, SIODMABuffer),
-            VMSTATE_UINT32(tag, SIODMABuffer),
+            VMSTATE_UINT8(tag, SIODMABuffer),
             VMSTATE_BOOL(mapped, SIODMABuffer),
             VMSTATE_END_OF_LIST(),
         },
@@ -739,7 +739,7 @@ static const VMStateDescription vmstate_apple_sio_dma_endpoint = {
         (const VMStateField[]){
             VMSTATE_STRUCT(config, AppleSIODMAEndpoint, 0,
                            vmstate_sio_dma_config, SIODMAConfig),
-            VMSTATE_UINT32(id, AppleSIODMAEndpoint),
+            VMSTATE_UINT8(id, AppleSIODMAEndpoint),
             VMSTATE_UINT32(direction, AppleSIODMAEndpoint),
             VMSTATE_QTAILQ_V(buffers, AppleSIODMAEndpoint, 0,
                              vmstate_sio_dma_map_buf, SIODMABuffer, next),
