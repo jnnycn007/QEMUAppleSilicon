@@ -1,5 +1,5 @@
 /*
- * Apple M2 Scaler and Colour Space Converter.
+ * Apple M2 Scaler and Color Space Converter.
  *
  * Copyright (c) 2026 Visual Ehrmanntraut (VisualEhrmanntraut).
  *

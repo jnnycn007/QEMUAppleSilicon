@@ -1,5 +1,5 @@
 /*
- * Apple M2 Scaler and Colour Space Converter.
+ * Apple M2 Scaler and Color Space Converter.
  *
  * Copyright (c) 2026 Visual Ehrmanntraut (VisualEhrmanntraut).
  *
@@ -546,7 +546,7 @@ static void apple_scaler_class_init(ObjectClass *klass, const void *data)
     rc->phases.hold = apple_scaler_reset_hold;
 
     dc->realize = apple_scaler_realize;
-    dc->desc = "Apple M2 Scaler and Colour Space Converter";
+    dc->desc = "Apple M2 Scaler and Color Space Converter";
     set_bit(DEVICE_CATEGORY_DISPLAY, dc->categories);
 }
 
