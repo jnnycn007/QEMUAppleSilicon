@@ -829,6 +829,14 @@ static inline int64_t get_clock(void)
     return muldiv64(ti.QuadPart, NANOSECONDS_PER_SECOND, clock_freq);
 }
 
+#elif defined(__APPLE__)
+
+static inline int64_t get_clock(void)
+{
+    /* Equivalent to `mach_continuous_time()` */
+    return clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+}
+
 #else
 
 extern int use_rt_clock;

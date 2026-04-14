@@ -46,6 +46,13 @@ static void __attribute__((constructor)) init_get_clock(void)
     clock_start = get_clock();
 }
 
+#elif defined(__APPLE__)
+
+static void __attribute__((constructor)) init_get_clock(void)
+{
+    clock_start = get_clock();
+}
+
 #else
 
 int use_rt_clock;
@@ -60,4 +67,5 @@ static void __attribute__((constructor)) init_get_clock(void)
     }
     clock_start = get_clock();
 }
+
 #endif
