@@ -703,7 +703,8 @@ static int dwc3_bd_copy(DWC3State *s, DWC3BufferDesc *desc, USBPacket *p)
     // if both if_0/if_1 are there, if_0 is out, if_1 is in.
     // can't use desc_left here, must recognize the new desc->actual_length
     // unsure if that should only be done for OUT, or for both.
-    if (desc->length - desc->actual_length > 0 && packet_left > 0 &&
+    // "v0 - v1 > 0" equals "v0 > v1" according to a quick python testcase
+    if (desc->length > desc->actual_length && packet_left > 0 &&
         packet_left % p->ep->max_packet_size == 0) {
         DPRINTF("%s: xfer_size 0x%x packet_left 0x%x if_0: USB_RET_SUCCESS\n",
                 __func__, xfer_size, packet_left);
@@ -1135,8 +1136,8 @@ static void dwc3_reset_enter(Object *obj, ResetType type)
     // restore mode and regular boot can cope with
     // DCFG_HIGHSPEED/DCFG_SUPERSPEED. anything seen otherwise (e.g. when
     // restore mode can, but regular boot can't) could be a red herring because
-    // of rsc_idx (especially when it's globally defined). s->dcfg =
-    // DCFG_IGNSTRMPP | (2 << 10) | DCFG_SUPERSPEED;
+    // of rsc_idx (especially when it's globally defined).
+    // s->dcfg = DCFG_IGNSTRMPP | (2 << 10) | DCFG_SUPERSPEED;
     s->dcfg = DCFG_IGNSTRMPP | (2 << 10) | DCFG_HIGHSPEED;
     s->dsts =
         DSTS_COREIDLE | DSTS_USBLNKST(LINK_STATE_SS_DIS) | DSTS_RXFIFOEMPTY;
@@ -2024,7 +2025,8 @@ static void dwc3_process_packet(DWC3State *s, DWC3Endpoint *ep, USBPacket *p)
         // // // // // event.endpoint_event = DEPEVT_XFERCOMPLETE;
         dwc3_ep_event(s, ep->epid, event);
         // using NAK or SUCCESS here might hurt performance, but might avoid
-        // timeouts p->status = USB_RET_ASYNC;
+        // timeouts
+        // p->status = USB_RET_ASYNC;
         p->status = USB_RET_NAK;
         // p->status = USB_RET_SUCCESS;
         goto complete;
@@ -2052,12 +2054,14 @@ static void dwc3_process_packet(DWC3State *s, DWC3Endpoint *ep, USBPacket *p)
             event.status |= DEPEVT_STATUS_TRANSFER_ACTIVE;
             dwc3_ep_event(s, ep->epid, event);
             // using NAK or SUCCESS here might hurt performance, but might avoid
-            // timeouts p->status = USB_RET_ASYNC;
+            // timeouts
+            // p->status = USB_RET_ASYNC;
             p->status = USB_RET_NAK;
             // using "SUCCESS" will cause the "AppleUSBXDCI" to be used and its
             // debug messages to show, but using "nak" or "async" will make the
-            // recovery process continue. must return "success" here? p->status
-            // = USB_RET_SUCCESS; using "complete" instead of "return" here
+            // recovery process continue. must return "success" here?
+            // p->status = USB_RET_SUCCESS;
+            // using "complete" instead of "return" here
             // might cause a loop, but using "return" causes the loop to be even
             // earlier. using xfercomplete/success/complete will result in dart
             // errors using xferinprogress/success/complete will result in dart
