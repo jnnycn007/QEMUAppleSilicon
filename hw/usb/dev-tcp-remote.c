@@ -408,6 +408,12 @@ static void usb_tcp_remote_bind_unix(USBTCPRemoteState *s, Error **errp)
     struct sockaddr_un addr = { 0 };
     struct stat addr_stat = { 0 };
 
+    if (s->conn_port != 0) {
+        error_setg(errp, "Port specified for UNIX socket, this option is for "
+                         "IPv4/IPv6 connections");
+        return;
+    }
+
     if (s->conn_addr == NULL) {
         s->conn_addr = g_strdup(USB_TCP_REMOTE_UNIX_DEFAULT);
         warn_report("No socket path specified, using default (`%s`).",
