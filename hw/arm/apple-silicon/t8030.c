@@ -583,6 +583,7 @@ static void t8030_memory_setup(AppleT8030MachineState *t8030)
 
     if (env_find(nvram, "security-mode-change-enable") != NULL) {
         uint32_t val = env_get_uint(nvram, "security-mode-change-enable", 0);
+        env_unset(nvram, "security-mode-change-enable");
         apple_dt_set_prop_u32(chosen, "security-mode-change-enable", val);
     }
 
