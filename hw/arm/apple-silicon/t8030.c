@@ -612,7 +612,6 @@ static void t8030_memory_setup(AppleT8030MachineState *t8030)
         return;
     }
 
-    AppleDTNode *chosen = apple_dt_get_node(t8030->device_tree, "chosen");
     // HACK: Use DEV model to restore without FDR errors
     // NOTE: Previously restored back to AP, however,
     // iOS 16+ kernel panics because of the AP ticket,
