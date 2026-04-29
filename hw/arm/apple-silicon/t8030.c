@@ -2054,11 +2054,14 @@ static void t8030_create_lm_backlight(AppleT8030MachineState *t8030)
 
 static void t8030_create_misc(AppleT8030MachineState *t8030)
 {
-    AppleDTNode *child;
     AppleDTNode *armio;
+    AppleDTNode *chosen;
+    AppleDTNode *child;
 
     armio = apple_dt_get_node(t8030->device_tree, "arm-io");
     assert_nonnull(armio);
+    chosen = apple_dt_get_node(t8030->device_tree, "chosen");
+    assert_nonnull(chosen);
 
     child = apple_dt_get_node(armio, "bluetooth");
     assert_nonnull(child);
@@ -2066,10 +2069,21 @@ static void t8030_create_misc(AppleT8030MachineState *t8030)
     apple_dt_set_prop(child, "local-mac-address", 6,
                       (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x42, 0x42 });
 
-    child = apple_dt_get_node(t8030->device_tree, "chosen");
-    assert_nonnull(child);
-    apple_dt_set_prop(child, "mac-address-bluetooth0", 6,
+    apple_dt_set_prop(chosen, "mac-address-bluetooth0", 6,
                       (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x42, 0x42 });
+
+    child = apple_dt_get_node(armio, "usb-drd");
+    assert_nonnull(child);
+
+    apple_dt_set_prop(child, "device-mac-address", 6,
+                      (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x22 });
+    apple_dt_set_prop(child, "host-mac-address", 6,
+                      (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x22, 0x12 });
+
+    apple_dt_set_prop(chosen, "mac-address-ethernet0", 6,
+                      (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x22 });
+    apple_dt_set_prop(chosen, "mac-address-wifi0", 6,
+                      (const uint8_t[]){ 0xDE, 0xAD, 0xBE, 0xEF, 0x22, 0x12 });
 
     // child = apple_dt_get_node(armio, "wlan");
     // assert_nonnull(child);
