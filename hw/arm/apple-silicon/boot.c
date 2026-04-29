@@ -591,8 +591,9 @@ void apple_boot_populate_dt(AppleDTNode *root, AppleBootInfo *info,
 
     child = apple_dt_get_node(root, "chosen/manifest-properties");
     assert_nonnull(child);
-    if (qcrypto_hash_bytes(QCRYPTO_HASH_ALGO_SHA256, boot_nonce_data, boot_nonce_len,
-                           &hash, &hash_len, &error_fatal) >= 0) {
+    if (qcrypto_hash_bytes(QCRYPTO_HASH_ALGO_SHA256, boot_nonce_data,
+                           boot_nonce_len, &hash, &hash_len,
+                           &error_fatal) >= 0) {
         apple_dt_set_prop(child, "BNCH", hash_len, hash);
         g_free(hash);
         hash = NULL;
@@ -1430,7 +1431,8 @@ vaddr apple_boot_load_macho(MachoHeader64 *header, AddressSpace *as,
                              sp = apple_boot_next_sect(sp)) {
                             sp->addr -= virt_slide;
                         }
-                        // probably won't change anything, it's just for the symmetry
+                        // probably won't change anything, it's just for the
+                        // symmetry
                         seg->vmaddr -= virt_slide;
                     }
                 }
